@@ -1,0 +1,71 @@
+{
+  "comando": "copia del commit 0b48b5d en una carpeta; cd <carpeta> && env -i PATH=/usr/bin:/bin LANG=C.UTF-8 PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -B -c '<codigo que importa server y lee cada nombre>' (el codigo y la lista de nombres estan en generar_constantes.py de la sala)",
+  "normalizacion": "tuplas y listas como listas; TZ como su texto; el sentinela object() como \"<sentinela>\"",
+  "origen": "App de registro, commit 0b48b5d (copia git archive, sin .env, entorno limpio: NOCODB_T_* sin definir)",
+  "valores": {
+    "ALQUILER_DEPOSITO": "alquiler_deposito",
+    "ALQUILER_DESDE": "alquiler_desde",
+    "ALQUILER_HASTA": "alquiler_hasta",
+    "CAMPOS_DE_UNA_FICHA": "Id,telefono,telefono_2,unida_a,quitada_el",
+    "CARA_B64_CHARS": 684,
+    "CARA_BYTES": 512,
+    "CARA_COLUMNA": "caras",
+    "CARA_DIMS": 128,
+    "CARA_RANURAS": 3,
+    "CARA_SEPARADOR": "|",
+    "CASILLAS_ALQUILER": [
+      "alquiler_desde",
+      "alquiler_hasta",
+      "alquiler_deposito"
+    ],
+    "ENTRADA_ORIGENES": [
+      "mensaje",
+      "dictado",
+      "reserva",
+      "recuperado"
+    ],
+    "ESTADOS_TERMINALES": [
+      "CANCELADA",
+      "POSPUESTA"
+    ],
+    "LEADS_CASILLAS_DE_TELEFONO": [
+      "telefono",
+      "telefono_2"
+    ],
+    "L_ASIS_PERSONA": "c5feh1enr93lxdu",
+    "L_ASIS_SESION": "c0rtlu1u4dt17kr",
+    "L_MUSICOS": "ctgr3ukg2fgp2ct",
+    "L_PERSONA_INSCRIPCIONES": "c7ofb5a4o5qb1q2",
+    "L_PERSONA_PAGOS": "cz8lk59aw92xg9p",
+    "L_PERSONA_PROYECTOS": "cknlb4k94rqjqhq",
+    "L_PERSONA_SESIONES": "c4bb25mgcv6ghak",
+    "L_PROY_MIEMBROS": "c4dwqncvgjhq4m8",
+    "MERCADEO_ENVIO_ESTADOS": {
+      "aceptado": "Aceptado por WhatsApp",
+      "aprobado": "Aprobado",
+      "en_camino": "En camino",
+      "no_salio": "No salió",
+      "pendiente": "Sin decidir",
+      "quitado": "Quitado"
+    },
+    "PORTAL_COLUMNAS_VETADAS": [
+      "bsuid",
+      "caras"
+    ],
+    "SALTOS_DE_UNION": 10,
+    "SESION_FIELDS": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito",
+    "SESION_FIELDS_LUCY": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+    "TODAS_LAS_COLUMNAS": "<sentinela>",
+    "TZ": "America/Santo_Domingo",
+    "T_ASISTENCIAS": "mt5snh0plx7z0ga",
+    "T_BANDEJA_PERSONAS": "",
+    "T_CONVERSACIONES": "mtfpik394m8r7ih",
+    "T_MERCADEO_ENVIOS": "",
+    "T_PERSONAS": "mhh7qqeru2ez8q1",
+    "T_PERSONAS_ANOTACIONES": "",
+    "T_PERSONAS_QUITADAS": "",
+    "T_PROYECTOS": "mrgzxjc0ykmj9pk",
+    "T_SESIONES": "mja78x7qcagta8z",
+    "T_UNIONES_PERSONAS": ""
+  }
+}

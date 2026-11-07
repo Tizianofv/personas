@@ -1,0 +1,434 @@
+{
+  "escrituras_a_nocodb": 0,
+  "pedidos": 16,
+  "rutas": [
+    {
+      "con_llave": true,
+      "cuerpo": null,
+      "metodo": "GET",
+      "nombre": "config_con_llave",
+      "respuesta": {
+        "PORTAL_BUSQUEDA_MAX": 100,
+        "PORTAL_ORDEN_POR_OMISION": "nombre",
+        "PORTAL_PAGINA": 50,
+        "PORTAL_PAGINA_MAX": 100,
+        "errores": [
+          "PortalNoCargo",
+          "_NoSeSupo"
+        ]
+      },
+      "ruta": "/api/servicio/personas/config",
+      "status": 200
+    },
+    {
+      "con_llave": false,
+      "cuerpo": null,
+      "metodo": "GET",
+      "nombre": "config_sin_llave",
+      "respuesta": {
+        "error": "llave de servicio inválida"
+      },
+      "ruta": "/api/servicio/personas/config",
+      "status": 401
+    },
+    {
+      "con_llave": true,
+      "cuerpo": {
+        "identidad": "18097770001"
+      },
+      "metodo": "POST",
+      "nombre": "identidad_telefono",
+      "respuesta": {
+        "clave": "18097770001",
+        "fichas": [
+          {
+            "CreatedAt": "2026-10-01T10:00:00Z",
+            "Cumpleanos": "1990-03-14",
+            "Id": 1,
+            "bsuid": "DO.0000000000000001",
+            "credito": 0,
+            "email": "p1@ejemplo.test",
+            "email_2": "",
+            "instagram": "",
+            "nombre": "Persona de prueba 1",
+            "nombre_whatsapp": "",
+            "quitada_el": null,
+            "telefono": "18097770001",
+            "telefono_2": "",
+            "unida_a": null
+          },
+          {
+            "CreatedAt": "2026-10-04T10:00:00Z",
+            "Cumpleanos": null,
+            "Id": 4,
+            "bsuid": null,
+            "credito": 0,
+            "email": "",
+            "email_2": "",
+            "instagram": "",
+            "nombre": "Persona de prueba 4",
+            "nombre_whatsapp": "",
+            "quitada_el": null,
+            "telefono": "18097770001",
+            "telefono_2": "",
+            "unida_a": 1
+          }
+        ],
+        "numero": "18097770001"
+      },
+      "ruta": "/api/servicio/personas/identidad",
+      "status": 200
+    },
+    {
+      "con_llave": true,
+      "cuerpo": {
+        "identidad": "DO.0000000000000001"
+      },
+      "metodo": "POST",
+      "nombre": "identidad_bsuid",
+      "respuesta": {
+        "clave": null,
+        "fichas": [],
+        "numero": "18097770001"
+      },
+      "ruta": "/api/servicio/personas/identidad",
+      "status": 200
+    },
+    {
+      "con_llave": true,
+      "cuerpo": {
+        "identidad": "18097770999"
+      },
+      "metodo": "POST",
+      "nombre": "identidad_sin_ficha",
+      "respuesta": {
+        "clave": "18097770999",
+        "fichas": [],
+        "numero": "18097770999"
+      },
+      "ruta": "/api/servicio/personas/identidad",
+      "status": 200
+    },
+    {
+      "con_llave": false,
+      "cuerpo": {
+        "identidad": "18097770001"
+      },
+      "metodo": "POST",
+      "nombre": "identidad_sin_llave",
+      "respuesta": {
+        "error": "llave de servicio inválida"
+      },
+      "ruta": "/api/servicio/personas/identidad",
+      "status": 401
+    },
+    {
+      "con_llave": true,
+      "cuerpo": {},
+      "metodo": "POST",
+      "nombre": "fichas_con_llave",
+      "respuesta": [
+        {
+          "CreatedAt": "2026-10-01T10:00:00Z",
+          "Cumpleanos": "1990-03-14",
+          "Id": 1,
+          "bsuid": "DO.0000000000000001",
+          "credito": 0,
+          "email": "p1@ejemplo.test",
+          "email_2": "",
+          "instagram": "",
+          "nombre": "Persona de prueba 1",
+          "nombre_whatsapp": "",
+          "quitada_el": null,
+          "telefono": "18097770001",
+          "telefono_2": "",
+          "unida_a": null
+        },
+        {
+          "CreatedAt": "2026-10-02T10:00:00Z",
+          "Cumpleanos": null,
+          "Id": 2,
+          "bsuid": null,
+          "credito": 250,
+          "email": "p2@ejemplo.test",
+          "email_2": "",
+          "instagram": "",
+          "nombre": "Persona de prueba 2",
+          "nombre_whatsapp": "",
+          "quitada_el": null,
+          "telefono": "18097770002",
+          "telefono_2": "",
+          "unida_a": null
+        },
+        {
+          "CreatedAt": "2026-10-03T10:00:00Z",
+          "Cumpleanos": null,
+          "Id": 3,
+          "bsuid": null,
+          "credito": 0,
+          "email": "",
+          "email_2": "",
+          "instagram": "",
+          "nombre": "Persona de prueba 3",
+          "nombre_whatsapp": "",
+          "quitada_el": "2026-10-05T00:00:00Z",
+          "telefono": "18097770003",
+          "telefono_2": "",
+          "unida_a": null
+        },
+        {
+          "CreatedAt": "2026-10-04T10:00:00Z",
+          "Cumpleanos": null,
+          "Id": 4,
+          "bsuid": null,
+          "credito": 0,
+          "email": "",
+          "email_2": "",
+          "instagram": "",
+          "nombre": "Persona de prueba 4",
+          "nombre_whatsapp": "",
+          "quitada_el": null,
+          "telefono": "18097770001",
+          "telefono_2": "",
+          "unida_a": 1
+        }
+      ],
+      "ruta": "/api/servicio/personas/fichas",
+      "status": 200
+    },
+    {
+      "con_llave": false,
+      "cuerpo": {},
+      "metodo": "POST",
+      "nombre": "fichas_sin_llave",
+      "respuesta": {
+        "error": "llave de servicio inválida"
+      },
+      "ruta": "/api/servicio/personas/fichas",
+      "status": 401
+    },
+    {
+      "con_llave": true,
+      "cuerpo": {},
+      "metodo": "POST",
+      "nombre": "anotaciones_todas",
+      "respuesta": [
+        {
+          "Id": 1,
+          "canal": "",
+          "clase": "origen",
+          "cuando": "2026-10-02T09:00:00Z",
+          "dicho_el": "",
+          "ficha_id": 1,
+          "quien": "",
+          "valor": "instagram"
+        },
+        {
+          "Id": 2,
+          "canal": "",
+          "clase": "permiso",
+          "cuando": "2026-10-03T09:00:00Z",
+          "dicho_el": "",
+          "ficha_id": 2,
+          "quien": "",
+          "valor": "si"
+        }
+      ],
+      "ruta": "/api/servicio/personas/anotaciones",
+      "status": 200
+    },
+    {
+      "con_llave": true,
+      "cuerpo": {
+        "campos": "Id,ficha_id,clase,valor",
+        "where": [
+          [
+            "clase",
+            "eq",
+            "origen"
+          ]
+        ]
+      },
+      "metodo": "POST",
+      "nombre": "anotaciones_filtradas",
+      "respuesta": [
+        {
+          "Id": 1,
+          "clase": "origen",
+          "ficha_id": 1,
+          "valor": "instagram"
+        }
+      ],
+      "ruta": "/api/servicio/personas/anotaciones",
+      "status": 200
+    },
+    {
+      "con_llave": true,
+      "cuerpo": {
+        "where": [
+          [
+            "clase",
+            "eq",
+            "x(y"
+          ]
+        ]
+      },
+      "metodo": "POST",
+      "nombre": "anotaciones_where_roto",
+      "respuesta": {
+        "error": "where: lista de [campo, operador, valor] con operadores conocidos y valores sin ( ) , ~.",
+        "ok": false
+      },
+      "ruta": "/api/servicio/personas/anotaciones",
+      "status": 400
+    },
+    {
+      "con_llave": false,
+      "cuerpo": {},
+      "metodo": "POST",
+      "nombre": "anotaciones_sin_llave",
+      "respuesta": {
+        "error": "llave de servicio inválida"
+      },
+      "ruta": "/api/servicio/personas/anotaciones",
+      "status": 401
+    },
+    {
+      "con_llave": true,
+      "cuerpo": {
+        "desde": 0,
+        "limite": 2,
+        "q": ""
+      },
+      "metodo": "POST",
+      "nombre": "pagina_primera",
+      "respuesta": {
+        "coincidencias": 2,
+        "col": "nombre",
+        "columnas_sin_clasificar": [
+          "columna_de_prueba_sin_clasificar"
+        ],
+        "desde": 0,
+        "filas": [
+          {
+            "Cumpleanos": "1990-03-14",
+            "Id": 1,
+            "Ultima_visita": "2026-10-20",
+            "Visitas": 1,
+            "credito": 0,
+            "email": "p1@ejemplo.test",
+            "email_2": "",
+            "instagram": "",
+            "nombre": "Persona de prueba 1",
+            "nombre_whatsapp": "",
+            "telefono": "18097770001",
+            "telefono_2": ""
+          },
+          {
+            "Cumpleanos": null,
+            "Id": 2,
+            "Ultima_visita": "2026-10-21",
+            "Visitas": 1,
+            "credito": 250,
+            "email": "p2@ejemplo.test",
+            "email_2": "",
+            "instagram": "",
+            "nombre": "Persona de prueba 2",
+            "nombre_whatsapp": "",
+            "telefono": "18097770002",
+            "telefono_2": ""
+          }
+        ],
+        "hay_mas": false,
+        "ok": true,
+        "orden": "asc",
+        "total": 2
+      },
+      "ruta": "/api/servicio/personas/pagina",
+      "status": 200
+    },
+    {
+      "con_llave": true,
+      "cuerpo": {
+        "col": "nombre",
+        "desde": 0,
+        "limite": 10,
+        "q": "prueba de"
+      },
+      "metodo": "POST",
+      "nombre": "pagina_busqueda",
+      "respuesta": {
+        "coincidencias": 2,
+        "col": "nombre",
+        "columnas_sin_clasificar": [
+          "columna_de_prueba_sin_clasificar"
+        ],
+        "desde": 0,
+        "filas": [
+          {
+            "Cumpleanos": "1990-03-14",
+            "Id": 1,
+            "Ultima_visita": "2026-10-20",
+            "Visitas": 1,
+            "credito": 0,
+            "email": "p1@ejemplo.test",
+            "email_2": "",
+            "instagram": "",
+            "nombre": "Persona de prueba 1",
+            "nombre_whatsapp": "",
+            "telefono": "18097770001",
+            "telefono_2": ""
+          },
+          {
+            "Cumpleanos": null,
+            "Id": 2,
+            "Ultima_visita": "2026-10-21",
+            "Visitas": 1,
+            "credito": 250,
+            "email": "p2@ejemplo.test",
+            "email_2": "",
+            "instagram": "",
+            "nombre": "Persona de prueba 2",
+            "nombre_whatsapp": "",
+            "telefono": "18097770002",
+            "telefono_2": ""
+          }
+        ],
+        "hay_mas": false,
+        "ok": true,
+        "orden": "asc",
+        "total": 2
+      },
+      "ruta": "/api/servicio/personas/pagina",
+      "status": 200
+    },
+    {
+      "con_llave": true,
+      "cuerpo": {
+        "col": "no_existe",
+        "q": ""
+      },
+      "metodo": "POST",
+      "nombre": "pagina_columna_mala",
+      "respuesta": {
+        "error": "Parámetros de la página fuera de forma.",
+        "ok": false
+      },
+      "ruta": "/api/servicio/personas/pagina",
+      "status": 400
+    },
+    {
+      "con_llave": false,
+      "cuerpo": {
+        "q": ""
+      },
+      "metodo": "POST",
+      "nombre": "pagina_sin_llave",
+      "respuesta": {
+        "error": "llave de servicio inválida"
+      },
+      "ruta": "/api/servicio/personas/pagina",
+      "status": 401
+    }
+  ]
+}
