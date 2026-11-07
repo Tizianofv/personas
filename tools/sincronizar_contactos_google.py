@@ -18,7 +18,7 @@ LO QUE NO HACE, A PROPÓSITO:
   · No borra nada en ningún lado, ni en Google ni en NocoDB.
   · No imprime nombres, teléfonos ni correos. La puerta sí imprime una línea `[PUERTA-FICHAS]` por contacto, con el
     `ficha_id` (el número de la ficha, no un dato de la persona); el JSON del final es solo cifras.
-  · No arranca el servidor: importar `server` no corre `main()`.
+  · No importa la App de registro: la puerta y el cliente de NocoDB están en este repo (`personas.py`, `base.py`).
 
 SALIDA: un JSON con `modo` (siempre `contar`), `contar` (lo que haría), `escrito` (siempre `null`: este guion no escribe),
 `sin_pasar` (segundos teléfonos y correos que la puerta no recibe), `desde_fichas` (P2) y `p4` (P4: cifras del plan).
@@ -33,7 +33,6 @@ sys.path.insert(0, ROOT)
 
 import google_contactos  # noqa: E402
 import personas  # noqa: E402
-import server  # noqa: E402,F401  (pone `personas.S`, sin el cual la puerta no sabe hablar con NocoDB)
 
 
 def main():

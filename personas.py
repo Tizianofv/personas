@@ -29,9 +29,9 @@ import threading
 import time
 import unicodedata
 from datetime import date, timedelta, timezone
-from datetime import datetime as _fecha_hora      # con alias: `datetime` es un nombre que las pruebas reasignan en el servidor y aquí se escribiría `S.datetime`
+from datetime import datetime as _fecha_hora      # con alias: `datetime` es un nombre que las pruebas reasignan en el servidor y aquí se escribiría `_base.datetime`
+import base as _base   # la base de Personas (constantes y cliente de NocoDB); antes era `S.` de server.py
 
-S = None   # el servidor; lo pone `server.py` al final (regla 2)
 
 
 def ficha_unida(fila):
@@ -51,15 +51,15 @@ def sonda_de_tabla():
     """Una lectura de UNA fila de `personas` sin datos (`limit 1`, solo `Id`): sirve para saber que NocoDB contesta antes de escribir
     (G-C6 de las escrituras de Registro). Es la puerta quien lee; quien llama no toca la tabla. Solo lee. Si no contesta, levanta.
     """
-    S.nc("GET", f"/api/v2/tables/{S.T_PERSONAS}/records", query={"limit": 1, "fields": "Id"})
+    _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records", query={"limit": 1, "fields": "Id"})
 
 
 def leer_ficha_para_lucy(persona_id):
-    """La fila de `personas` con ese `Id`, con los campos de `S.CAMPOS_DE_UNA_FICHA`. `None` si no existe o no vino como fila.
+    """La fila de `personas` con ese `Id`, con los campos de `_base.CAMPOS_DE_UNA_FICHA`. `None` si no existe o no vino como fila.
     Es la lectura que `server.py` hacía directo (`_leer_una_ficha_para_lucy`); Lucy la pide ahora por la puerta (paso 3c). Solo lee."""
     try:
-        fila = S.nc("GET", f"/api/v2/tables/{S.T_PERSONAS}/records/{int(persona_id)}", query={"fields": S.CAMPOS_DE_UNA_FICHA})
-    except S.ErrorDeNocodb as e:
+        fila = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records/{int(persona_id)}", query={"fields": _base.CAMPOS_DE_UNA_FICHA})
+    except _base.ErrorDeNocodb as e:
         if e.status == 404:
             return None
         raise
@@ -91,7 +91,7 @@ def get_personas(force=False):
             return _personas_cache["data"]
         # Las fichas unidas a otra y las guardadas aparte no salen; `unida_a` y `quitada_el` se piden para saberlo y no viajan.
         data = [{k: v for k, v in p.items() if k not in ("unida_a", "quitada_el")}
-                for p in S.nc_list_all(S.T_PERSONAS, {"fields": PERSONA_FIELDS + ",unida_a,quitada_el"}) if not ficha_fuera(p)]
+                for p in _base.nc_list_all(_base.T_PERSONAS, {"fields": PERSONA_FIELDS + ",unida_a,quitada_el"}) if not ficha_fuera(p)]
         _personas_cache["data"] = data
         _personas_cache["ts"] = time.time()
         return data
@@ -228,7 +228,7 @@ def _numeros_de_identidades(idents, leer_fichas, tragar):
 
 
 def _leer_fichas_por_bsuid(where):
-    return S.nc_list_all(S.T_PERSONAS, {"where": where, "fields": "Id,telefono,bsuid"})
+    return _base.nc_list_all(_base.T_PERSONAS, {"where": where, "fields": "Id,telefono,bsuid"})
 
 
 def numeros_de_identidades(idents):
@@ -282,7 +282,7 @@ def normalizar_telefono(s):
 def buscar_personas(q, limit=12):
     """El buscador del check-in y de «Personas». **Los teléfonos de la ficha son los DOS** (principal y secundario, parte 4):
     quien teclea el segundo número encuentra a la persona, igual que con el primero."""
-    return buscar_en_fichas(S.get_personas(), q, limit)
+    return buscar_en_fichas(get_personas(), q, limit)
 
 
 def buscar_en_fichas(fichas, q, limit=12):
@@ -402,7 +402,7 @@ _PORTAL_TIPOS_DE_ENLACE = frozenset({"LinkToAnotherRecord", "Links", "ForeignKey
 def portal_columnas_sin_clasificar(columnas_meta):
     """Títulos de columnas reales (la lista de `/meta/tables/<id>`) que no están en ningún cubo. Las de
     infraestructura (`system`) y las de enlace (por su tipo, no por su nombre) no cuentan."""
-    conocidas = set(PORTAL_COLUMNAS_VISIBLES) | set(S.PORTAL_COLUMNAS_VETADAS) | PORTAL_COLUMNAS_NO_DATO
+    conocidas = set(PORTAL_COLUMNAS_VISIBLES) | set(_base.PORTAL_COLUMNAS_VETADAS) | PORTAL_COLUMNAS_NO_DATO
     sin = set()
     for c in columnas_meta or []:
         if not isinstance(c, dict) or c.get("title") in conocidas:
@@ -424,7 +424,7 @@ def portal_sin_clasificar_ahora():
     if c["valor"] is not None and time.time() - c["ts"] < PORTAL_SIN_CLASIFICAR_SEG:
         return c["valor"]
     try:
-        meta = S._opciones_select(S.T_PERSONAS, None, columnas=S.TODAS_LAS_COLUMNAS)
+        meta = _base._opciones_select(_base.T_PERSONAS, None, columnas=_base.TODAS_LAS_COLUMNAS)
     except Exception as e:  # noqa: BLE001
         print(f"[portal-personas] no se pudo comprobar las columnas: {type(e).__name__}")
         return None
@@ -444,7 +444,7 @@ def _portal_leer_todas():
     páginas, o que dice un total que no coincide con lo recibido, es un error y no una lista corta."""
     filas, desde, total = [], 0, None
     while True:
-        pag = S.nc("GET", f"/api/v2/tables/{S.T_PERSONAS}/records",
+        pag = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records",
                  query={"fields": ",".join(PORTAL_LISTA_CAMPOS + ("unida_a", "quitada_el")), "limit": 200, "offset": desde})
         info = pag.get("pageInfo") if isinstance(pag, dict) else None
         if not isinstance(info, dict) or not isinstance(info.get("isLastPage"), bool):
@@ -466,7 +466,7 @@ def _portal_leer_todas_estricta():
     """Lo mismo que `_portal_leer_todas` (los mismos campos, las mismas fichas fuera), pero con el lector ESTRICTO de Personas
     (`_anotaciones_leer_tabla`): da TODAS las personas o levanta `_NoSeSupo`. No tiene el `while True` de `_portal_leer_todas`: el tope de
     páginas es `ANOTACIONES_PAGINAS_MAX`. La usa solo la ruta de Mercadeo (`personas_lectura.pagina`), por `portal_personas_pagina(leer=...)`."""
-    filas = _anotaciones_leer_tabla(S.T_PERSONAS, ",".join(PORTAL_LISTA_CAMPOS + ("unida_a", "quitada_el")))
+    filas = _anotaciones_leer_tabla(_base.T_PERSONAS, ",".join(PORTAL_LISTA_CAMPOS + ("unida_a", "quitada_el")))
     return [f for f in filas if not ficha_fuera(f)]
 
 
@@ -503,7 +503,7 @@ def _dia_de_checkin(v):
             horas, minutos = int(limpio[:2]), int(limpio[2:4] or 0)
             tz = timezone((1 if zona[0] == "+" else -1) * timedelta(hours=horas, minutes=minutos))
         momento = _fecha_hora(int(a), int(mes), int(d), int(hh), int(mm), int(ss or 0), tzinfo=tz)
-        return momento.astimezone(S.TZ).date().isoformat()
+        return momento.astimezone(_base.TZ).date().isoformat()
     except (ValueError, OverflowError):
         return None
 
@@ -518,7 +518,7 @@ def _portal_leer_asistencias(persona_id=None):
         q = {"fields": "persona_id,checkin_at", "limit": 200, "offset": desde}
         if persona_id is not None:
             q["where"] = f"(persona_id,eq,{int(persona_id)})"
-        pag = S.nc("GET", f"/api/v2/tables/{S.T_ASISTENCIAS}/records", query=q)
+        pag = _base.nc("GET", f"/api/v2/tables/{_base.T_ASISTENCIAS}/records", query=q)
         info = pag.get("pageInfo") if isinstance(pag, dict) else None
         if not isinstance(info, dict) or not isinstance(info.get("isLastPage"), bool):
             raise PortalNoCargo("NocoDB no dijo si había más páginas de asistencias.")
@@ -546,7 +546,7 @@ def _portal_leer_asistencias_estricta():
     (no hay bucle sin fin). Un error de NocoDB no se traga: sube a quien llama. Solo `GET`. Si no levanta, devuelve lo mismo que el laxo sin fichas."""
     filas, desde, total = [], 0, None
     for _ in range(ASISTENCIAS_PAGINAS_MAX):
-        pag = S.nc("GET", f"/api/v2/tables/{S.T_ASISTENCIAS}/records",
+        pag = _base.nc("GET", f"/api/v2/tables/{_base.T_ASISTENCIAS}/records",
                    query={"fields": "persona_id,checkin_at", "limit": 200, "offset": desde})
         info = pag.get("pageInfo") if isinstance(pag, dict) else None
         trozo = pag.get("list") if isinstance(pag, dict) else None
@@ -894,7 +894,7 @@ def _portal_ficha_de_fila(fila, edicion=True):
         try:
             ed = _portal_edicion(formas_de_ficha(PORTAL_EDITABLES, multiples=True),
                                  lambda c: _ficha_a_texto(fila.get(c)))
-        except S.SoloLectura:
+        except _base.SoloLectura:
             raise
         except Exception as e:  # noqa: BLE001
             print(f"[portal-personas] edición no disponible ({type(e).__name__})")
@@ -919,10 +919,10 @@ def _portal_ficha_de_fila(fila, edicion=True):
 
 def _portal_leer_fila(persona_id):
     """La fila de `personas` por su `Id`, con las columnas visibles y solo ellas; `ErrorDeNocodb(404)` si no existe, está unida a otra o está guardada aparte."""
-    fila = S.nc("GET", f"/api/v2/tables/{S.T_PERSONAS}/records/{int(persona_id)}",
+    fila = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records/{int(persona_id)}",
               query={"fields": ",".join(["Id"] + list(PORTAL_COLUMNAS_VISIBLES) + ["unida_a", "quitada_el"])})
     if not isinstance(fila, dict) or fila.get("Id") is None or ficha_fuera(fila):
-        raise S.ErrorDeNocodb(404, "persona sin fila")
+        raise _base.ErrorDeNocodb(404, "persona sin fila")
     return fila
 
 
@@ -930,10 +930,10 @@ def portal_persona_ficha(persona_id):
     """La ficha de UNA persona, leída de su fila por `Id` (no por teléfono): tenga o no teléfono se abre.
     Solo salen las columnas visibles, en los grupos de la maqueta; lo demás se queda aquí."""
     salida = _portal_ficha_de_fila(_portal_leer_fila(persona_id))
-    if S.T_UNIONES_PERSONAS:
+    if _base.T_UNIONES_PERSONAS:
         try:
             salida["union"] = union_que_se_puede_deshacer(persona_id)      # lo que la pantalla necesita para ofrecer «Deshacer la unión»
-        except S.SoloLectura:
+        except _base.SoloLectura:
             raise
         except Exception as e:  # noqa: BLE001
             print(f"[portal-personas] no se pudo leer si la ficha tiene una unión ({type(e).__name__})")
@@ -957,7 +957,7 @@ def portal_persona_nueva():
 def _portal_posicion(persona_id, q, orden, col=PORTAL_ORDEN_POR_OMISION):
     """Dónde le toca a esta persona en la lista con esta búsqueda y este orden: `{"Id", "posicion"}`, con `posicion`
     `None` si no coincide con la búsqueda. Sale de la misma lista y las mismas reglas que `portal_personas_pagina`."""
-    return S.portal_personas_pagina(q, orden, 0, 1, ver=persona_id, col=col)["ver"]
+    return portal_personas_pagina(q, orden, 0, 1, ver=persona_id, col=col)["ver"]
 
 
 def _portal_con_ficha_releida(datos, persona_id):
@@ -965,7 +965,7 @@ def _portal_con_ficha_releida(datos, persona_id):
     sigue diciendo que SÍ se guardó (`ficha: None` y un aviso): lo escrito ya está en la base."""
     try:
         datos["ficha"] = _portal_ficha_de_fila(_portal_leer_fila(persona_id))
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:  # noqa: BLE001
         print(f"[portal-personas] se escribió y no se pudo releer la ficha ({type(e).__name__})")
@@ -985,9 +985,9 @@ def editar_persona_portal(persona_id, cuerpo, quien):
 
     def filas(cols):
         try:
-            fila = S.nc("GET", f"/api/v2/tables/{S.T_PERSONAS}/records/{int(persona_id)}",
+            fila = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records/{int(persona_id)}",
                       query={"fields": ",".join(["Id"] + list(dict.fromkeys(cols)))})
-        except S.ErrorDeNocodb as e:
+        except _base.ErrorDeNocodb as e:
             if e.status == 404:
                 return []
             raise
@@ -995,7 +995,7 @@ def editar_persona_portal(persona_id, cuerpo, quien):
 
     codigo, datos = _guardar_edicion_de_persona(cuerpo, quien, PORTAL_EDITABLES, filas, "PORTAL-PERSONA-EDITADA", portal=True)
     if codigo == 200 and datos.get("estado") in ("guardado", "sin_cambios"):
-        S._portal_con_ficha_releida(datos, persona_id)
+        _portal_con_ficha_releida(datos, persona_id)
         datos["en_lista"] = _portal_en_lista(persona_id, cuerpo)
     return codigo, datos
 
@@ -1007,8 +1007,8 @@ def _portal_en_lista(persona_id, cuerpo):
     if not isinstance(q, str) or orden not in ("asc", "desc") or not isinstance(col, str) or col not in PORTAL_ORDENABLES:
         return None
     try:
-        return S._portal_posicion(persona_id, q, orden, col)
-    except S.SoloLectura:
+        return _portal_posicion(persona_id, q, orden, col)
+    except _base.SoloLectura:
         raise
     except Exception as e:  # noqa: BLE001
         print(f"[portal-personas] no se pudo calcular dónde queda en la lista ({type(e).__name__})")
@@ -1033,7 +1033,7 @@ def crear_persona_portal(cuerpo, quien):
         return 400, {"error": "los valores van como texto. " + sin}
     try:
         formas, _ = formas_de_ficha(PORTAL_EDITABLES, multiples=True)
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:  # noqa: BLE001
         print(f"[portal-personas] crear: no se pudo leer las columnas ({type(e).__name__})")
@@ -1061,7 +1061,7 @@ def crear_persona_portal(cuerpo, quien):
     for campo, clave in CASILLAS_DE_PANTALLA:
         if campo in nuevos:
             dato[clave] = nuevos[campo]
-    res = S.recibir(dato)
+    res = recibir(dato)
     rechazo = respuesta_de_rechazo(res, sin)
     if rechazo:
         return rechazo
@@ -1087,7 +1087,7 @@ def crear_persona_portal(cuerpo, quien):
     datos = {"ok": True, "estado": "creada", "id": nuevo_id}
     if res["avisos"]:
         datos["avisos"] = avisos_para_la_pantalla(res)
-    S._portal_con_ficha_releida(datos, nuevo_id)
+    _portal_con_ficha_releida(datos, nuevo_id)
     datos["en_lista"] = _portal_en_lista(nuevo_id, cuerpo)
     return 201, datos
 
@@ -1191,13 +1191,13 @@ def _forma_de_columna(campo, col, multiples):
     if uidt == "MultiSelect" and multiples:
         # Varias opciones de una lista cerrada. NocoDB las guarda y las devuelve como texto separado por comas
         # (así las escribe también `campos_persona`, la del check-in).
-        return {"tipo": "multiple", "opciones": S._opciones_de_columna(col)}
+        return {"tipo": "multiple", "opciones": _base._opciones_de_columna(col)}
     if uidt in _FICHA_TIPOS_TEXTO:
         return {"tipo": "texto"}
     if campo == "Cumpleanos":
         return None          # el cumpleaños es texto DD/MM (`campos_persona`); otra cosa, no se toca
     if uidt == "SingleSelect":
-        return {"tipo": "seleccion", "opciones": S._opciones_de_columna(col)}
+        return {"tipo": "seleccion", "opciones": _base._opciones_de_columna(col)}
     if uidt in _FICHA_TIPOS_NUMERO:
         return {"tipo": "numero"}
     if uidt == "Date":
@@ -1209,7 +1209,7 @@ def formas_de_ficha(editables, multiples):
     """`({campo: forma}, {campo: motivo})` de los campos de `editables` (por omisión `FICHA_EDITABLES`), leídos de la
     descripción real de la tabla `personas`. Un campo cuya columna no existe o es de un tipo que
     esta pantalla no sabe editar NO se ofrece (cae del lado de no escribir)."""
-    columnas = S._opciones_select(S.T_PERSONAS, None, columnas=list(editables))
+    columnas = _base._opciones_select(_base.T_PERSONAS, None, columnas=list(editables))
     formas, fuera = {}, {}
     for campo in editables:
         col = columnas.get(campo)
@@ -1322,7 +1322,7 @@ def _filas_de_identidad(identidad, campos):
         donde = f"(telefono,eq,{normalizar_telefono(ident)})"
     else:
         return []
-    return S.nc_list_all(S.T_PERSONAS, {"where": donde, "fields": ",".join(["Id"] + list(campos))})
+    return _base.nc_list_all(_base.T_PERSONAS, {"where": donde, "fields": ",".join(["Id"] + list(campos))})
 
 
 def _celda_es_el_numero(celda, nuevo):
@@ -1344,9 +1344,9 @@ def _contar_filas(tabla, donde, campo):
     """Cuántas filas de `tabla` cumplen `donde` (`pageInfo.totalRows`, que NocoDB trae siempre: medido en
     producción el 7-oct-2026 sobre `sesiones`, `conversaciones` y `personas`), o `None` si no se pudo medir."""
     try:
-        r = S.nc("GET", f"/api/v2/tables/{tabla}/records", query={"where": donde, "limit": 1, "fields": campo})
+        r = _base.nc("GET", f"/api/v2/tables/{tabla}/records", query={"where": donde, "limit": 1, "fields": campo})
         n = (r.get("pageInfo") or {}).get("totalRows")
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                       # noqa: BLE001
         print(f"[warn] no se pudo medir lo atado al teléfono ({type(e).__name__})")
@@ -1376,8 +1376,8 @@ def medir_atado_al_telefono(viejo, fila):
     # 🔴 Una celda que no es un teléfono en dígitos (trae `)`, `,`, letras…) NO se mete en una consulta
     # `where`: saldría mal armada y daría un conteo equivocado. Ahí la respuesta es «no se pudo medir».
     consultable = bool(re.fullmatch(r"\d+", str(viejo)))
-    return {"reservas": (_contar_filas(S.T_SESIONES, f"(telefono_cliente,eq,{viejo})", "Id") if consultable else None),
-            "mensajes": (_contar_filas(S.T_CONVERSACIONES, f"(telefono,eq,{numero})", "id") if numero else None),
+    return {"reservas": (_contar_filas(_base.T_SESIONES, f"(telefono_cliente,eq,{viejo})", "Id") if consultable else None),
+            "mensajes": (_contar_filas(_base.T_CONVERSACIONES, f"(telefono,eq,{numero})", "id") if numero else None),
             "credito": credito, "libro_en_natalia": True}
 
 
@@ -1446,20 +1446,20 @@ def _candado_de_ficha(ficha_id):
 
 def escribir_cara(persona_id, vec):
     """La ÚNICA escritura de la columna de caras que sale de este módulo: lee las ranuras de esa ficha EN VIVO, bajo su candado,
-    y escribe UNA sola columna (`S.CARA_COLUMNA`). Si la ficha está unida (`S.FichaUnida`) o guardada aparte (`S.FichaQuitada`),
+    y escribe UNA sola columna (`_base.CARA_COLUMNA`). Si la ficha está unida (`_base.FichaUnida`) o guardada aparte (`_base.FichaQuitada`),
     no escribe. Devuelve la lista de ranuras que quedan; la caché la actualiza el que llama (`guardar_cara`, en `server.py`), fuera
     de este candado, como siempre."""
-    with S._candado_de_ficha(persona_id):      # la unión marca una ficha bajo este candado: entre leer la marca y escribir la cara no puede marcarla
-        fila = S.nc("GET", f"/api/v2/tables/{S.T_PERSONAS}/records/{int(persona_id)}", query={"fields": f"Id,unida_a,quitada_el,{S.CARA_COLUMNA}"})
+    with _candado_de_ficha(persona_id):      # la unión marca una ficha bajo este candado: entre leer la marca y escribir la cara no puede marcarla
+        fila = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records/{int(persona_id)}", query={"fields": f"Id,unida_a,quitada_el,{_base.CARA_COLUMNA}"})
         if ficha_quitada(fila):
-            raise S.FichaQuitada(persona_id)
+            raise _base.FichaQuitada(persona_id)
         if ficha_unida(fila):
-            raise S.FichaUnida(persona_id)
-        ranuras = S._caras_de_celda(fila.get(S.CARA_COLUMNA)) + [tuple(vec)]
-        ranuras = ranuras[-S.CARA_RANURAS:]
-        S.nc("PATCH", f"/api/v2/tables/{S.T_PERSONAS}/records", body={
+            raise _base.FichaUnida(persona_id)
+        ranuras = _base._caras_de_celda(fila.get(_base.CARA_COLUMNA)) + [tuple(vec)]
+        ranuras = ranuras[-_base.CARA_RANURAS:]
+        _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS}/records", body={
             "Id": persona_id,
-            S.CARA_COLUMNA: S.CARA_SEPARADOR.join(S._cara_a_base64(v) for v in ranuras),
+            _base.CARA_COLUMNA: _base.CARA_SEPARADOR.join(_base._cara_a_base64(v) for v in ranuras),
         })
     return ranuras
 
@@ -1580,7 +1580,7 @@ def _guardar_edicion_de_persona(cuerpo, quien, editables, leer_filas, rastro, po
     try:
         formas, _ = formas_de_ficha(editables, multiples=portal)
         filas = leer_filas(campos + (["credito"] if "telefono" in campos else []) + ["quitada_el"])
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                       # noqa: BLE001
         print(f"[warn] editar ficha: no se pudo leer ({type(e).__name__})")
@@ -1655,7 +1655,7 @@ def _guardar_edicion_de_persona(cuerpo, quien, editables, leer_filas, rastro, po
             if not (isinstance(conf, dict) and conf.get("de") == viejo and conf.get("a") == nuevo):
                 try:
                     atado = medir_atado_al_telefono(viejo, fila)
-                except S.SoloLectura:
+                except _base.SoloLectura:
                     raise
                 return 409, {"motivo": "confirmar_cambio_telefono", "de": viejo, "a": nuevo, "atado": atado,
                              "error": "Cambiar el teléfono necesita tu confirmación. " + FICHA_ERROR_SIN_ESCRIBIR}
@@ -1667,7 +1667,7 @@ def _guardar_edicion_de_persona(cuerpo, quien, editables, leer_filas, rastro, po
     for campo, clave in CASILLAS_DE_PANTALLA:
         if campo in a_escribir:
             dato[clave] = a_escribir[campo]
-    res = S.recibir(dato, antes_de_escribir=confirmar_el_cambio_de_telefono)
+    res = recibir(dato, antes_de_escribir=confirmar_el_cambio_de_telefono)
     if res["estado"] == "detenido":
         return res["respuesta"]
     # La frase del «mismo valor en las dos casillas» la elige la pantalla: el portal las enseña las dos; la ficha del
@@ -1848,7 +1848,7 @@ def _leer_fichas_de_la_puerta():
     teléfono repetido se saltara y el check-in creara una ficha con el número de otra. La sala crea las columnas ANTES de
     desplegar (`comprobar_columnas.py`), así que el código da por hecho que están; y si una lectura falla por lo que sea, se
     porta como cualquier lectura que falla: no se pudo comprobar, no se escribe, no se dice «guardado»."""
-    return [f for f in S.nc_list_all(S.T_PERSONAS, {"fields": PUERTA_CAMPOS}) if not ficha_fuera(f)]
+    return [f for f in _base.nc_list_all(_base.T_PERSONAS, {"fields": PUERTA_CAMPOS}) if not ficha_fuera(f)]
 
 
 # ---------- P4 (contactos de Google): el enlace ficha ↔ contacto ----------
@@ -1859,14 +1859,14 @@ CAMPO_GOOGLE_ID = "google_id"
 def columna_google_id_existe():
     """¿Existe la columna `google_id` en `personas`? Usa la ÚNICA lectura del esquema que tiene la App (`_opciones_select`).
     Un error de NocoDB sale como excepción: quien llama no escribe nada."""
-    return S._opciones_select(S.T_PERSONAS, None, columnas=(CAMPO_GOOGLE_ID,)).get(CAMPO_GOOGLE_ID) is not None
+    return _base._opciones_select(_base.T_PERSONAS, None, columnas=(CAMPO_GOOGLE_ID,)).get(CAMPO_GOOGLE_ID) is not None
 
 
 def leer_fichas_para_google(con_enlace):
     """TODAS las fichas, unidas y quitadas incluidas (para contarlas aparte), con lo que P4 compara; `google_id` solo si la
     columna existe. Quien llama decide qué entra."""
     campos = ",".join(PUERTA_CAMPOS.split(",") + ([CAMPO_GOOGLE_ID] if con_enlace else []))
-    return S.nc_list_all(S.T_PERSONAS, {"fields": campos})
+    return _base.nc_list_all(_base.T_PERSONAS, {"fields": campos})
 
 
 def ids_con_aviso_abierto():
@@ -1903,9 +1903,9 @@ def enlazar_ficha_con_google(ficha_id, resource_name):
     if not isinstance(resource_name, str) or not resource_name.startswith("people/"):
         return False
     fid = int(ficha_id)
-    base = f"/api/v2/tables/{S.T_PERSONAS}/records"
-    with S._candado_de_ficha(fid):
-        antes = S.nc("GET", f"{base}/{fid}", query={"fields": f"Id,unida_a,quitada_el,{CAMPO_GOOGLE_ID}"})
+    base = f"/api/v2/tables/{_base.T_PERSONAS}/records"
+    with _candado_de_ficha(fid):
+        antes = _base.nc("GET", f"{base}/{fid}", query={"fields": f"Id,unida_a,quitada_el,{CAMPO_GOOGLE_ID}"})
         if not isinstance(antes, dict) or antes.get("Id") != fid or ficha_fuera(antes):
             return False
         ya = antes.get(CAMPO_GOOGLE_ID)
@@ -1913,8 +1913,8 @@ def enlazar_ficha_con_google(ficha_id, resource_name):
             return True
         if ya not in (None, ""):
             return False
-        S.nc("PATCH", base, body={"Id": fid, CAMPO_GOOGLE_ID: resource_name})
-        despues = S.nc("GET", f"{base}/{fid}", query={"fields": f"Id,{CAMPO_GOOGLE_ID}"})
+        _base.nc("PATCH", base, body={"Id": fid, CAMPO_GOOGLE_ID: resource_name})
+        despues = _base.nc("GET", f"{base}/{fid}", query={"fields": f"Id,{CAMPO_GOOGLE_ID}"})
         return isinstance(despues, dict) and despues.get(CAMPO_GOOGLE_ID) == resource_name
 
 
@@ -2269,8 +2269,8 @@ def _puerta_leer_la_ficha(fid):
     fila existiendo —el portal la había leído— dejaba escribir el valor de la casilla hermana en la principal. Lo cazó el
     testigo.)"""
     try:
-        fila = S.nc("GET", f"/api/v2/tables/{S.T_PERSONAS}/records/{int(fid)}", query={"fields": PUERTA_CAMPOS_DE_LA_FICHA})
-    except S.SoloLectura:
+        fila = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records/{int(fid)}", query={"fields": PUERTA_CAMPOS_DE_LA_FICHA})
+    except _base.SoloLectura:
         raise
     if not isinstance(fila, dict):
         raise ValueError("la ficha que se iba a tocar no vino como una fila")
@@ -2366,13 +2366,13 @@ def _puerta_recibir(E, solo_contar, antes_de_escribir):
     # 🔑 EL CANDADO SE TOMA CUANDO HAY QUE DECIDIR SOBRE UNA CASILLA CON VALOR: una escritura de una casilla que la ficha ya tenía
     # también lo necesita —lo que decide es el valor de la ficha, y hay que leerlo y escribir sin que nadie se meta en medio—.
     # Una edición sin teléfono ni correo lee la ficha, pero sin el candado.
-    with (S._FICHA_TELEFONO_LOCK if (comparar or (lee_la_ficha and clases_con_valor)) else contextlib.nullcontext()), \
-            (S._candado_de_ficha(fid) if lee_la_ficha else contextlib.nullcontext()):
+    with (_FICHA_TELEFONO_LOCK if (comparar or (lee_la_ficha and clases_con_valor)) else contextlib.nullcontext()), \
+            (_candado_de_ficha(fid) if lee_la_ficha else contextlib.nullcontext()):
         actual = None
         if lee_la_ficha:
             try:
                 actual = _puerta_leer_la_ficha(fid)
-            except S.SoloLectura:
+            except _base.SoloLectura:
                 raise
             except Exception as e:                   # noqa: BLE001
                 print(f"[warn] puerta de fichas: no se pudo leer la ficha que se iba a tocar ({type(e).__name__})")
@@ -2387,8 +2387,8 @@ def _puerta_recibir(E, solo_contar, antes_de_escribir):
         filas = None
         if comparar or quiere_nombre:
             try:
-                filas = S._leer_fichas_de_la_puerta()
-            except S.SoloLectura:
+                filas = _leer_fichas_de_la_puerta()
+            except _base.SoloLectura:
                 raise
             except Exception as e:                   # noqa: BLE001
                 print(f"[warn] puerta de fichas: no se pudo leer las fichas ({type(e).__name__})")
@@ -2415,15 +2415,15 @@ def _puerta_recibir(E, solo_contar, antes_de_escribir):
         cuerpo = dict(plan["escribir"], **E["otros"])
         try:
             if plan["crear"]:
-                rec = S.nc("POST", f"/api/v2/tables/{S.T_PERSONAS}/records", body={k: v for k, v in cuerpo.items() if v is not None})
+                rec = _base.nc("POST", f"/api/v2/tables/{_base.T_PERSONAS}/records", body={k: v for k, v in cuerpo.items() if v is not None})
             else:
-                rec = S.nc("PATCH", f"/api/v2/tables/{S.T_PERSONAS}/records", body=dict(cuerpo, Id=plan["ficha_id"]))
-        except S.SoloLectura:
+                rec = _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS}/records", body=dict(cuerpo, Id=plan["ficha_id"]))
+        except _base.SoloLectura:
             raise
         except Exception as e:                       # noqa: BLE001
-            rechazo = isinstance(e, S.ErrorDeNocodb) and e.status < 500
+            rechazo = isinstance(e, _base.ErrorDeNocodb) and e.status < 500
             print(f"[warn] puerta de fichas: la base {'no aceptó' if rechazo else 'falló al guardar'} "
-                  f"({e.status if isinstance(e, S.ErrorDeNocodb) else type(e).__name__})")
+                  f"({e.status if isinstance(e, _base.ErrorDeNocodb) else type(e).__name__})")
             for v in r["valores"].values():
                 if v["resultado"] == "guardado":
                     v.update(resultado="no_guardado" if rechazo else "sin_confirmar", motivo="base_rechazo" if rechazo else "base_fallo")
@@ -2447,7 +2447,7 @@ def _puerta_recibir(E, solo_contar, antes_de_escribir):
                 if a["ficha_id"] is None:
                     a.update(_puerta_aviso(a["tipo"], nuevo, a["otra_ficha_id"]))
         r["rec"] = rec
-        S.invalidate_personas()
+        invalidate_personas()
     # Fuera del candado, ANTES de releer (una relectura que falla no puede dejar sin anotar a la ficha que ya nació): si la ficha NACIÓ en esta
     # llamada, el sistema anota por dónde entró (`anotar_origen_al_nacer`; nunca levanta y nunca cambia lo que contesta la puerta).
     if nacio is not None:
@@ -2455,11 +2455,11 @@ def _puerta_recibir(E, solo_contar, antes_de_escribir):
     # Fuera del candado: se RELEE la fila, y el resultado de cada valor sale de lo releído.
     cols = ["Id"] + list(plan["escribir"]) + list(E["otros"]) + [c for c in E["releer"].split(",") if c]
     try:
-        releida = S.nc("GET", f"/api/v2/tables/{S.T_PERSONAS}/records/{int(plan['ficha_id'])}",
+        releida = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records/{int(plan['ficha_id'])}",
                        query={"fields": ",".join(dict.fromkeys(cols))})
         if not isinstance(releida, dict):
             raise ValueError("la relectura no es una fila")
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                           # noqa: BLE001
         print(f"[warn] puerta de fichas: se escribió y no se pudo releer ({type(e).__name__})")
@@ -2505,7 +2505,7 @@ def _puerta_apuntar_en_bandeja(E, r):
         a["apuntado"] = False
     if not r["avisos"]:
         return
-    tabla = S.T_BANDEJA_PERSONAS
+    tabla = _base.T_BANDEJA_PERSONAS
     if not tabla:
         return
     base = f"/api/v2/tables/{tabla}/records"
@@ -2515,7 +2515,7 @@ def _puerta_apuntar_en_bandeja(E, r):
             if a.get("ficha_nueva") and a.get("ficha_id") is None:     # la ficha no se confirmó: no se apunta un aviso de una ficha sin Id
                 continue
             clave = _puerta_clave_de_aviso(a, E)
-            ya = S.nc("GET", base, query={"where": f"(clave,eq,{clave})", "fields": "Id", "limit": 1})
+            ya = _base.nc("GET", base, query={"where": f"(clave,eq,{clave})", "fields": "Id", "limit": 1})
             if isinstance(ya, dict) and ya.get("list"):
                 a["apuntado"] = True
                 continue
@@ -2526,9 +2526,9 @@ def _puerta_apuntar_en_bandeja(E, r):
             for campo in ("id_whatsapp", "telefono_meta", "telefono_dicho", "nombre", "nombre_perfil", "correo"):
                 if L[campo][0] == "valor":
                     fila[campo] = L[campo][1]
-            S.nc("POST", base, body={k: v for k, v in fila.items() if v is not None})
+            _base.nc("POST", base, body={k: v for k, v in fila.items() if v is not None})
             a["apuntado"] = True
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                           # noqa: BLE001
         print(f"[warn] puerta de fichas: la bandeja no contestó ({type(e).__name__}); el aviso sale en la respuesta")
@@ -2672,7 +2672,7 @@ def por_resolver_grupos(filas):
 
 def _por_resolver_tabla():
     """La tabla de la bandeja (`''` si no está conectada). Es la única forma en que «Por resolver» llega a la variable `T_BANDEJA_PERSONAS`."""
-    return S.T_BANDEJA_PERSONAS
+    return _base.T_BANDEJA_PERSONAS
 
 
 def _por_resolver_leer_marcas():
@@ -2683,9 +2683,9 @@ def _por_resolver_leer_marcas():
     if not tabla:
         return "sin_configurar", {}
     try:
-        filas = S.nc_list_all(tabla, {"where": f"(origen,eq,{POR_RESOLVER_ORIGEN})",
+        filas = _base.nc_list_all(tabla, {"where": f"(origen,eq,{POR_RESOLVER_ORIGEN})",
                                       "fields": "Id,clave,estado,resuelto_por,resuelto_en"})
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                           # noqa: BLE001
         print(f"[warn] por resolver: la bandeja no contestó ({type(e).__name__})")
@@ -2732,8 +2732,8 @@ def _por_resolver_leer_avisos():
         if _es_aviso_abierto(f):
             por_clave[f["clave"]] = f
     try:
-        completo = S._bandeja_leer(PUERTA_AVISO_ESTADOS, POR_RESOLVER_AVISOS_CAMPOS, visitar, 200, POR_RESOLVER_AVISOS_TOPE)
-    except S.SoloLectura:
+        completo = _base._bandeja_leer(PUERTA_AVISO_ESTADOS, POR_RESOLVER_AVISOS_CAMPOS, visitar, 200, POR_RESOLVER_AVISOS_TOPE)
+    except _base.SoloLectura:
         raise
     except Exception as e:                           # noqa: BLE001
         print(f"[warn] por resolver: los avisos de la entrada no se pudieron leer ({type(e).__name__})")
@@ -2830,7 +2830,7 @@ POR_RESOLVER_DATO_CAMPOS = "Id,clave,estado,origen,tipo_aviso,ficha_id,otra_fich
 def _es_fila_de_dato_por_resolver(f):
     """¿Es una fila de DATO de la entrada (la que escribió Natalia y la App apuntó) que quedó esperando? Su `origen` es uno de los de la entrada y
     no lleva tipo de aviso: así no se confunde con un aviso de la puerta, una marca de «Por resolver» ni un apunte «no son la misma»."""
-    return (isinstance(f, dict) and isinstance(f.get("Id"), int) and f.get("estado") == "por_resolver" and f.get("origen") in S.ENTRADA_ORIGENES
+    return (isinstance(f, dict) and isinstance(f.get("Id"), int) and f.get("estado") == "por_resolver" and f.get("origen") in _base.ENTRADA_ORIGENES
             and not (isinstance(f.get("tipo_aviso"), str) and f["tipo_aviso"] != "") and not _es_aviso_de_la_puerta(f))
 
 
@@ -2842,7 +2842,7 @@ def _por_resolver_filas_de_dato(fichas):
         nombradas = {n for n in (f.get("ficha_id"), f.get("otra_ficha_id")) if isinstance(n, int) and not isinstance(n, bool)} if isinstance(f, dict) else set()
         if _es_fila_de_dato_por_resolver(f) and nombradas & fichas:
             halladas[f["Id"]] = f
-    if not S._bandeja_leer(("por_resolver",), POR_RESOLVER_DATO_CAMPOS, visitar, 200, POR_RESOLVER_AVISOS_TOPE):
+    if not _base._bandeja_leer(("por_resolver",), POR_RESOLVER_DATO_CAMPOS, visitar, 200, POR_RESOLVER_AVISOS_TOPE):
         raise ValueError("la lectura de la bandeja no llegó al final")
     return halladas
 
@@ -2852,7 +2852,7 @@ def _por_resolver_devolver_datos(fichas):
     pudo leer, escribir o confirmar (nunca dice que volvieron sin haberlo releído). Lo que se levante sube: la puerta del rojo (`_por_resolver_marcar_aviso`) lo trata."""
     filas = _por_resolver_filas_de_dato(fichas)
     for i in sorted(filas):
-        S.nc("PATCH", f"/api/v2/tables/{_por_resolver_tabla()}/records", body={"Id": i, "estado": "pendiente"})
+        _base.nc("PATCH", f"/api/v2/tables/{_por_resolver_tabla()}/records", body={"Id": i, "estado": "pendiente"})
     if filas and set(_por_resolver_filas_de_dato(fichas)) & set(filas):
         return None
     return len(filas)
@@ -2869,14 +2869,14 @@ def _por_resolver_marcar_aviso(clave, quien, vale=None):
     base = f"/api/v2/tables/{tabla}/records"
 
     def leer():
-        pagina = S.nc("GET", base, query={"where": f"(clave,eq,{clave})", "fields": "Id,clave,estado,origen,tipo_aviso,ficha_id,otra_ficha_id", "limit": 200})
+        pagina = _base.nc("GET", base, query={"where": f"(clave,eq,{clave})", "fields": "Id,clave,estado,origen,tipo_aviso,ficha_id,otra_ficha_id", "limit": 200})
         lista = pagina.get("list") if isinstance(pagina, dict) else None
         return [f for f in lista if _es_aviso_de_la_puerta(f)]
 
     with _POR_RESOLVER_LOCK:
         try:
             filas = leer()
-        except S.SoloLectura:
+        except _base.SoloLectura:
             raise
         except Exception as e:                       # noqa: BLE001
             print(f"[warn] por resolver: la bandeja no contestó ({type(e).__name__})")
@@ -2900,15 +2900,15 @@ def _por_resolver_marcar_aviso(clave, quien, vale=None):
                 return _por_resolver_sin_confirmar()
             try:
                 for f in abiertas:
-                    S.nc("PATCH", base, body={"Id": f["Id"], "estado": "resuelto", "resuelto_por": quien, "resuelto_en": _ahora_utc()})
-            except S.SoloLectura:
+                    _base.nc("PATCH", base, body={"Id": f["Id"], "estado": "resuelto", "resuelto_por": quien, "resuelto_en": _ahora_utc()})
+            except _base.SoloLectura:
                 raise
             except Exception as e:                       # noqa: BLE001
                 print(f"[warn] por resolver: no se pudo escribir en la bandeja ({type(e).__name__})")
                 return _por_resolver_sin_confirmar()
             try:
                 releidas = leer()
-            except S.SoloLectura:
+            except _base.SoloLectura:
                 raise
             except Exception:                            # noqa: BLE001
                 return _por_resolver_sin_confirmar()
@@ -3012,16 +3012,16 @@ def portal_por_resolver_marcar(clave, quien, reabrir=False):
         base = f"/api/v2/tables/{tabla}/records"
         try:
             if reabrir:
-                S.nc("PATCH", base, body={"Id": fila["Id"], "estado": "por_resolver"})
+                _base.nc("PATCH", base, body={"Id": fila["Id"], "estado": "por_resolver"})
             else:
                 ahora = _ahora_utc()
                 if fila is not None:
-                    S.nc("PATCH", base, body={"Id": fila["Id"], "estado": "resuelto", "resuelto_por": quien, "resuelto_en": ahora})
+                    _base.nc("PATCH", base, body={"Id": fila["Id"], "estado": "resuelto", "resuelto_por": quien, "resuelto_en": ahora})
                 else:
-                    S.nc("POST", base, body={"clave": clave, "origen": POR_RESOLVER_ORIGEN, "estado": "resuelto",
+                    _base.nc("POST", base, body={"clave": clave, "origen": POR_RESOLVER_ORIGEN, "estado": "resuelto",
                                              "tipo_aviso": grupo["tipo"], "ficha_id": grupo["ids"][0], "otra_ficha_id": grupo["ids"][1],
                                              "resultado": json.dumps({"fichas": grupo["ids"]}), "resuelto_por": quien, "resuelto_en": ahora})
-        except S.SoloLectura:
+        except _base.SoloLectura:
             raise
         except Exception as e:                       # noqa: BLE001
             print(f"[warn] por resolver: no se pudo escribir en la bandeja ({type(e).__name__})")
@@ -3176,8 +3176,8 @@ def _union_lista(col, q, s):
 
 def _union_caras(col, q, s):
     """`caras`: se cuentan, no se enseñan. Quedan las últimas `CARA_RANURAS` de las dos juntas."""
-    nq, ns = (len(S._caras_de_celda(f.get(col))) for f in (q, s))
-    return {"casilla": col, "clase": "caras", "estado": "suma", "caras_que_quedan": min(nq + ns, S.CARA_RANURAS)}
+    nq, ns = (len(_base._caras_de_celda(f.get(col))) for f in (q, s))
+    return {"casilla": col, "clase": "caras", "estado": "suma", "caras_que_quedan": min(nq + ns, _base.CARA_RANURAS)}
 
 
 def _union_contacto(grupo, q, s):
@@ -3199,7 +3199,7 @@ def _union_contacto(grupo, q, s):
         opciones = [dict(e, clave=k) for k, e in vistos.items()]
         if grupo == "telefonos":
             for o in opciones:
-                o["reservas"] = _contar_filas(S.T_SESIONES, f"(telefono_cliente,eq,{o['clave']})", "Id") if o["clave"].isdigit() else None
+                o["reservas"] = _contar_filas(_base.T_SESIONES, f"(telefono_cliente,eq,{o['clave']})", "Id") if o["clave"].isdigit() else None
         for o in opciones:
             o.pop("clave")
         tq = _union_texto(q.get(cols[0]))
@@ -3221,7 +3221,7 @@ def _union_contacto(grupo, q, s):
 def _union_casillas(clases, q, s):
     """Una entrada por casilla (o por grupo de teléfonos y de correos), en el orden de la ficha del portal.
     Una columna de `PORTAL_COLUMNAS_NO_DATO` no se enseña ni choca: sale `se_conserva`, sin valores."""
-    ocultas = set(S.PORTAL_COLUMNAS_VETADAS)
+    ocultas = set(_base.PORTAL_COLUMNAS_VETADAS)
     orden = [c for c in PORTAL_COLUMNAS_VISIBLES if c in clases] + [c for c in clases if c not in PORTAL_COLUMNAS_VISIBLES]
     hechas, salida = set(), []
     for col in orden:
@@ -3246,8 +3246,8 @@ def _union_casillas(clases, q, s):
 def _union_leer_ficha(ficha_id, campos):
     """La fila de `personas` por su `Id`, con `campos`, o `None` si no existe."""
     try:
-        fila = S.nc("GET", f"/api/v2/tables/{S.T_PERSONAS}/records/{int(ficha_id)}", query={"fields": ",".join(["Id"] + list(campos))})
-    except S.ErrorDeNocodb as e:
+        fila = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records/{int(ficha_id)}", query={"fields": ",".join(["Id"] + list(campos))})
+    except _base.ErrorDeNocodb as e:
         if e.status == 404:
             return None
         raise
@@ -3283,7 +3283,7 @@ def _union_revisar_completo(id_a, id_b):
     fichas leídas (la que queda y la que sobra) o `None` si no se llegaron a leer."""
     if id_a == id_b:
         return 400, {"ok": False, "error": "Hay que escoger otra ficha, no la misma."}, None
-    clases, sin, ausentes = union_clasificar_columnas(S._opciones_select(S.T_PERSONAS, None, columnas=S.TODAS_LAS_COLUMNAS))
+    clases, sin, ausentes = union_clasificar_columnas(_base._opciones_select(_base.T_PERSONAS, None, columnas=_base.TODAS_LAS_COLUMNAS))
     motivos = []
     if sin:
         motivos.append({"motivo": "casilla_sin_clasificar", "casillas": sin, "texto": "No sé unir estas casillas: " + ", ".join(sin) + "."})
@@ -3329,37 +3329,37 @@ BORRAR_PARADAS = {"credito_a_favor": 1, "reserva_por_venir": 2, "envio_por_salir
 
 def _borrar_envios_vivos():
     """Los estados de `MERCADEO_ENVIO_ESTADOS` que todavía pueden salir: la lista se saca de ahí, no se teclea."""
-    return tuple(e for e in S.MERCADEO_ENVIO_ESTADOS if e not in BORRAR_ENVIOS_FINALES)
+    return tuple(e for e in _base.MERCADEO_ENVIO_ESTADOS if e not in BORRAR_ENVIOS_FINALES)
 
 
 def _borrar_envios_vivos_de(ficha_id):
     """Los envíos de Mercadeo que todavía pueden salir y que llevan a esta ficha. `ficha_ids` se lee como enteros («8,9»): un
     `like` trae de más (un «18» para el 8) y aquí se filtra por valor exacto. Un estado que no está en la lista cuenta como vivo."""
     vivos = _borrar_envios_vivos()
-    filas = S.nc_list_all(S.T_MERCADEO_ENVIOS, {"where": f"(ficha_ids,like,%{int(ficha_id)}%)", "fields": "Id,ficha_ids,estado"})
+    filas = _base.nc_list_all(_base.T_MERCADEO_ENVIOS, {"where": f"(ficha_ids,like,%{int(ficha_id)}%)", "fields": "Id,ficha_ids,estado"})
     salida = []
     for e in filas:
         ids = {int(x) for x in re.split(r"[,\s]+", str(e.get("ficha_ids") or "").strip()) if x.isdigit()}
         estado = str(e.get("estado") or "").strip()
-        if int(ficha_id) in ids and (estado in vivos or estado not in S.MERCADEO_ENVIO_ESTADOS):
+        if int(ficha_id) in ids and (estado in vivos or estado not in _base.MERCADEO_ENVIO_ESTADOS):
             salida.append(e)
     return salida
 
 
 def _borrar_ids_ligados(enlace, ficha_id):
     """Los `Id` ligados a la ficha por ese enlace (proyectos, pagos). Levanta si no se pudo leer: quien llama lo cuenta como no medido."""
-    return _union_leer_enlace(S.T_PERSONAS, enlace, ficha_id)
+    return _union_leer_enlace(_base.T_PERSONAS, enlace, ficha_id)
 
 
 def _borrar_reservas(tels):
     """`(todas, por_venir)`: las sesiones de esos teléfonos (la misma regla que Lucy, `_sesiones_por_telefono`). Por venir: no terminal
     (`ESTADOS_TERMINALES`) y con fecha de hoy en adelante, en hora de Santo Domingo. Sin fecha, o con una que no se entiende, cuenta
     como por venir (lado estricto)."""
-    filas = S._sesiones_por_telefono(tels)
-    hoy = _fecha_hora.now(S.TZ).strftime("%Y-%m-%d")
+    filas = _base._sesiones_por_telefono(tels)
+    hoy = _fecha_hora.now(_base.TZ).strftime("%Y-%m-%d")
     por_venir = []
     for s in filas:
-        if str(s.get("estado") or "").strip().upper() in S.ESTADOS_TERMINALES:
+        if str(s.get("estado") or "").strip().upper() in _base.ESTADOS_TERMINALES:
             continue
         fecha = str(s.get("fecha") or "").strip()
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", fecha) or fecha >= hoy:
@@ -3369,7 +3369,7 @@ def _borrar_reservas(tels):
 
 def _borrar_union_abierta(ficha_id):
     """Las uniones sin terminar (`en_curso` o `deshaciendo`) que tocan esta ficha. Una fila cuyos `Id` no se leen cuenta como de ella."""
-    if not S.T_UNIONES_PERSONAS:
+    if not _base.T_UNIONES_PERSONAS:
         raise ValueError("sin la tabla de uniones")
     salida = []
     for u in _union_en_curso():
@@ -3406,7 +3406,7 @@ def _borrar_mensajes(fila, tels):
         # cuenta dos veces; si no hay número, la conversación va por el propio ID de WhatsApp.
         numero = numero_de_identidad(bsuid)
         if numero is None or numero not in tels:
-            n = _contar_filas(S.T_CONVERSACIONES, f"(telefono,eq,{numero or bsuid})", "id")
+            n = _contar_filas(_base.T_CONVERSACIONES, f"(telefono,eq,{numero or bsuid})", "id")
             if n is None:
                 return None
             total += n
@@ -3451,11 +3451,11 @@ def revisar_borrado(ficha_id):
     except Exception:  # noqa: BLE001 — la puerta de abajo lo cuenta como no medido
         cuelga["reservas"] = cuelga["reservas_por_venir"] = None
 
-    cuelga["visitas"] = _contar_filas(S.T_ASISTENCIAS, f"(persona_id,eq,{int(ficha_id)})", "Id")
+    cuelga["visitas"] = _contar_filas(_base.T_ASISTENCIAS, f"(persona_id,eq,{int(ficha_id)})", "Id")
 
     cuelga["mensajes"] = _borrar_mensajes(fila, tels)
 
-    if not S.T_MERCADEO_ENVIOS:
+    if not _base.T_MERCADEO_ENVIOS:
         cuelga["envios_por_salir"] = None
     else:
         try:
@@ -3482,7 +3482,7 @@ def revisar_borrado(ficha_id):
         no_medido("uniones")
 
     try:
-        proyectos = _borrar_ids_ligados(S.L_PERSONA_PROYECTOS, ficha_id)
+        proyectos = _borrar_ids_ligados(_base.L_PERSONA_PROYECTOS, ficha_id)
         cuelga["proyectos"] = len(proyectos)
         if proyectos:
             para("de_un_proyecto", "Está en un proyecto: no se borra desde aquí. Hay que sacarla de ese proyecto antes.")
@@ -3490,7 +3490,7 @@ def revisar_borrado(ficha_id):
         cuelga["proyectos"] = None
 
     try:
-        cuelga["pagos"] = len(_borrar_ids_ligados(S.L_PERSONA_PAGOS, ficha_id))
+        cuelga["pagos"] = len(_borrar_ids_ligados(_base.L_PERSONA_PAGOS, ficha_id))
     except Exception:  # noqa: BLE001 — la puerta de abajo lo cuenta como no medido
         cuelga["pagos"] = None
 
@@ -3528,7 +3528,7 @@ _QUITAR_TEXTO_CAMBIO = ("Algo cambió mientras la borrabas (alguien escribió en
 
 def _quitar_registros(donde):
     """Las filas de `personas_quitadas` que cumplen `donde`. Lo que no venga como lista levanta."""
-    filas = S.nc_list_all(S.T_PERSONAS_QUITADAS, {"where": donde})
+    filas = _base.nc_list_all(_base.T_PERSONAS_QUITADAS, {"where": donde})
     if not isinstance(filas, list):
         raise ValueError("el registro de borrados no vino como lista")
     return filas
@@ -3537,8 +3537,8 @@ def _quitar_registros(donde):
 def _quitar_leer_registro(rid):
     """La fila de `personas_quitadas` con ese `Id`, o `None` si no existe."""
     try:
-        fila = S.nc("GET", f"/api/v2/tables/{S.T_PERSONAS_QUITADAS}/records/{int(rid)}")
-    except S.ErrorDeNocodb as e:
+        fila = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS_QUITADAS}/records/{int(rid)}")
+    except _base.ErrorDeNocodb as e:
         if e.status == 404:
             return None
         raise
@@ -3565,7 +3565,7 @@ def _quitar_confirmar_alta(clave, cuerpo):
     exactamente lo que se mandó (una sola fila)."""
     try:
         filas = _quitar_registros(f"(clave,eq,{clave})")
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                                   # noqa: BLE001
         print(f"[warn] borrar: no se pudo releer el registro ({type(e).__name__})")
@@ -3624,13 +3624,13 @@ def quitar_ficha(ficha_id, clave, quien):
       5 Se releen la ficha y el registro, y solo entonces el registro pasa a `quitada`. Nunca se contesta `ok` sin esa relectura.
     Si algo falla después del paso 2, la respuesta es 502 `sin_confirmar` y repetir con la misma clave termina el borrado.
     503 sin la tabla de registro (no escribe nada). Lo que contesta el servidor lo decide esta función; el `quien` sale de la firma."""
-    if not S.T_PERSONAS_QUITADAS:
+    if not _base.T_PERSONAS_QUITADAS:
         return 503, {"ok": False, "motivo": "sin_registro", "error": "No se puede borrar ahora: falta conectar el registro de borrados. No se hizo nada."}
     if not isinstance(clave, str) or not _RE_CLAVE_DE_BORRADO.fullmatch(clave):
         return 400, {"ok": False, "motivo": "clave", "error": "Falta la clave del intento."}
     qid = int(ficha_id)
     rid, tocado, ya_estaba, antes = None, False, False, None
-    with S._FICHA_TELEFONO_LOCK, S._candado_de_ficha(qid):
+    with _FICHA_TELEFONO_LOCK, _candado_de_ficha(qid):
         try:
             previas = _quitar_registros(f"(clave,eq,{clave})")
             if len(previas) > 1:
@@ -3667,7 +3667,7 @@ def quitar_ficha(ficha_id, clave, quien):
                 cuerpo = {"clave": clave, "estado": "quitando", "ficha_id": qid, "antes": _union_json(antes),
                           "medido": _union_json(_quitar_medido(datos)), "creada_por": quien, "creada_en": _ahora_utc()}
                 tocado = True
-                S.nc("POST", f"/api/v2/tables/{S.T_PERSONAS_QUITADAS}/records", body=cuerpo)
+                _base.nc("POST", f"/api/v2/tables/{_base.T_PERSONAS_QUITADAS}/records", body=cuerpo)
                 rid = _quitar_confirmar_alta(clave, cuerpo)
                 if rid is None:
                     return 502, {"ok": False, "estado": "sin_confirmar", "sin_confirmar": True, "motivo": "no_se_pudo_apuntar",
@@ -3683,19 +3683,19 @@ def quitar_ficha(ficha_id, clave, quien):
                     if codigo != 200 or not datos["puede"]:
                         return 409, _quitar_cambio(rid, datos.get("paradas") if codigo == 200 else None)
                     tocado = True
-                    S.nc("PATCH", f"/api/v2/tables/{S.T_PERSONAS}/records", body=dict(_quitar_cuerpo_de_la_ficha(), Id=qid))
+                    _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS}/records", body=dict(_quitar_cuerpo_de_la_ficha(), Id=qid))
             if not _quitar_ficha_confirmada(qid):
                 return 502, _quitar_sin_confirmar(rid, "ficha_sin_confirmar")
             rr = _quitar_leer_registro(rid)
             if rr is None or rr.get("estado") not in ("quitando", QUITAR_ESTADO_BORRADA):
                 return 502, _quitar_sin_confirmar(rid, "registro_sin_confirmar")
             if rr.get("estado") == "quitando":
-                S.nc("PATCH", f"/api/v2/tables/{S.T_PERSONAS_QUITADAS}/records", body={"Id": rid, "estado": "quitada"})
+                _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS_QUITADAS}/records", body={"Id": rid, "estado": "quitada"})
                 rr = _quitar_leer_registro(rid)
                 if rr is None or rr.get("estado") != QUITAR_ESTADO_BORRADA:
                     return 502, _quitar_sin_confirmar(rid, "registro_sin_confirmar")
             return 200, {"ok": True, "estado": "quitada", "ficha": qid, "quitada_id": rid, "ya_estaba": ya_estaba}
-        except S.SoloLectura:
+        except _base.SoloLectura:
             raise
         except Exception as e:                               # noqa: BLE001
             print(f"[warn] borrar: no se terminó ({type(e).__name__})")
@@ -3709,11 +3709,11 @@ def quitar_ficha(ficha_id, clave, quien):
 def continuar_quitar(ficha_id):
     """Termina el borrado a medias de `ficha_id` (su registro está `quitando`): vuelve a correr `quitar_ficha` con la clave que el
     registro guardó, desde donde quedó. Sin registro en curso, 404. No pone candados por su cuenta: los pone `quitar_ficha`."""
-    if not S.T_PERSONAS_QUITADAS:
+    if not _base.T_PERSONAS_QUITADAS:
         return 503, {"ok": False, "motivo": "sin_registro", "error": "No se puede borrar ahora: falta conectar el registro de borrados. No se hizo nada."}
     try:
         mios = [r for r in _quitar_registros(f"(ficha_id,eq,{int(ficha_id)})") if r.get("estado") == "quitando"]
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                                   # noqa: BLE001
         print(f"[warn] borrar: no se pudo leer el registro para continuar ({type(e).__name__})")
@@ -3771,7 +3771,7 @@ def _devolver_ocupado(qid, antes):
     bsuid = _union_texto(antes["bsuid"])
     if bsuid and clave_id(bsuid) is None:
         raise ValueError("un ID de WhatsApp de antes que no se sabe leer")
-    for f in S._leer_fichas_de_la_puerta():             # solo fichas vivas: una guardada aparte ya no tiene teléfono ni correo
+    for f in _leer_fichas_de_la_puerta():             # solo fichas vivas: una guardada aparte ya no tiene teléfono ni correo
         if f.get("Id") == qid:
             continue
         if (any(_puerta_ficha_tiene(f, "telefono", n) for n in telefonos)
@@ -3812,11 +3812,11 @@ def devolver_ficha(ficha_id, quien):
       5 Se relee la ficha. Solo si quedó como `antes`, el registro pasa a `devuelta` (con `devuelta_por` y `devuelta_en`) y se relee: solo
         entonces se contesta 200.
     503 sin la tabla de registro (no escribe nada). Nunca `DELETE`; `credito` no se escribe."""
-    if not S.T_PERSONAS_QUITADAS:
+    if not _base.T_PERSONAS_QUITADAS:
         return 503, {"ok": False, "motivo": "sin_registro", "error": "No se puede devolver ahora: falta conectar el registro de borrados. No se hizo nada."}
     qid = int(ficha_id)
     rid, tocado = None, False
-    with S._FICHA_TELEFONO_LOCK, S._candado_de_ficha(qid):
+    with _FICHA_TELEFONO_LOCK, _candado_de_ficha(qid):
         try:
             todos = [r for r in _quitar_registros(f"(ficha_id,eq,{qid})") if _union_numero(r.get("ficha_id")) == qid]
             activos = [r for r in todos if r.get("estado") in DEVOLVER_ESTADOS_ACTIVOS]
@@ -3843,22 +3843,22 @@ def devolver_ficha(ficha_id, quien):
                     return 409, {"ok": False, "motivo": "ocupado", "de": ocupada, "error": _DEVOLVER_TEXTO_OCUPADO}
             if r["estado"] != "devolviendo":
                 tocado = True
-                S.nc("PATCH", f"/api/v2/tables/{S.T_PERSONAS_QUITADAS}/records", body={"Id": rid, "estado": "devolviendo"})
+                _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS_QUITADAS}/records", body={"Id": rid, "estado": "devolviendo"})
                 rr = _quitar_leer_registro(rid)
                 if rr is None or rr.get("estado") != "devolviendo":
                     return 502, _devolver_sin_confirmar(rid, "no_se_pudo_apuntar")
             tocado = True
             if not ya:
-                S.nc("PATCH", f"/api/v2/tables/{S.T_PERSONAS}/records", body=dict(_devolver_cuerpo_de_la_ficha(antes), Id=qid))
+                _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS}/records", body=dict(_devolver_cuerpo_de_la_ficha(antes), Id=qid))
             q2 = _union_leer_ficha(qid, list(UNION_COLUMNAS_QUE_SE_VACIAN) + ["unida_a", QUITAR_MARCA])
             if q2 is None or not _devolver_restaurada(q2, antes):
                 return 502, _devolver_sin_confirmar(rid, "ficha_sin_confirmar")
-            S.nc("PATCH", f"/api/v2/tables/{S.T_PERSONAS_QUITADAS}/records", body={"Id": rid, "estado": "devuelta", "devuelta_por": quien, "devuelta_en": _ahora_utc()})
+            _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS_QUITADAS}/records", body={"Id": rid, "estado": "devuelta", "devuelta_por": quien, "devuelta_en": _ahora_utc()})
             rr = _quitar_leer_registro(rid)
             if rr is None or rr.get("estado") != "devuelta":
                 return 502, _devolver_sin_confirmar(rid, "registro_sin_confirmar")
             return 200, {"ok": True, "estado": "devuelta", "ficha": qid, "devuelta_id": rid, "ya_estaba": False}
-        except S.SoloLectura:
+        except _base.SoloLectura:
             raise
         except Exception as e:                               # noqa: BLE001
             print(f"[warn] devolver: no se terminó ({type(e).__name__})")
@@ -3876,11 +3876,11 @@ def listar_borradas():
     """Las fichas guardadas aparte que se pueden devolver: sus registros en `QUITAR_ESTADO_BORRADA`. Por cada una devuelve `ficha` (el `Id`),
     `nombre` (el que tenía, de `antes`; `None` si `antes` no se puede leer), `cuando` (`creada_en`) y `quien` (`creada_por`). Devuelve
     `(código, datos)`. 503 sin la tabla de registro; 502 si no se puede leer. No escribe nada."""
-    if not S.T_PERSONAS_QUITADAS:
+    if not _base.T_PERSONAS_QUITADAS:
         return 503, {"ok": False, "motivo": "sin_registro", "error": "No se puede ver la lista ahora: falta conectar el registro de borrados."}
     try:
         registros = _quitar_registros(f"(estado,eq,{QUITAR_ESTADO_BORRADA})")
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                                   # noqa: BLE001
         print(f"[warn] borradas: no se pudo leer el registro ({type(e).__name__})")
@@ -3955,9 +3955,9 @@ def _union_caras_texto(*celdas):
     """Las caras legibles de las celdas, una tras otra, y las últimas `CARA_RANURAS`. Cada celda aporta como mucho las suyas últimas."""
     trozos = []
     for celda in celdas:
-        buenos = [t.strip() for t in str(celda or "").split(S.CARA_SEPARADOR) if t.strip() and S._cara_desde_base64(t.strip()) is not None]
-        trozos += buenos[-S.CARA_RANURAS:]
-    return S.CARA_SEPARADOR.join(trozos[-S.CARA_RANURAS:])
+        buenos = [t.strip() for t in str(celda or "").split(_base.CARA_SEPARADOR) if t.strip() and _base._cara_desde_base64(t.strip()) is not None]
+        trozos += buenos[-_base.CARA_RANURAS:]
+    return _base.CARA_SEPARADOR.join(trozos[-_base.CARA_RANURAS:])
 
 
 def _union_resolver_contacto(c, q, s, eleccion, cuerpo, faltan, malas):
@@ -4031,7 +4031,7 @@ def _union_leer_enlace(tabla, enlace, registro):
     """Los `Id` ligados a `registro` por ese enlace, de todas las páginas. Lo que no venga como lista levanta."""
     ids, desde = [], 0
     for _ in range(50):
-        pagina = S.nc("GET", S.nc_link_path(tabla, enlace, registro), query={"limit": 200, "offset": desde})
+        pagina = _base.nc("GET", _base.nc_link_path(tabla, enlace, registro), query={"limit": 200, "offset": desde})
         lista = pagina if isinstance(pagina, list) else pagina.get("list") if isinstance(pagina, dict) else None
         if not isinstance(lista, list):
             raise ValueError("el enlace no vino como lista")
@@ -4045,7 +4045,7 @@ def _union_leer_enlace(tabla, enlace, registro):
 
 def _union_asistencias_de(ficha_id):
     """Las asistencias de una ficha, por `persona_id`, de menor a mayor `Id`."""
-    filas = S.nc_list_all(S.T_ASISTENCIAS, {"where": f"(persona_id,eq,{int(ficha_id)})",
+    filas = _base.nc_list_all(_base.T_ASISTENCIAS, {"where": f"(persona_id,eq,{int(ficha_id)})",
                                             "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id"})
     for a in filas:
         if isinstance(a.get("Id"), bool) or not isinstance(a.get("Id"), int):
@@ -4058,10 +4058,10 @@ def _union_asistencias_de(ficha_id):
 def _union_lo_de_sobra(ficha_id):
     """Lo que cuelga de la ficha: sus asistencias y los `Id` de sus sesiones, proyectos, pagos e inscripciones."""
     return {"asistencias": _union_asistencias_de(ficha_id),
-            "sesiones": _union_leer_enlace(S.T_PERSONAS, S.L_PERSONA_SESIONES, ficha_id),
-            "proyectos": _union_leer_enlace(S.T_PERSONAS, S.L_PERSONA_PROYECTOS, ficha_id),
-            "pagos": _union_leer_enlace(S.T_PERSONAS, S.L_PERSONA_PAGOS, ficha_id),
-            "inscripciones": _union_leer_enlace(S.T_PERSONAS, S.L_PERSONA_INSCRIPCIONES, ficha_id)}
+            "sesiones": _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_SESIONES, ficha_id),
+            "proyectos": _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_PROYECTOS, ficha_id),
+            "pagos": _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, ficha_id),
+            "inscripciones": _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_INSCRIPCIONES, ficha_id)}
 
 
 def _union_queda_algo(lo):
@@ -4101,14 +4101,14 @@ def _union_completar_plan(plan, lo, asistencias_de_la_que_queda, enlaces_de_la_q
 
 def _union_enlaces_de(ficha_id):
     """`enlaces_de_la_que_queda` para `_union_completar_plan`: lee el enlace de la ficha según la clave."""
-    enlaces = {"sesiones": S.L_PERSONA_SESIONES, "proyectos": S.L_PERSONA_PROYECTOS, "pagos": S.L_PERSONA_PAGOS}
-    return lambda clave: _union_leer_enlace(S.T_PERSONAS, enlaces[clave], ficha_id)
+    enlaces = {"sesiones": _base.L_PERSONA_SESIONES, "proyectos": _base.L_PERSONA_PROYECTOS, "pagos": _base.L_PERSONA_PAGOS}
+    return lambda clave: _union_leer_enlace(_base.T_PERSONAS, enlaces[clave], ficha_id)
 
 
 # --- el registro ---
 
 def _union_filas_del_registro(donde):
-    filas = S.nc_list_all(S.T_UNIONES_PERSONAS, {"where": donde})
+    filas = _base.nc_list_all(_base.T_UNIONES_PERSONAS, {"where": donde})
     if not isinstance(filas, list):
         raise ValueError("el registro no vino como lista")
     return filas
@@ -4127,20 +4127,20 @@ def _union_escribir_ficha(ficha_id, cuerpo):
     """El `PATCH` a `personas` de la unión. `credito` no se escribe."""
     if "credito" in cuerpo or "Id" in cuerpo:
         raise ValueError("la unión no escribe esa casilla")
-    S.nc("PATCH", f"/api/v2/tables/{S.T_PERSONAS}/records", body=dict(cuerpo, Id=int(ficha_id)))
+    _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS}/records", body=dict(cuerpo, Id=int(ficha_id)))
 
 
 def _union_tirar_caches():
-    S.invalidate_personas()
+    invalidate_personas()
     invalidate_portal_personas()
-    S.invalidate_caras()
+    _base.invalidate_caras()
 
 
 # --- los pasos 2 a 5: mover lo que cuelga de la ficha que sobra ---
 
 def _union_ligar(tabla, enlace, registro, destinos):
     """Liga `registro` de `tabla` con los `Id` de `destinos` por ese enlace (el `POST` de enlace de `hacer_checkin`)."""
-    S.nc("POST", S.nc_link_path(tabla, enlace, registro), body=[{"Id": d} for d in destinos])
+    _base.nc("POST", _base.nc_link_path(tabla, enlace, registro), body=[{"Id": d} for d in destinos])
 
 
 def _union_asegurar_enlace(tabla, enlace, registro, destino):
@@ -4150,14 +4150,14 @@ def _union_asegurar_enlace(tabla, enlace, registro, destino):
 
 def _union_crear_asistencia(entrada, qid, titulo):
     """Una asistencia de `qid` en la sesión de `entrada`, con el mismo `POST` y los mismos enlaces de `hacer_checkin`."""
-    rec = S.nc("POST", f"/api/v2/tables/{S.T_ASISTENCIAS}/records", body={
+    rec = _base.nc("POST", f"/api/v2/tables/{_base.T_ASISTENCIAS}/records", body={
         "titulo": titulo, "checkin_at": entrada["checkin_at"], "registrado_por": entrada["registrado_por"],
         "persona_id": qid, "sesion_id": entrada["sesion"]})
     aid = rec.get("Id") if isinstance(rec, dict) else None
     if isinstance(aid, bool) or not isinstance(aid, int):
         raise ValueError("la asistencia nueva no trajo su Id")
-    _union_ligar(S.T_ASISTENCIAS, S.L_ASIS_PERSONA, aid, [qid])
-    _union_ligar(S.T_ASISTENCIAS, S.L_ASIS_SESION, aid, [entrada["sesion"]])
+    _union_ligar(_base.T_ASISTENCIAS, _base.L_ASIS_PERSONA, aid, [qid])
+    _union_ligar(_base.T_ASISTENCIAS, _base.L_ASIS_SESION, aid, [entrada["sesion"]])
     return aid
 
 
@@ -4179,10 +4179,10 @@ def _union_mover_asistencias(plan, qid, sid):
             de_q[ses] = [{"Id": _union_crear_asistencia(e, qid, plan["titulo_q"])}]
         elif e["accion"] == "mover":
             aid = de_q[ses][0]["Id"]
-            _union_asegurar_enlace(S.T_ASISTENCIAS, S.L_ASIS_PERSONA, aid, qid)
-            _union_asegurar_enlace(S.T_ASISTENCIAS, S.L_ASIS_SESION, aid, ses)
+            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_PERSONA, aid, qid)
+            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_SESION, aid, ses)
         for a in de_s[ses]:
-            S.nc("DELETE", f"/api/v2/tables/{S.T_ASISTENCIAS}/records", body={"Id": a["Id"]})
+            _base.nc("DELETE", f"/api/v2/tables/{_base.T_ASISTENCIAS}/records", body={"Id": a["Id"]})
         de_s[ses] = []
 
 
@@ -4190,32 +4190,32 @@ def _union_mover_enlaces(plan_ids, tabla, enlace_del_registro, enlace_de_la_fich
     """Pasos 3 y 4. Cada registro de `plan_ids` se liga a `qid` desde su lado y se desliga de `sid`."""
     if not plan_ids:
         return
-    de_s = _union_leer_enlace(S.T_PERSONAS, enlace_de_la_ficha, sid)
-    de_q = _union_leer_enlace(S.T_PERSONAS, enlace_de_la_ficha, qid)
+    de_s = _union_leer_enlace(_base.T_PERSONAS, enlace_de_la_ficha, sid)
+    de_q = _union_leer_enlace(_base.T_PERSONAS, enlace_de_la_ficha, qid)
     for r in plan_ids:
         if r not in de_q:
             _union_ligar(tabla, enlace_del_registro, r, [qid])
         if r in de_s:
-            S.nc_unlink(tabla, enlace_del_registro, r, [sid])
+            _base.nc_unlink(tabla, enlace_del_registro, r, [sid])
 
 
 def _union_mover_sesiones(plan, qid, sid):
-    _union_mover_enlaces(_union_ids(plan, "sesiones"), S.T_SESIONES, S.L_MUSICOS, S.L_PERSONA_SESIONES, qid, sid)
+    _union_mover_enlaces(_union_ids(plan, "sesiones"), _base.T_SESIONES, _base.L_MUSICOS, _base.L_PERSONA_SESIONES, qid, sid)
 
 
 def _union_mover_proyectos_y_pagos(plan, qid, sid):
     """Paso 4. Los proyectos se mueven desde el lado del proyecto; los pagos, desde el lado de la ficha."""
-    _union_mover_enlaces(_union_ids(plan, "proyectos"), S.T_PROYECTOS, S.L_PROY_MIEMBROS, S.L_PERSONA_PROYECTOS, qid, sid)
+    _union_mover_enlaces(_union_ids(plan, "proyectos"), _base.T_PROYECTOS, _base.L_PROY_MIEMBROS, _base.L_PERSONA_PROYECTOS, qid, sid)
     pagos = _union_ids(plan, "pagos")
     if pagos:
-        de_s = _union_leer_enlace(S.T_PERSONAS, S.L_PERSONA_PAGOS, sid)
-        de_q = _union_leer_enlace(S.T_PERSONAS, S.L_PERSONA_PAGOS, qid)
+        de_s = _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, sid)
+        de_q = _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, qid)
         nuevos = [p for p in pagos if p not in de_q]
         if nuevos:
-            _union_ligar(S.T_PERSONAS, S.L_PERSONA_PAGOS, qid, nuevos)
+            _union_ligar(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, qid, nuevos)
         quitar = [p for p in pagos if p in de_s]
         if quitar:
-            S.nc_unlink(S.T_PERSONAS, S.L_PERSONA_PAGOS, sid, quitar)
+            _base.nc_unlink(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, sid, quitar)
 
 
 # --- los pasos 6 y 7: escribir las dos fichas ---
@@ -4225,7 +4225,7 @@ def _union_marcar(antes, qid, sid):
     Si no, se escribe la que queda (paso 6) y se vacía y se marca la que sobra (paso 7). Lo ya escrito no se vuelve a escribir."""
     cols_q = list(antes["queda"])
     cols_s = list(dict.fromkeys(list(UNION_COLUMNAS_QUE_SE_VACIAN) + list(antes["lee_de_sobra"])))
-    with S._FICHA_TELEFONO_LOCK, S._candado_de_ficha(min(qid, sid)), S._candado_de_ficha(max(qid, sid)):
+    with _FICHA_TELEFONO_LOCK, _candado_de_ficha(min(qid, sid)), _candado_de_ficha(max(qid, sid)):
         try:
             q = _union_leer_ficha(qid, cols_q + ["unida_a", "quitada_el"])
             s = _union_leer_ficha(sid, cols_s + ["unida_a", "quitada_el"])
@@ -4274,8 +4274,8 @@ def _union_verificar(plan, antes, qid, sid):
     de_q = {a["sesion_id"] for a in _union_asistencias_de(qid)}
     if any(e["sesion"] not in de_q for e in plan["asistencias"]):
         mal.append("asistencias_de_la_que_queda")
-    for clave, enlace in (("sesiones", S.L_PERSONA_SESIONES), ("proyectos", S.L_PERSONA_PROYECTOS), ("pagos", S.L_PERSONA_PAGOS)):
-        if not set(_union_ids(plan, clave)) <= set(_union_leer_enlace(S.T_PERSONAS, enlace, qid)):
+    for clave, enlace in (("sesiones", _base.L_PERSONA_SESIONES), ("proyectos", _base.L_PERSONA_PROYECTOS), ("pagos", _base.L_PERSONA_PAGOS)):
+        if not set(_union_ids(plan, clave)) <= set(_union_leer_enlace(_base.T_PERSONAS, enlace, qid)):
             mal.append(clave + "_de_la_que_queda")
     return mal
 
@@ -4288,8 +4288,8 @@ def _union_cerrar(u, plan, antes, qid, sid):
         print(f"[warn] unión: lo releído no cuadra ({','.join(mal)})")
         return _union_sin_confirmar(uid, "no_cuadra", "Se escribió, pero al volver a leer las fichas algo no cuadra. NO la des por hecha: "
                                                         "usa «Terminar la unión» o mira las dos fichas.")
-    S.nc("PATCH", f"/api/v2/tables/{S.T_UNIONES_PERSONAS}/records", body={"Id": uid, "estado": "unida", "terminada_en": _ahora_utc()})
-    releida = S.nc("GET", f"/api/v2/tables/{S.T_UNIONES_PERSONAS}/records/{uid}")
+    _base.nc("PATCH", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records", body={"Id": uid, "estado": "unida", "terminada_en": _ahora_utc()})
+    releida = _base.nc("GET", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records/{uid}")
     if not isinstance(releida, dict) or releida.get("estado") != "unida":
         return _union_sin_confirmar(uid, "registro_sin_confirmar")
     return 200, {"ok": True, "estado": "unida", "union_id": uid, "queda": qid, "sobra": sid,
@@ -4314,7 +4314,7 @@ def _union_correr(u):
             _union_mover_proyectos_y_pagos(plan, qid, sid)
             lo = _union_lo_de_sobra(sid)
             if _union_completar_plan(plan, lo, lambda: _union_asistencias_de(qid), _union_enlaces_de(qid)):
-                S.nc("PATCH", f"/api/v2/tables/{S.T_UNIONES_PERSONAS}/records", body={"Id": uid, "plan": _union_json(plan)})
+                _base.nc("PATCH", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records", body={"Id": uid, "plan": _union_json(plan)})
             if not _union_queda_algo(lo):
                 break
         else:
@@ -4337,8 +4337,8 @@ def _union_apuntar(clave, qid, sid, plan, antes, quien):
     cuerpo = {"clave": clave, "estado": "en_curso", "queda_id": qid, "sobra_id": sid, "plan": _union_json(plan), "antes": _union_json(antes),
               "creada_por": quien, "creada_en": _ahora_utc()}
     try:
-        S.nc("POST", f"/api/v2/tables/{S.T_UNIONES_PERSONAS}/records", body=cuerpo)
-    except S.SoloLectura:
+        _base.nc("POST", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records", body=cuerpo)
+    except _base.SoloLectura:
         raise
     except Exception as e:                                   # noqa: BLE001
         print(f"[warn] unión: el registro no confirmó la escritura ({type(e).__name__})")
@@ -4393,7 +4393,7 @@ def unir_fichas(id_a, id_b, resoluciones, clave, quien, queda_visto=None):
     la lista de los que se quedan, el primero principal). `clave` identifica el intento: repetirlo no hace otra unión.
     `queda_visto` (opcional): el `Id` de la ficha que quien llama vio que quedaba; si ahora quedaría otra, no une y no escribe (409 `cambio_quien_queda`).
     Sin él se porta como siempre (así la llama `recibir_y_unir`, que no manda resoluciones)."""
-    if not S.T_UNIONES_PERSONAS:
+    if not _base.T_UNIONES_PERSONAS:
         return 503, {"ok": False, "motivo": "sin_registro", "error": "No se puede unir ahora: falta conectar el registro de uniones. No se hizo nada."}
     if not isinstance(clave, str) or not _RE_CLAVE_DE_UNION.fullmatch(clave):
         return 400, {"ok": False, "motivo": "clave", "error": "Falta la clave del intento."}
@@ -4414,7 +4414,7 @@ def unir_fichas(id_a, id_b, resoluciones, clave, quien, queda_visto=None):
             u = _union_apuntar(clave, qid, sid, plan, antes, quien)
         except _UnionParada as p:
             return p.codigo, p.datos
-        except S.SoloLectura:
+        except _base.SoloLectura:
             raise
         except Exception as e:                               # noqa: BLE001
             print(f"[warn] unión: no se pudo comprobar ({type(e).__name__})")
@@ -4424,12 +4424,12 @@ def unir_fichas(id_a, id_b, resoluciones, clave, quien, queda_visto=None):
 
 def continuar_union(ficha_id):
     """Termina la unión sin terminar de la ficha `ficha_id` (sea la que queda o la que sobra). Devuelve `(código, datos)`."""
-    if not S.T_UNIONES_PERSONAS:
+    if not _base.T_UNIONES_PERSONAS:
         return 503, {"ok": False, "motivo": "sin_registro", "error": "No se puede unir ahora: falta conectar el registro de uniones. No se hizo nada."}
     with _UNION_LOCK:
         try:
             mias = _union_de_la_ficha(_union_filas_del_registro("(estado,eq,en_curso)"), ficha_id)
-        except S.SoloLectura:
+        except _base.SoloLectura:
             raise
         except Exception as e:                               # noqa: BLE001
             print(f"[warn] unión: no se pudo leer el registro ({type(e).__name__})")
@@ -4471,7 +4471,7 @@ def _deshacer_no_es_del_aviso():
 
 def union_que_se_puede_deshacer(ficha_id):
     """`{id, estado, queda, sobra}` de la unión de la ficha que se puede deshacer, o `None`. Es una lectura del registro; sin registro no lee nada."""
-    if not S.T_UNIONES_PERSONAS:
+    if not _base.T_UNIONES_PERSONAS:
         return None
     filas = _union_filas_del_registro(f"(queda_id,eq,{int(ficha_id)})~or(sobra_id,eq,{int(ficha_id)})")
     u = _deshacer_elegir(filas, int(ficha_id))
@@ -4542,11 +4542,11 @@ def _deshacer_asistencias(plan, qid, sid):
             de_s[ses] = [{"Id": _union_crear_asistencia(e, sid, e.get("titulo"))}]
         else:
             aid = de_s[ses][0]["Id"]
-            _union_asegurar_enlace(S.T_ASISTENCIAS, S.L_ASIS_PERSONA, aid, sid)
-            _union_asegurar_enlace(S.T_ASISTENCIAS, S.L_ASIS_SESION, aid, ses)
+            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_PERSONA, aid, sid)
+            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_SESION, aid, ses)
         if e["accion"] == "mover":
             for a in de_q.get(ses, []):
-                S.nc("DELETE", f"/api/v2/tables/{S.T_ASISTENCIAS}/records", body={"Id": a["Id"]})
+                _base.nc("DELETE", f"/api/v2/tables/{_base.T_ASISTENCIAS}/records", body={"Id": a["Id"]})
             de_q[ses] = []
 
 
@@ -4554,27 +4554,27 @@ def _deshacer_enlaces(entradas, tabla, enlace_del_registro, enlace_de_la_ficha, 
     """Paso d, sesiones y proyectos. Cada registro del plan se liga otra vez a la que sobró y, si la unión se lo había traído, se desliga de la que quedó."""
     if not entradas:
         return
-    de_s = _union_leer_enlace(S.T_PERSONAS, enlace_de_la_ficha, sid)
-    de_q = _union_leer_enlace(S.T_PERSONAS, enlace_de_la_ficha, qid)
+    de_s = _union_leer_enlace(_base.T_PERSONAS, enlace_de_la_ficha, sid)
+    de_q = _union_leer_enlace(_base.T_PERSONAS, enlace_de_la_ficha, qid)
     for e in entradas:
         if e["id"] not in de_s:
             _union_ligar(tabla, enlace_del_registro, e["id"], [sid])
         if e["accion"] == "mover" and e["id"] in de_q:
-            S.nc_unlink(tabla, enlace_del_registro, e["id"], [qid])
+            _base.nc_unlink(tabla, enlace_del_registro, e["id"], [qid])
 
 
 def _deshacer_pagos(plan, qid, sid):
     """Paso d, pagos: se ligan a la que sobró y se desligan de la que quedó desde el lado de la ficha, una llamada cada uno."""
     if not plan["pagos"]:
         return
-    de_s = _union_leer_enlace(S.T_PERSONAS, S.L_PERSONA_PAGOS, sid)
-    de_q = _union_leer_enlace(S.T_PERSONAS, S.L_PERSONA_PAGOS, qid)
+    de_s = _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, sid)
+    de_q = _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, qid)
     volver = [e["id"] for e in plan["pagos"] if e["id"] not in de_s]
     if volver:
-        _union_ligar(S.T_PERSONAS, S.L_PERSONA_PAGOS, sid, volver)
+        _union_ligar(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, sid, volver)
     quitar = [e["id"] for e in plan["pagos"] if e["accion"] == "mover" and e["id"] in de_q]
     if quitar:
-        S.nc_unlink(S.T_PERSONAS, S.L_PERSONA_PAGOS, qid, quitar)
+        _base.nc_unlink(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, qid, quitar)
 
 
 def _deshacer_verificar(plan, antes, qid, sid, no):
@@ -4597,9 +4597,9 @@ def _deshacer_verificar(plan, antes, qid, sid, no):
     de_q = {a["sesion_id"] for a in _union_asistencias_de(qid)}
     if any(e["sesion"] not in de_s or (e["accion"] == "mover" and e["sesion"] in de_q) for e in plan["asistencias"]):
         mal.append("asistencias")
-    for clave, enlace in (("sesiones", S.L_PERSONA_SESIONES), ("proyectos", S.L_PERSONA_PROYECTOS), ("pagos", S.L_PERSONA_PAGOS)):
+    for clave, enlace in (("sesiones", _base.L_PERSONA_SESIONES), ("proyectos", _base.L_PERSONA_PROYECTOS), ("pagos", _base.L_PERSONA_PAGOS)):
         if plan[clave]:
-            en_s, en_q = set(_union_leer_enlace(S.T_PERSONAS, enlace, sid)), set(_union_leer_enlace(S.T_PERSONAS, enlace, qid))
+            en_s, en_q = set(_union_leer_enlace(_base.T_PERSONAS, enlace, sid)), set(_union_leer_enlace(_base.T_PERSONAS, enlace, qid))
             if any(e["id"] not in en_s or (e["accion"] == "mover" and e["id"] in en_q) for e in plan[clave]):
                 mal.append(clave)
     return mal
@@ -4623,27 +4623,27 @@ def _deshacer_correr(u, quien):
         if ficha_unida(marca):
             raise _union_no(409, "queda_unida", "La ficha que quedó se unió después a otra. Primero hay que deshacer esa unión.")
         if u.get("estado") != "deshaciendo":
-            S.nc("PATCH", f"/api/v2/tables/{S.T_UNIONES_PERSONAS}/records", body={"Id": uid, "estado": "deshaciendo"})
-            if (S.nc("GET", f"/api/v2/tables/{S.T_UNIONES_PERSONAS}/records/{uid}") or {}).get("estado") != "deshaciendo":
+            _base.nc("PATCH", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records", body={"Id": uid, "estado": "deshaciendo"})
+            if (_base.nc("GET", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records/{uid}") or {}).get("estado") != "deshaciendo":
                 return _deshacer_sin_confirmar(uid, "deshacer_no_se_pudo_apuntar", "No se pudo apuntar que se iba a deshacer, así que no se tocó nada.")
-        with S._FICHA_TELEFONO_LOCK, S._candado_de_ficha(min(qid, sid)), S._candado_de_ficha(max(qid, sid)):
+        with _FICHA_TELEFONO_LOCK, _candado_de_ficha(min(qid, sid)), _candado_de_ficha(max(qid, sid)):
             try:
                 no, rechazadas, contactos = _deshacer_queda(antes, qid)
                 no += _deshacer_sobra(antes, qid, sid, rechazadas, contactos)
             finally:
                 _union_tirar_caches()      # la cámara lee las caras de una caché: tiene que verlas como quedaron
-        with S._candado_de_ficha(min(qid, sid)), S._candado_de_ficha(max(qid, sid)):
+        with _candado_de_ficha(min(qid, sid)), _candado_de_ficha(max(qid, sid)):
             _deshacer_asistencias(plan, qid, sid)
-            _deshacer_enlaces(plan["sesiones"], S.T_SESIONES, S.L_MUSICOS, S.L_PERSONA_SESIONES, qid, sid)
-            _deshacer_enlaces(plan["proyectos"], S.T_PROYECTOS, S.L_PROY_MIEMBROS, S.L_PERSONA_PROYECTOS, qid, sid)
+            _deshacer_enlaces(plan["sesiones"], _base.T_SESIONES, _base.L_MUSICOS, _base.L_PERSONA_SESIONES, qid, sid)
+            _deshacer_enlaces(plan["proyectos"], _base.T_PROYECTOS, _base.L_PROY_MIEMBROS, _base.L_PERSONA_PROYECTOS, qid, sid)
             _deshacer_pagos(plan, qid, sid)
         mal = _deshacer_verificar(plan, antes, qid, sid, no)
         if mal:
             print(f"[warn] unión: lo releído al deshacer no cuadra ({','.join(mal)})")
             return _deshacer_sin_confirmar(uid, "deshacer_no_cuadra", "Se escribió, pero al volver a leer las fichas algo no cuadra. NO la des por deshecha: "
                                                                        "vuelve a pulsar «Deshacer la unión» o mira las dos fichas.")
-        S.nc("PATCH", f"/api/v2/tables/{S.T_UNIONES_PERSONAS}/records", body={"Id": uid, "estado": "deshecha", "deshecha_por": quien, "deshecha_en": _ahora_utc()})
-        releida = S.nc("GET", f"/api/v2/tables/{S.T_UNIONES_PERSONAS}/records/{uid}")
+        _base.nc("PATCH", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records", body={"Id": uid, "estado": "deshecha", "deshecha_por": quien, "deshecha_en": _ahora_utc()})
+        releida = _base.nc("GET", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records/{uid}")
         if not isinstance(releida, dict) or releida.get("estado") != "deshecha":
             return _deshacer_sin_confirmar(uid, "deshacer_registro_sin_confirmar")
         return 200, dict({"ok": True, "estado": "deshecha", "union_id": uid, "queda": qid, "sobra": sid,
@@ -4664,7 +4664,7 @@ def deshacer_union(ficha_id, quien, union_visto=None, sobra_esperada=None):
     `union_visto` (opcional): el `Id` de la unión que quien llama vio; si la que toca deshacer es otra, no hace nada; si ya está deshecha, lo dice.
     `sobra_esperada` (opcional): la ficha que tiene que haber sobrado en esa unión (la usa el renglón de «Por resolver», que solo puede deshacer la unión de SU
     aviso); si la unión que toca es con otra ficha, no hace nada, no apunta nada y contesta 409 `no_es_la_union_del_aviso`."""
-    if not S.T_UNIONES_PERSONAS:
+    if not _base.T_UNIONES_PERSONAS:
         return 503, {"ok": False, "motivo": "sin_registro", "error": "No se puede deshacer ahora: falta conectar el registro de uniones. No se hizo nada."}
     with _UNION_LOCK:
         try:
@@ -4684,7 +4684,7 @@ def deshacer_union(ficha_id, quien, union_visto=None, sobra_esperada=None):
                 return _deshacer_no_es_del_aviso()
             if u is None:
                 return 404, {"ok": False, "motivo": "sin_union_para_deshacer", "error": "Esta ficha no tiene una unión que se pueda deshacer."}
-        except S.SoloLectura:
+        except _base.SoloLectura:
             raise
         except Exception as e:                               # noqa: BLE001
             print(f"[warn] unión: no se pudo leer el registro para deshacer ({type(e).__name__})")
@@ -4708,9 +4708,9 @@ def _no_son_la_misma_clave(id_a, id_b):
 
 def no_son_la_misma(id_a, id_b):
     """Si la bandeja trae el apunte «no son la misma» de las fichas `id_a` e `id_b`; levanta si no se pudo leer."""
-    if not S.T_BANDEJA_PERSONAS:
+    if not _base.T_BANDEJA_PERSONAS:
         raise ValueError("falta la bandeja")
-    ya = S.nc("GET", f"/api/v2/tables/{S.T_BANDEJA_PERSONAS}/records",
+    ya = _base.nc("GET", f"/api/v2/tables/{_base.T_BANDEJA_PERSONAS}/records",
               query={"where": f"(clave,eq,{_no_son_la_misma_clave(id_a, id_b)})", "fields": "Id", "limit": 1})
     if not isinstance(ya, dict) or not isinstance(ya.get("list"), list):
         raise ValueError("la bandeja no vino como lista")
@@ -4721,11 +4721,11 @@ def apuntar_no_son_la_misma(id_a, id_b, quien):
     """Apunta en la bandeja que las fichas `id_a` e `id_b` no son la misma persona; devuelve si quedó apuntado."""
     try:
         if not no_son_la_misma(id_a, id_b):
-            S.nc("POST", f"/api/v2/tables/{S.T_BANDEJA_PERSONAS}/records",
+            _base.nc("POST", f"/api/v2/tables/{_base.T_BANDEJA_PERSONAS}/records",
                  body={"clave": _no_son_la_misma_clave(id_a, id_b), "origen": NO_SON_LA_MISMA_ORIGEN, "estado": "no_son_la_misma",
                        "ficha_id": min(int(id_a), int(id_b)), "otra_ficha_id": max(int(id_a), int(id_b)), "resuelto_por": quien})
         return no_son_la_misma(id_a, id_b)
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                                   # noqa: BLE001
         print(f"[warn] no son la misma: no se pudo apuntar ({type(e).__name__})")
@@ -4755,11 +4755,11 @@ def _union_sola_clave(E, id_a, id_b):
 
 def _union_sola_empezada(E):
     """La unión de este dato que quedó empezada o terminada, como `(queda, sobra, prueba)`, o `None`."""
-    if not (E["clave"] and S.T_UNIONES_PERSONAS):
+    if not (E["clave"] and _base.T_UNIONES_PERSONAS):
         return None
     try:
         filas = _union_filas_del_registro(f"(clave,eq,{_union_sola_clave(E, 0, 0)})")
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                                   # noqa: BLE001
         print(f"[warn] unir sola: no se pudo leer el registro de uniones ({type(e).__name__})")
@@ -4798,7 +4798,7 @@ def _union_sola_decidir(E, id_a, id_b, prueba, solo_contar):
             u["estado"] = "no_son_la_misma"
             return u
         codigo, datos, contexto = _union_revisar_completo(id_a, id_b)
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                                   # noqa: BLE001
         print(f"[warn] unir sola: no se pudo comprobar ({type(e).__name__})")
@@ -4850,7 +4850,7 @@ def _union_sola_sin_lo_ajeno(dato, E, r, id_b):
     `aplicado` si no queda ningún aviso no informativo. Un valor que señale a una TERCERA ficha sin apunte sigue su camino normal (la segunda pasada lo avisa)."""
     try:
         otra = _puerta_leer_la_ficha(id_b)
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                                   # noqa: BLE001
         print(f"[warn] unir sola: no se pudo leer la ficha del apunte ({type(e).__name__})")
@@ -4969,7 +4969,7 @@ def _anotaciones_leer_tabla(tabla, campos=None, where=None):
         if where is not None:
             q["where"] = where
         q.update({"limit": 200, "offset": desde})
-        pag = S.nc("GET", f"/api/v2/tables/{tabla}/records", query=q)
+        pag = _base.nc("GET", f"/api/v2/tables/{tabla}/records", query=q)
         info = pag.get("pageInfo") if isinstance(pag, dict) else None
         trozo = pag.get("list") if isinstance(pag, dict) else None
         if not isinstance(trozo, list) or not isinstance(info, dict) or not isinstance(info.get("isLastPage"), bool):
@@ -5018,7 +5018,7 @@ def anotaciones_grupo(ficha_id, marcas):
     q = _anotaciones_entero(ficha_id)
     if q is None or q not in ids:
         raise _NoSeSupo("ficha_no_esta")
-    tope = S.SALTOS_DE_UNION
+    tope = _base.SALTOS_DE_UNION
 
     def seguir(i):
         """`(donde_termina, saltos)`; `donde_termina` es `None` si la cadena se corta o da vueltas."""
@@ -5114,7 +5114,7 @@ def _anotaciones_leer(persona_id, tabla):
     """LA lectura de las anotaciones: las marcas de unión de TODAS las fichas, el grupo de `persona_id`, la tabla entera y el estado.
     Devuelve `(grupo, filas, estado)` (el estado puede ser el de «no se pudo saber») o levanta lo que la red levante. Es la única que arma
     el estado: la ficha (`anotaciones_de_la_ficha`) y la escritura de permiso (`anotar_permiso`) leen por aquí."""
-    marcas = _anotaciones_leer_tabla(S.T_PERSONAS, "Id,unida_a")
+    marcas = _anotaciones_leer_tabla(_base.T_PERSONAS, "Id,unida_a")
     grupo = anotaciones_grupo(persona_id, marcas)
     filas = _anotaciones_leer_tabla(tabla, ",".join(ANOTACIONES_LEE))
     return grupo, filas, anotaciones_estado(grupo, filas)
@@ -5127,7 +5127,7 @@ def _permiso_de_la_ficha_sin_levantar(persona_id):
     uniones rota) da `{"sabido": False, "motivo": …}`. Lee la tabla de anotaciones y las marcas de unión de TODAS las fichas
     (`Id` y `unida_a`) cada vez, sin caché."""
     try:
-        tabla = (S.T_PERSONAS_ANOTACIONES or "").strip()
+        tabla = (_base.T_PERSONAS_ANOTACIONES or "").strip()
     except Exception:  # noqa: BLE001
         print("[PERSONAS-ANOTACIONES] no se pudo leer (variable ilegible)")
         return _anotaciones_no_se_supo("lectura_fallo")
@@ -5186,7 +5186,7 @@ def _anotar_pedido(cuerpo):
             date.fromisoformat(dicho)
         except ValueError:
             return None, "La fecha en que lo dijo tiene que ser un día de verdad, escrito AAAA-MM-DD."
-        if dicho > S.hoy_str():
+        if dicho > _base.hoy_str():
             return None, "La fecha en que lo dijo no puede ser de un día que todavía no llega."
         if dicho < ANOTACIONES_DICHO_DESDE:
             return None, "La fecha en que lo dijo es demasiado vieja."
@@ -5276,14 +5276,14 @@ def anotar_permiso(ficha_id, cuerpo, quien):
     if not isinstance(quien, str) or not quien.strip():
         return 400, {"ok": False, "estado": "pedido_malo", "error": "No se pudo verificar quién anota. " + _ANOTAR_SIN}
     try:
-        tabla = (S.T_PERSONAS_ANOTACIONES or "").strip()
+        tabla = (_base.T_PERSONAS_ANOTACIONES or "").strip()
     except Exception:  # noqa: BLE001
         tabla = ""
     if not tabla:
         return 503, {"ok": False, "estado": "sin_tabla", "sin_tabla": True, "error": "Todavía no hay dónde guardar el permiso. " + _ANOTAR_SIN}
     ficha = _anotaciones_entero(ficha_id)
     try:
-        grupo = anotaciones_grupo(ficha, _anotaciones_leer_tabla(S.T_PERSONAS, "Id,unida_a"))
+        grupo = anotaciones_grupo(ficha, _anotaciones_leer_tabla(_base.T_PERSONAS, "Id,unida_a"))
     except _NoSeSupo as e:
         return _anotar_no_se_supo(e)
     except Exception:  # noqa: BLE001
@@ -5291,7 +5291,7 @@ def anotar_permiso(ficha_id, cuerpo, quien):
     valor = pedido["valor"]
     with contextlib.ExitStack() as candados:
         for i in sorted(grupo):
-            candados.enter_context(S._candado_de_ficha(i))
+            candados.enter_context(_candado_de_ficha(i))
         try:
             grupo2, filas, estado = _anotar_leer(ficha, tabla)
         except _NoSeSupo as e:
@@ -5327,8 +5327,8 @@ def anotar_permiso(ficha_id, cuerpo, quien):
         escritos, fallo = [], False                 # [(ficha, Id)]
         for destino in [i for i in destinos if i != ficha] + ([ficha] if ficha in destinos else []):
             try:
-                rec = S.nc("POST", f"/api/v2/tables/{tabla}/records", body={k: v for k, v in dict(base, ficha_id=destino).items() if v is not None})
-            except S.SoloLectura:
+                rec = _base.nc("POST", f"/api/v2/tables/{tabla}/records", body={k: v for k, v in dict(base, ficha_id=destino).items() if v is not None})
+            except _base.SoloLectura:
                 raise                               # lo dice `do_POST` (503; si algo ya salió, dice que no se sabe)
             except Exception:  # noqa: BLE001
                 fallo = True
@@ -5390,14 +5390,14 @@ def _baja_pedido(cuerpo):
 def _baja_fichas_de(identidad):
     """Los `Id` de las fichas de esa identidad, de menor a mayor (puede ser `[]`). La regla de Leads: la identidad da UN número (`numeros_de_identidades_estricto`) y una ficha es de esa identidad si
     ese número es la clave de alguna de sus casillas de teléfono. Lectura estricta de `personas`: si no se puede leer completa, LEVANTA (nunca se anota sobre una lista corta)."""
-    filas = _anotaciones_leer_tabla(S.T_PERSONAS, "Id,telefono,telefono_2,bsuid")
+    filas = _anotaciones_leer_tabla(_base.T_PERSONAS, "Id,telefono,telefono_2,bsuid")
     clave = clave_telefono(numeros_de_identidades_estricto([identidad], lambda _donde: filas)[identidad])
     if not clave:
         return []
     ids = set()
     for f in filas:
         i = _anotaciones_entero(f.get("Id"))
-        if i is not None and clave in {clave_telefono(f.get(c)) for c in S.LEADS_CASILLAS_DE_TELEFONO}:
+        if i is not None and clave in {clave_telefono(f.get(c)) for c in _base.LEADS_CASILLAS_DE_TELEFONO}:
             ids.add(i)
     return sorted(ids)
 
@@ -5421,7 +5421,7 @@ def baja_de_natalia(cuerpo):
     if error:
         return 400, {"ok": False, "estado": "pedido_malo", "error": error + " " + _BAJA_SIN}
     try:
-        tabla = (S.T_PERSONAS_ANOTACIONES or "").strip()
+        tabla = (_base.T_PERSONAS_ANOTACIONES or "").strip()
     except Exception:  # noqa: BLE001
         tabla = ""
     if not tabla:
@@ -5490,21 +5490,21 @@ def anotar_foto(ficha_id, valor, quien):
     if not isinstance(quien, str) or not quien.strip():
         return 400, {"ok": False, "estado": "pedido_malo", "error": "No se pudo verificar quién anota. " + _FOTO_SIN}
     try:
-        tabla = (S.T_PERSONAS_ANOTACIONES or "").strip()
+        tabla = (_base.T_PERSONAS_ANOTACIONES or "").strip()
     except Exception:  # noqa: BLE001
         tabla = ""
     if not tabla:
         return 503, {"ok": False, "estado": "sin_tabla", "sin_tabla": True, "error": "Todavía no hay dónde guardar el permiso de fotos. " + _FOTO_SIN}
     ficha = _anotaciones_entero(ficha_id)
     try:
-        grupo = anotaciones_grupo(ficha, _anotaciones_leer_tabla(S.T_PERSONAS, "Id,unida_a"))
+        grupo = anotaciones_grupo(ficha, _anotaciones_leer_tabla(_base.T_PERSONAS, "Id,unida_a"))
     except _NoSeSupo as e:
         return _anotar_no_se_supo(e)
     except Exception:  # noqa: BLE001
         return _anotar_no_se_supo(None)
     with contextlib.ExitStack() as candados:
         for i in sorted(grupo):
-            candados.enter_context(S._candado_de_ficha(i))
+            candados.enter_context(_candado_de_ficha(i))
         try:
             grupo2, filas, estado = _anotar_leer(ficha, tabla)
         except _NoSeSupo as e:
@@ -5525,8 +5525,8 @@ def anotar_foto(ficha_id, valor, quien):
         escritos, fallo = [], False                 # [(ficha, Id)]
         for destino in [i for i in faltan if i != ficha] + ([ficha] if ficha in faltan else []):
             try:
-                rec = S.nc("POST", f"/api/v2/tables/{tabla}/records", body=dict(base, ficha_id=destino))
-            except S.SoloLectura:
+                rec = _base.nc("POST", f"/api/v2/tables/{tabla}/records", body=dict(base, ficha_id=destino))
+            except _base.SoloLectura:
                 raise                               # lo dice `do_POST` (503; si algo ya salió, dice que no se sabe)
             except Exception:  # noqa: BLE001
                 fallo = True
@@ -5562,7 +5562,7 @@ def foto_de_natalia(cuerpo):
     if error:
         return 400, {"ok": False, "estado": "pedido_malo", "error": error + " " + _FOTO_SIN}
     try:
-        tabla = (S.T_PERSONAS_ANOTACIONES or "").strip()
+        tabla = (_base.T_PERSONAS_ANOTACIONES or "").strip()
     except Exception:  # noqa: BLE001
         tabla = ""
     if not tabla:
@@ -5620,7 +5620,7 @@ def origen_etiqueta(valor):
 
 
 def anotar_origen_al_nacer(ficha_id, origen):
-    """Escribe el renglón `clase = origen` de la ficha que ACABA de nacer y devuelve `"si"` o `"no"`. NO levanta (salvo `S.SoloLectura`, que ya habría
+    """Escribe el renglón `clase = origen` de la ficha que ACABA de nacer y devuelve `"si"` o `"no"`. NO levanta (salvo `_base.SoloLectura`, que ya habría
     parado el `POST` de la ficha) y no relee. Deja UNA línea de registro `[PUERTA-FICHAS-ORIGEN] origen=<puerta> origen_anotado=<si|no>
     motivo=<…>` sin ningún dato de la persona (ni su `Id`); en el hilo del reloj de contactos de Google (`SILENCIO_PUERTA_REGISTRO`) esa
     línea no sale, pero el `POST` de la anotación sí se hace igual (solo se calla el registro, no la escritura). Motivos del `no`: `sin_id` (la base no dijo el número de la ficha), `sin_tabla` (sin
@@ -5631,22 +5631,22 @@ def anotar_origen_al_nacer(ficha_id, origen):
     try:
         if isinstance(ficha_id, bool) or not isinstance(ficha_id, int):
             motivo = "sin_id"
-        elif not (S.T_PERSONAS_ANOTACIONES or "").strip():
+        elif not (_base.T_PERSONAS_ANOTACIONES or "").strip():
             motivo = "sin_tabla"
         else:
-            tabla = S.T_PERSONAS_ANOTACIONES.strip()
-            cuerpo = {"ficha_id": ficha_id, "clase": "origen", "valor": origen, "dicho_el": S.hoy_str(), "quien": ORIGEN_QUIEN, "cuando": _ahora_utc()}
-            rec = S.nc("POST", f"/api/v2/tables/{tabla}/records", body=cuerpo)
+            tabla = _base.T_PERSONAS_ANOTACIONES.strip()
+            cuerpo = {"ficha_id": ficha_id, "clase": "origen", "valor": origen, "dicho_el": _base.hoy_str(), "quien": ORIGEN_QUIEN, "cuando": _ahora_utc()}
+            rec = _base.nc("POST", f"/api/v2/tables/{tabla}/records", body=cuerpo)
             nuevo = rec.get("Id") if isinstance(rec, dict) else None
             if isinstance(nuevo, bool) or not isinstance(nuevo, int):
                 motivo = "sin_renglon"
             else:
                 resultado, motivo = "si", "-"
-    except S.SoloLectura:
+    except _base.SoloLectura:
         raise
     except Exception as e:                           # noqa: BLE001
-        motivo = "rechazo" if isinstance(e, S.ErrorDeNocodb) and e.status < 500 else "fallo"
-        codigo = e.status if isinstance(e, S.ErrorDeNocodb) else type(e).__name__
+        motivo = "rechazo" if isinstance(e, _base.ErrorDeNocodb) and e.status < 500 else "fallo"
+        codigo = e.status if isinstance(e, _base.ErrorDeNocodb) else type(e).__name__
     if codigo is not None:
         # Un fallo de la base al anotar NO se calla, ni en el reloj (`SILENCIO_PUERTA_REGISTRO` calla solo la línea de registro):
         # el alta ya se hizo y la anotación no. Sin datos de la persona: solo el código.
@@ -5668,7 +5668,7 @@ def credito_de_cliente(telefono):
         tel = "1" + tel
     if not tel:
         return 0.0, None
-    rows = S.nc_list_all(S.T_PERSONAS, {"where": f"(telefono,eq,{tel})", "fields": "Id,credito"})
+    rows = _base.nc_list_all(_base.T_PERSONAS, {"where": f"(telefono,eq,{tel})", "fields": "Id,credito"})
     if not rows:
         return 0.0, None
     return float(rows[0].get("credito") or 0), rows[0]["Id"]
@@ -5683,7 +5683,7 @@ def hay_creditos_vivos():
     podría revelar nada y no sale.
     """
     try:
-        r = S.nc("GET", f"/api/v2/tables/{S.T_PERSONAS}/records",
+        r = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records",
                  query={"where": "(credito,gt,0)", "fields": "Id", "limit": 1})
         return bool(r.get("list"))
     except Exception as e:
@@ -5694,7 +5694,7 @@ def hay_creditos_vivos():
 
 def fichas_con_credito_vivo():
     """Las fichas con crédito a favor (`credito > 0`): `Id`, `nombre`, `telefono` y `credito`. El bloque de crédito del reporte mensual las pide aquí."""
-    return S.nc_list_all(S.T_PERSONAS, {"where": "(credito,gt,0)",
+    return _base.nc_list_all(_base.T_PERSONAS, {"where": "(credito,gt,0)",
                                         "fields": "Id,nombre,telefono,credito"})
 
 
@@ -5707,30 +5707,30 @@ def fichas_con_credito_vivo():
 def _entrada_leer_fila(fila_id):
     """La fila de la bandeja con ese `Id`, o `None` si no existe. Levanta `_EntradaSinConfirmar` si no se pudo leer."""
     try:
-        fila = S.nc("GET", f"/api/v2/tables/{S.T_BANDEJA_PERSONAS}/records/{int(fila_id)}")
-    except S.ErrorDeNocodb as e:
+        fila = _base.nc("GET", f"/api/v2/tables/{_base.T_BANDEJA_PERSONAS}/records/{int(fila_id)}")
+    except _base.ErrorDeNocodb as e:
         if e.status == 404:
             return None
-        raise S._EntradaSinConfirmar() from e
+        raise _base._EntradaSinConfirmar() from e
     except Exception as e:                                    # noqa: BLE001
-        raise S._EntradaSinConfirmar() from e
+        raise _base._EntradaSinConfirmar() from e
     return fila if isinstance(fila, dict) and fila.get("Id") == fila_id else None
 
 
 def _entrada_lista_pendientes(estado, cursor, tope):
     """La lista de la bandeja con ese `estado` y `Id` mayor que `cursor`, hasta `tope` filas, tal como la devuelve NocoDB. La filtra y la ordena `entrada_barrer`."""
-    return S.nc("GET", f"/api/v2/tables/{S.T_BANDEJA_PERSONAS}/records",
+    return _base.nc("GET", f"/api/v2/tables/{_base.T_BANDEJA_PERSONAS}/records",
                 query={"where": "(estado,eq,%s)~and(Id,gt,%d)" % (estado, cursor), "sort": "Id", "limit": int(tope)})
 
 
 def _bandeja_pagina(estado, cursor, limite, campos):
     """Una página de la bandeja con ese `estado` y `Id` mayor que `cursor`; devuelve `(filas, es_la_última)` y levanta si NocoDB no dice si es la última."""
-    lista = S.nc("GET", f"/api/v2/tables/{S.T_BANDEJA_PERSONAS}/records",
+    lista = _base.nc("GET", f"/api/v2/tables/{_base.T_BANDEJA_PERSONAS}/records",
                  query={"where": "(estado,eq,%s)~and(Id,gt,%d)" % (estado, cursor), "sort": "Id", "limit": limite, "fields": campos})
     info = lista.get("pageInfo") if isinstance(lista, dict) else None
     if not isinstance(info, dict) or not isinstance(info.get("isLastPage"), bool):
-        raise S._EntradaSinConfirmar()
+        raise _base._EntradaSinConfirmar()
     pagina = lista.get("list")
-    if not isinstance(pagina, list) or any(not isinstance(f, dict) or S._entrada_id(f.get("Id")) is None for f in pagina):
-        raise S._EntradaSinConfirmar()
+    if not isinstance(pagina, list) or any(not isinstance(f, dict) or _base._entrada_id(f.get("Id")) is None for f in pagina):
+        raise _base._EntradaSinConfirmar()
     return pagina, info["isLastPage"]

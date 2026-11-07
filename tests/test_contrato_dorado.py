@@ -9,6 +9,9 @@ Pruebas:
   CD1  los bytes de `contrato.json` tienen el SHA256 de `SHA256` (la foto no se movió).
   CD2  la foto tiene las cinco rutas de lectura de Personas, y ninguna más.
   CD3  la foto declara cero escrituras a NocoDB, y tiene una respuesta por cada pedido.
+
+Lo que NO ve (aceptado y declarado por la sala): un cambio en el cuerpo de una respuesta con el SHA256 recalculado pasa CD1,
+CD2 y CD3 (mutación m1c). Lo que lo detecta es rehacer la foto desde la App de registro. Ver `tests/test_contrato_rutas.py`.
 """
 import hashlib
 import json
