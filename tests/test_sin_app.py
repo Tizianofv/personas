@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """La guarda de los nombres: ningún `.py` del repo NOMBRA el módulo `server` en un import ni usa el nombre `S`.
 
-Lo que ve (sobre el AST de cada archivo): `import server`, `from server import …`, `__import__("server")` y
-`import_module("server")` con el texto literal `server`; cualquier nombre `S`, y cualquier `S.<algo>`. Es estricta: cuenta
-aunque `S` sea un nombre local.
+Lo que ve (sobre el AST de cada archivo): `import server`, `from server import …`, `from <lo que sea> import server`
+(p. ej. `from . import server`) y `from … import algo as server`, `__import__("server")` y `import_module("server")` con el
+texto literal `server`; cualquier nombre `S`, y cualquier `S.<algo>`. Es estricta: cuenta aunque `S` sea un nombre local.
 La lista de archivos sale del disco (todo `.py` del repo, menos `.git`), no de una lista tecleada.
 
 FRONTERA (declarada, no vigilada): un módulo cargado por ruta de archivo (`importlib.util.spec_from_file_location`,
@@ -32,6 +32,10 @@ def _violaciones_de_texto(texto, nombre):
         elif isinstance(nodo, ast.ImportFrom):
             if nodo.module and nodo.module.split(".")[0] == MODULO_PROHIBIDO:
                 malos.append("from %s import … (línea %d)" % (nodo.module, nodo.lineno))
+            # `from <lo que sea> import server` (p. ej. `from . import server`), o `… as server`: cualquier módulo
+            for alias in nodo.names:
+                if MODULO_PROHIBIDO in (alias.name, alias.asname):
+                    malos.append("from %s import %s (línea %d)" % ("." * nodo.level + (nodo.module or ""), alias.name, nodo.lineno))
         elif isinstance(nodo, ast.Call):
             f = nodo.func
             llama = (isinstance(f, ast.Name) and f.id == "__import__") or \
@@ -64,6 +68,12 @@ class LaGuardaVeLoQueDebe(unittest.TestCase):
 
     def test_ve_S_punto(self):
         self.assertTrue(_violaciones_de_texto("def f():\n    return S.nc('GET', '/')\n", "x.py"))
+
+    def test_ve_from_punto_import_server(self):
+        self.assertTrue(_violaciones_de_texto("from . import server\n", "x.py"))
+
+    def test_ve_import_con_alias_server(self):
+        self.assertTrue(_violaciones_de_texto("from tools import algo as server\n", "x.py"))
 
     def test_ve_nombre_S_suelto(self):
         self.assertTrue(_violaciones_de_texto("S = None\n", "x.py"))

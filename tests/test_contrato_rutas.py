@@ -11,6 +11,7 @@ La foto de referencia es `contrato_dorado/contrato.json` (sacada de la App). Est
       Mercadeo puesta en la cabecera de Registro; y no se lee NocoDB.
   R3c con la llave de Registro, las cuatro rutas contestan (no 401); credito y buscar dan 200. creditos-vivos da 502 con
       este doble, porque el doble no sabe el operador `gt` que pide la ruta (límite del doble, no de la ruta).
+  L1  con `PERSONAS_LECTURA_LLAVE` vacía, `/fichas` y `/config` dan 401 sin cabecera y con cabecera vacía, y no se lee NocoDB.
 
 Lo que NO ve (declarado): la foto solo se verifica contra su hash (`test_contrato_dorado.py`, CD1). Si alguien cambia un cuerpo
 y recalcula el SHA256, esta prueba sigue verde mientras la foto y el servidor coincidan. Quien rehace la foto lo hace desde la
@@ -67,8 +68,11 @@ def _arrancar(extra_entorno=None):
         if proceso.poll() is not None:
             break
         try:
-            if doble_mod._pedir(puerto, "sonda", "GET", "/api/servicio/personas/config", None, True)["status"] == 200:
-                return proceso, puerto, doble
+            # Listo = contesta CUALQUIER código HTTP (con la variable de Mercadeo vacía, `config` da 401 y eso también es estar arriba).
+            urllib.request.urlopen("http://127.0.0.1:%d/api/servicio/personas/config" % puerto, timeout=5).close()
+            return proceso, puerto, doble
+        except urllib.error.HTTPError:
+            return proceso, puerto, doble
         except OSError:
             time.sleep(0.2)
     raise RuntimeError("el servidor del repo no levantó")
@@ -166,6 +170,41 @@ class ElRegistroConLaVariableVacia(unittest.TestCase):
                 codigo, _ = _pedir_registro(self.puerto, ruta, cuerpo, cabecera)
                 self.assertEqual(codigo, 401, nombre)
                 self.assertEqual(self.doble.lecturas, antes, nombre + ": leyó NocoDB con la variable vacía")
+
+
+def _pedir_lectura(puerto, metodo, ruta, cuerpo, valor_cabecera):
+    """Pedido con la cabecera de Mercadeo (`X-Personas-Lectura-Llave`). `valor_cabecera=None` no la manda."""
+    datos = None if cuerpo is None else json.dumps(cuerpo).encode()
+    cabeceras = {"Content-Type": "application/json"} if datos is not None else {}
+    if valor_cabecera is not None:
+        cabeceras["X-Personas-Lectura-Llave"] = valor_cabecera
+    req = urllib.request.Request("http://127.0.0.1:%d%s" % (puerto, ruta), data=datos, method=metodo, headers=cabeceras)
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return r.status
+    except urllib.error.HTTPError as e:
+        return e.code
+
+
+class ElLecturaConLaVariableVacia(unittest.TestCase):
+    """Con `PERSONAS_LECTURA_LLAVE` vacía en el servidor: ninguna cabecera abre las rutas de Mercadeo ni `config`."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.proceso, cls.puerto, cls.doble = _arrancar({"PERSONAS_LECTURA_LLAVE": ""})
+
+    @classmethod
+    def tearDownClass(cls):
+        _parar(cls.proceso, cls.doble)
+
+    def test_L1_fichas_y_config_401_sin_cabecera_o_con_cabecera_vacia_sin_leer(self):
+        for cabecera in (None, ""):
+            antes = self.doble.lecturas
+            self.assertEqual(_pedir_lectura(self.puerto, "POST", "/api/servicio/personas/fichas", {}, cabecera), 401,
+                             "fichas con cabecera %r" % cabecera)
+            self.assertEqual(_pedir_lectura(self.puerto, "GET", "/api/servicio/personas/config", None, cabecera), 401,
+                             "config con cabecera %r" % cabecera)
+            self.assertEqual(self.doble.lecturas, antes, "leyó NocoDB con la variable de Mercadeo vacía")
 
 
 if __name__ == "__main__":
