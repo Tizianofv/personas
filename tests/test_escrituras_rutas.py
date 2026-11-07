@@ -5,6 +5,8 @@
   E2  los escenarios de `tests/escenarios_escrituras.py`, corridos contra `servidor.py` del repo y el doble que escribe
       (`tests/doble_escrituras.py`): en cada paso, el MISMO código, la MISMA respuesta y los MISMOS pedidos que llegaron al
       doble que en la foto de la App (método, ruta, query y cuerpo). Y el doble no recibió ningún pedido que no conociera.
+      Frontera: la foto solo fija estos campos: `Cumpleanos`, `Id`, `caras`, `email`, `instrumento`, `nombre`, `notas`, `telefono`.
+      No cubre `telefono_2`, `email_2`, `instagram`, `genero` ni `Posible_proveedor`.
   E3  una escritura que falla después de salir a NocoDB se contesta con el aviso de «no sé si quedó guardado» y
       `sin_confirmar: true`, igual que la App; una lectura caída sin escritura se contesta con su texto de siempre.
   K0  las rutas que piden las pruebas son las de la tabla real `servidor.ESCRITURA_RUTAS`.
@@ -12,7 +14,7 @@
       con una llave mala, y con la variable vacía: 401 en las tres rutas, y el doble no recibe ningún pedido.
   K2  la llave de escrituras no abre las lecturas: 401 y cero pedidos en `credito` (de Registro) y en `identidad` (de Mercadeo).
   K3  con la llave de escrituras, las tres rutas no dan 401 (la llave es la correcta y funciona).
-  K4  la llave se mira antes de leer el cuerpo: un cuerpo que no es JSON, sin llave, da 401 y no 400.
+  K4  sin llave, un cuerpo que no es JSON da 401 y no 400. No prueba el orden llave/cuerpo.
 
 Lo que NO ve (declarado): el doble no es NocoDB. No imita sus códigos de error ni sus textos: una operación que cae se simula
 con `caidas` (500 para esa operación). La foto se verifica por su hash (E1); quien la rehace la saca de la App copiada
@@ -57,7 +59,7 @@ class EscriturasDeRegistroEnPersonas(unittest.TestCase):
         declarado = SHA_DECLARADO.read_text(encoding="utf-8").split()[0]
         self.assertEqual(real, declarado)
 
-    def test_E2_cada_escenario_contesta_y_escribe_como_la_app(self):
+    def test_E2_cada_escenario_contesta_como_la_app_en_los_campos_de_la_foto(self):
         self.assertEqual(sorted(self.por_nombre), sorted(e["nombre"] for e in esc.ESCENARIOS))
         for escenario in esc.ESCENARIOS:
             with self.subTest(escenario=escenario["nombre"]):
@@ -121,7 +123,7 @@ class EscriturasDeRegistroEnPersonas(unittest.TestCase):
                 self.assertEqual(paso["status"], 200)
                 self.assertTrue(paso["pedidos"], "con la llave buena la ruta tiene que llegar al doble")
 
-    def test_K4_la_llave_se_mira_antes_de_leer_el_cuerpo(self):
+    def test_K4_sin_llave_un_cuerpo_que_no_es_json_da_401(self):
         resultados, _ = _correr([esc._esc(esc.RUTA_CARA, crudo="no es json", valor="ausente")])
         self.assertEqual(resultados[0]["status"], 401)
         self.assertEqual(resultados[0]["pedidos"], [])
