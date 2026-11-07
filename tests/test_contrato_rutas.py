@@ -189,7 +189,11 @@ def _pedir_lectura(puerto, metodo, ruta, cuerpo, valor_cabecera):
 
 
 class ElLecturaConLaVariableVacia(unittest.TestCase):
-    """Con `PERSONAS_LECTURA_LLAVE` vacía en el servidor: ninguna ruta de Mercadeo ni `config` se abre, con ninguna cabecera."""
+    """Con `PERSONAS_LECTURA_LLAVE` vacía en el servidor: ninguna ruta de Mercadeo ni `config` se abre sin cabecera o con cabecera vacía.
+
+    Frontera: no prueba una cabecera NO vacía con la variable vacía; eso lo cubre la guarda de llave vacía del servidor
+    (`lucy_llave_valida` en `servidor.py`).
+    """
 
     @classmethod
     def setUpClass(cls):
