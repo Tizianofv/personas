@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
-"""El repo de Personas no importa nada de la App de registro: ni `server`, ni el prefijo `S.` de los módulos de zona.
+"""La guarda de los nombres: ningún `.py` del repo NOMBRA el módulo `server` en un import ni usa el nombre `S`.
 
+Lo que ve (sobre el AST de cada archivo): `import server`, `from server import …`, `__import__("server")` y
+`import_module("server")` con el texto literal `server`; cualquier nombre `S`, y cualquier `S.<algo>`. Es estricta: cuenta
+aunque `S` sea un nombre local.
 La lista de archivos sale del disco (todo `.py` del repo, menos `.git`), no de una lista tecleada.
-La revisión es estricta: cualquier `import server`, `from server import …`, `__import__("server")`,
-`import_module("server")`, cualquier nombre `S` o cualquier `S.<algo>` cuenta, aunque sea un nombre local.
 
-Lo que NO ve: un import que se arme con texto variable (p. ej. `importlib.import_module(x)` con `x` calculado).
+FRONTERA (declarada, no vigilada): un módulo cargado por ruta de archivo (`importlib.util.spec_from_file_location`,
+`runpy`), un `open` o un `subprocess` que ejecute `server.py` de la App, o un import con nombre calculado. Esta prueba no
+dice que el repo no toque la App: dice que ningún import ni nombre `S` lo nombra.
 """
 import ast
 import os
@@ -72,8 +75,8 @@ class LaGuardaVeLoQueDebe(unittest.TestCase):
         self.assertEqual(_violaciones_de_texto("import servers\nimport personas\nx = 'S.nc'\n", "x.py"), [])
 
 
-class ElRepoNoTocaLaApp(unittest.TestCase):
-    def test_ningun_archivo_del_repo_importa_server_ni_usa_S(self):
+class ElRepoNoNombraServer(unittest.TestCase):
+    def test_ningun_archivo_del_repo_nombra_server_en_un_import_ni_usa_S(self):
         archivos = sorted(_archivos_py())
         self.assertTrue(archivos, "no hay ningún .py en el repo: la lista saldría vacía y la prueba no vería nada")
         malos = {}

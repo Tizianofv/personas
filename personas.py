@@ -5,21 +5,16 @@ Salió de `server.py` el 7-oct-2026 (paso 6 del plano `disenos/registro-division
 de zona del servidor y estrena la técnica; el mapa de cómo se parte y cómo se muda otra zona está en
 `Levantamientos INFO/registro/como-esta-partido-el-servidor.md`.
 
-LA TÉCNICA, en cuatro reglas:
-  1. Este módulo NO importa al servidor (ni `import server` ni `from server import …`). Producción corre `python3 server.py`: ahí el
-     servidor se llama `__main__`, y un `import server` desde aquí cargaría una SEGUNDA copia con su propio estado.
-     (Lo vigila la suite mirando los `import`; y, sea cual sea la forma de cargarlo, `server.py` se cae con ruido si una segunda copia intenta quedarse con `S`.)
-  2. `server.py`, al final, hace `personas.S = sys.modules[__name__]`. `S` es el servidor, sea `server` o `__main__`.
-  3. Todo nombre que NO está definido aquí ni es de Python se escribe `S.<nombre>` (`S.<nc>(…)`, `S.<T_PERSONAS>`): se busca en el
-     servidor cada vez que se llama, así que una prueba que reemplaza `server.nc` sigue alcanzando a este código.
-  4. Un nombre de este módulo que las pruebas reasignan en `server` (el candado de teléfono, `_leer_fichas_de_la_puerta`,
-     `invalidate_personas`…) también se llama por `S.`: si no, este módulo usaría su copia y no la reemplazada.
-`server.py` vuelve a publicar cada nombre de aquí (`buscar_personas = personas.buscar_personas`): el `Handler`, el resto del
-servidor y las pruebas lo siguen encontrando en `server`. Lo mudado no se tocó: el AST de cada función, cambiando `S.<x>` por `<x>`,
-es el de antes de mudarlo. Las tres guardas de la suite que lo vigilan están en `tests/test_modulos_de_zona.py`.
-
-Se queda en `server.py` lo que se evalúa AL IMPORTAR con nombres de otras zonas: `PORTAL_COLUMNAS_VETADAS` (usa
-`_APRENDIZAJE_CAMPOS_NUNCA` y `CARA_COLUMNA`); aquí se lee como `S.<PORTAL_COLUMNAS_VETADAS>`.
+LA TÉCNICA DE ESTE REPO, en cuatro reglas:
+  1. Este módulo NO importa al servidor: en este repo no hay servidor de la App. `tests/test_sin_app.py` vigila los `import`
+     y los nombres `server` y `S`; su frontera está declarada en esa prueba.
+  2. Lo que no está definido aquí y no es de Python se escribe `_base.<nombre>` (`base.py`: constantes y el cliente de NocoDB).
+  3. Lo que sí está definido aquí se llama por su nombre.
+  4. `_base.<nombre>` se busca en el módulo `base` al momento de la llamada, así que lo que una prueba reemplaza en `base`
+     lo ve este código.
+Cada función se copió de la App (`0b48b5d`) cambiando `S.<x>` por `_base.<x>` o por `<x>`; la equivalencia se comprobó por AST
+con los docstrings quitados. Lo que se evalúa al importar y depende de otra zona no está aquí: `PORTAL_COLUMNAS_VETADAS` vive
+en `base.py`.
 """
 import contextlib
 import hashlib
@@ -1841,7 +1836,7 @@ def clave_nombre(celda):
 
 
 def _leer_fichas_de_la_puerta():
-    """UNA lectura de todas las fichas con lo único que la puerta compara. Se llama `S.<…>` (las pruebas la reemplazan).
+    """UNA lectura de todas las fichas con lo único que la puerta compara. Se llama por su nombre en este módulo.
 
     🔴 **NO HAY REINTENTO** (9-oct-2026, tras un NO PASA del testigo). Hubo uno que, ante un rechazo de NocoDB, volvía a leer
     sin las dos columnas nuevas («por si la tabla todavía no las tiene»): un 429 de NocoDB bastaba para que la comprobación de
@@ -5657,8 +5652,8 @@ def anotar_origen_al_nacer(ficha_id, origen):
 
 
 # ---------- Caja y el crédito a favor: las lecturas de la tabla de fichas (paso 2 de `disenos/personas-programa-aparte/DISENO.md`) ----------
-# Salieron de `server.py` con el mismo cuerpo: lo que vive allá va como `S.<nombre>`. `server.py` vuelve a publicar estos nombres
-# (`credito_de_cliente = personas.credito_de_cliente`…), así que Caja los llama igual que antes.
+# Salieron de `server.py` de la App con el mismo cuerpo. Lo que viene de otra zona va como `_base.<nombre>`.
+# En este repo no hay llamadores fuera del módulo: quien los necesite los importa de aquí.
 
 
 def credito_de_cliente(telefono):
@@ -5700,8 +5695,8 @@ def fichas_con_credito_vivo():
 
 # ---------- La entrada: las lecturas de la bandeja (paso 2b de `disenos/personas-programa-aparte/DISENO.md`) ----------
 # La bandeja es de Personas (decisión 2): una sola tabla, un solo dueño. Estas lecturas salieron de `server.py` con el mismo cuerpo:
-# lo que vive allá va como `S.<nombre>`. Las ESCRITURAS a la bandeja (los PATCH de la marca y del resultado) y su candado se quedan en
-# `server.py`. `server.py` vuelve a publicar estos nombres (`_entrada_leer_fila = personas._entrada_leer_fila`…).
+# lo que viene de otra zona va como `_base.<nombre>`. Las ESCRITURAS a la bandeja (los PATCH de la marca y del resultado) y su
+# candado no están en este repo: quedan en la App de registro.
 
 
 def _entrada_leer_fila(fila_id):
