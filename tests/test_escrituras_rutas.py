@@ -7,6 +7,7 @@
       doble que en la foto de la App (método, ruta, query y cuerpo). Y el doble no recibió ningún pedido que no conociera.
   E3  una escritura que falla después de salir a NocoDB se contesta con el aviso de «no sé si quedó guardado» y
       `sin_confirmar: true`, igual que la App; una lectura caída sin escritura se contesta con su texto de siempre.
+  K0  las rutas que piden las pruebas son las de la tabla real `servidor.ESCRITURA_RUTAS`.
   K1  la llave de escrituras: sin cabecera, con cabecera vacía, con la llave de Mercadeo, con la de lectura de Registro,
       con una llave mala, y con la variable vacía: 401 en las tres rutas, y el doble no recibe ningún pedido.
   K2  la llave de escrituras no abre las lecturas: 401 y cero pedidos en `credito` (de Registro) y en `identidad` (de Mercadeo).
@@ -29,6 +30,7 @@ sys.path.insert(0, str(RAIZ))
 
 import escenarios_escrituras as esc  # noqa: E402
 import base  # noqa: E402
+import servidor  # noqa: E402  (la tabla real de rutas de escritura: K0 compara con ella)
 
 FOTA = RAIZ / "contrato_dorado" / "escrituras.json"
 SHA_DECLARADO = RAIZ / "contrato_dorado" / "SHA256_escrituras"
@@ -78,6 +80,9 @@ class EscriturasDeRegistroEnPersonas(unittest.TestCase):
         self.assertNotIn("sin_confirmar", pasos[0]["respuesta"])
         self.assertEqual(pasos[0]["respuesta"]["error"], "No se guardó. Personas no responde. Inténtalo en un momento.")
         self.assertEqual([p["metodo"] for p in pasos[0]["pedidos"]], ["GET"])
+
+    def test_K0_los_pedidos_de_las_pruebas_son_las_rutas_de_la_tabla_real(self):
+        self.assertEqual(set(CUERPOS), set(servidor.ESCRITURA_RUTAS))
 
     def test_K1_sin_llave_valida_no_hay_escritura(self):
         pasos = [esc._esc(ruta, cuerpo, valor=valor)
