@@ -1,21 +1,26 @@
 # -*- coding: utf-8 -*-
-"""EL PROGRAMA DE PERSONAS: el servidor de sus rutas de LECTURA (paso 5 de `disenos/personas-programa-aparte/DISENO.md`).
+"""EL PROGRAMA DE PERSONAS: el servidor de sus rutas de LECTURA y de las tres ESCRITURAS de Registro (paso 5 de
+`disenos/personas-programa-aparte/DISENO.md`, partes 1 y 2).
 
-Rutas, con las mismas llaves y las mismas respuestas que la App de registro en `0b48b5d` (`PERSONAS_LECTURA_POST` y
+Rutas de lectura, con las mismas llaves y las mismas respuestas que la App de registro en `0b48b5d` (`PERSONAS_LECTURA_POST` y
 `personas_lectura_config` de su `server.py`):
   POST /api/servicio/personas/identidad, /fichas, /pagina, /anotaciones   cabecera X-Personas-Lectura-Llave  (PERSONAS_LECTURA_LLAVE)
   POST /api/servicio/personas/credito, /buscar, /bandeja, /creditos-vivos cabecera X-Personas-Registro-Llave (PERSONAS_REGISTRO_LLAVE)
   GET  /api/servicio/personas/config                                     cabecera X-Personas-Lectura-Llave
 
-🔴 Cada ruta valida SU llave ANTES de leer el cuerpo. Sin la llave de su grupo, con otra, o con la variable vacía: 401 y no se
-lee nada. Ninguna ruta de estas escribe.
+🔴 Cada ruta de lectura valida SU llave ANTES de leer el cuerpo. Sin la llave de su grupo, con otra, o con la variable vacía: 401
+y no se lee nada. Ninguna ruta de lectura escribe.
 
-NO PORTADO TODAVÍA (declarado en `el-programa-personas.md`): las escrituras de Registro (`/cara`, `/nueva`, `/editar`, con su llave
-`PERSONAS_REGISTRO_ESCRITURA_LLAVE`). Llaman a `crear_persona`, `editar_persona` y `guardar_cara`, que siguen en la App.
-Y ninguna de las rutas de la tabla 1.2 que no están aquí (portal, proveedores, Google, cuadro de la entrada).
+ESCRITURAS PARA REGISTRO (paso 5b, `personas_escritura_rutas.py`), con las mismas respuestas que la App (`personas_escritura_post`):
+  POST /api/servicio/personas/cara, /nueva, /editar   cabecera X-Personas-Registro-Escritura-Llave  (PERSONAS_REGISTRO_ESCRITURA_LLAVE)
+🔴 Su llave se mira ANTES de leer el cuerpo y no abre ninguna lectura, ni la de Mercadeo ni la de Registro. Sin ella, con otra o con
+la variable vacía: 401, y no se escribe nada.
+
+NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): el resto de la tabla 1.2 de `DISENO.md`: las rutas de sesión del
+portal, la búsqueda GET, las instrumentos, Google y la puerta de Natalia.
 
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN,
-PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, NOCODB_T_*.
+PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, NOCODB_T_*.
 """
 import hmac
 import json
@@ -24,11 +29,24 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import base
+import personas_escritura_rutas
+import personas_escrituras
 import personas_lectura
 import personas_servicio_rutas
 
 LLAVE_PERSONAS_LECTURA = os.environ.get("PERSONAS_LECTURA_LLAVE", "").strip()
 LLAVE_PERSONAS_REGISTRO = os.environ.get("PERSONAS_REGISTRO_LLAVE", "").strip()
+LLAVE_PERSONAS_ESCRITURA_REGISTRO = os.environ.get("PERSONAS_REGISTRO_ESCRITURA_LLAVE", "").strip()
+
+ESCRITURA_RUTAS = {
+    "/api/servicio/personas/cara": "cara",
+    "/api/servicio/personas/nueva": "nueva",
+    "/api/servicio/personas/editar": "editar",
+}
+ESCRITURA_FUNCIONES = {
+    "cara": personas_escritura_rutas.cara, "nueva": personas_escritura_rutas.nueva,
+    "editar": personas_escritura_rutas.editar,
+}
 
 LECTURA_POST = {
     "/api/servicio/personas/identidad": "identidad",
@@ -69,6 +87,8 @@ class Manejador(BaseHTTPRequestHandler):
         pass
 
     def _enviar(self, codigo, cuerpo):
+        # La puerta única de las respuestas de error (como `send_json` de la App): si el pedido ya escribió, el error se marca.
+        cuerpo = base.marcar_fallo_tras_escribir(codigo, cuerpo)
         datos = json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")
         self.send_response(codigo)
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -86,7 +106,14 @@ class Manejador(BaseHTTPRequestHandler):
             return None
 
     def do_POST(self):
+        base.estrenar_la_cuenta_de_escrituras()     # cada pedido empieza sin escrituras mandadas (como `estrenar_el_pedido` de la App)
         ruta = urllib.parse.urlsplit(self.path).path
+        if ruta in ESCRITURA_RUTAS:
+            # La llave de escrituras se mira ANTES de leer el cuerpo (como `personas_escritura_post` de la App).
+            if not lucy_llave_valida(self.headers.get("X-Personas-Registro-Escritura-Llave"), LLAVE_PERSONAS_ESCRITURA_REGISTRO):
+                return self._enviar(401, ERROR_LLAVE)
+            codigo, cuerpo = ESCRITURA_FUNCIONES[ESCRITURA_RUTAS[ruta]](personas_escrituras, self._pedido())
+            return self._enviar(codigo, cuerpo)
         if ruta not in LECTURA_POST:
             return self._enviar(404, {"error": "ruta no existe"})
         nombre = LECTURA_POST[ruta]
@@ -99,6 +126,7 @@ class Manejador(BaseHTTPRequestHandler):
         return self._enviar(codigo, cuerpo)
 
     def do_GET(self):
+        base.estrenar_la_cuenta_de_escrituras()
         ruta = urllib.parse.urlsplit(self.path).path
         if ruta != CONFIG_RUTA:
             return self._enviar(404, {"error": "ruta no existe"})

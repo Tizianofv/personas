@@ -6,9 +6,12 @@ con la App en `tests/test_constantes_app.py` (valores de `constantes_app.json`, 
 
 Lo que NO viene (decisión de la sala, paso 5 de Personas):
   · el desvío de lectura a Postgres (`desvio_listo`, `_sondear`, `_por_desvio`, `DESVIO_*`): el cliente lee SIEMPRE NocoDB, sin plan B;
-  · el envío de técnicos (`_anotar_envio_de_tecnicos`, `_envios_de_tecnicos`) y el contador de escrituras por pedido (`_mi_pedido`):
-    `personas.py` no los usa;
+  · el envío de técnicos (`_anotar_envio_de_tecnicos`, `_envios_de_tecnicos`): `personas.py` no lo usa;
   · la lectura de variables de entorno desde un archivo `.env` (la App sí lo lee; aquí solo `os.environ`).
+Sí viene, desde el paso 5b, el contador de escrituras por pedido (`_mi_pedido`, `estrenar_la_cuenta_de_escrituras`,
+`escrituras_mandadas_en_este_pedido`) y la reescritura de los errores de un pedido que ya escribió (`marcar_fallo_tras_escribir`,
+la regla de `send_json` de la App): sin ellos, las escrituras de Registro no contestarían lo mismo que la App cuando NocoDB falla
+después de recibir una escritura.
 `SoloLectura` se conserva porque `personas.py` la captura en varios sitios; este cliente no la levanta nunca.
 Dos funciones entran tarde con `import personas` dentro (no al cargar), porque `personas.py` importa este módulo.
 """
@@ -18,6 +21,7 @@ import json
 import math
 import os
 import re
+import socket
 import struct
 import threading
 import urllib.error
@@ -112,6 +116,8 @@ def hoy_str():
 class SoloLectura(Exception):
     """NocoDB no contesta: se puede leer (por el desvío) pero NO se puede escribir.
 
+    En este repo NO se levanta nunca: no hay desvío de lectura (ver el encabezado del módulo). Lo de abajo describe la App.
+
     🔑 NO hereda de `RuntimeError` a propósito. Media docena de sitios de este archivo hacen
     `except RuntimeError` alrededor de una escritura para seguir de largo con un aviso —son
     operaciones de segunda, como ligar un pago después de crearlo—. Si esto fuera un
@@ -164,11 +170,45 @@ def _es_escritura_de_esquema(method, path):
     return (str(method or "").strip().upper() not in _VERBOS_QUE_LEEN
             and bool(_RUTA_ESQUEMA.search(str(path or ""))))
 
+MENSAJE_FALLO_TRAS_ESCRIBIR = (
+    "Algo falló mientras se guardaba, y no se puede confirmar si lo que mandaste quedó "
+    "guardado. NO lo repitas todavía: abre la cuenta (o el pago, o la caja) y mira si ya "
+    "aparece. Solo si no aparece, vuelve a hacerlo. Detalle técnico: ")
+
+# 📌 ¿ESTE PEDIDO YA MANDÓ ALGUNA ESCRITURA A NOCODB? Cuenta por hilo; `servidor.py` la pone en cero al empezar cada pedido.
+# Igual que `_mi_pedido` de la App (`server.py`, `estrenar_la_cuenta_de_escrituras`).
+_mi_pedido = threading.local()
+
+
+def estrenar_la_cuenta_de_escrituras():
+    _mi_pedido.escrituras = 0
+
+
+def escrituras_mandadas_en_este_pedido():
+    return getattr(_mi_pedido, "escrituras", 0)
+
+
+def _no_llego_a_salir(e):
+    """¿Este fallo prueba que el pedido NO llegó a NocoDB? Solo cuando ni la conexión se abrió: conexión rechazada o
+    nombre que no resuelve. Todo lo demás deja abierta la posibilidad de que NocoDB lo recibiera (copiado de la App)."""
+    return (isinstance(e, urllib.error.URLError)
+            and isinstance(e.reason, (ConnectionRefusedError, socket.gaierror)))
+
+
+def marcar_fallo_tras_escribir(status, obj):
+    """La regla de `send_json` de la App: si este pedido ya mandó una escritura, un error (≥400, con cuerpo de dict) pudo
+    haber quedado guardado. Se le pone delante el aviso y `sin_confirmar: true`. Un pedido sin escritura, igual que antes."""
+    if status >= 400 and isinstance(obj, dict) and "sin_confirmar" not in obj and escrituras_mandadas_en_este_pedido() > 0:
+        return dict(obj, error=MENSAJE_FALLO_TRAS_ESCRIBIR + str(obj.get("error", "")), sin_confirmar=True)
+    return obj
+
+
 def _nc_directo(method, path, body=None, query=None):
     """La llamada de siempre a la API v2 de NocoDB.
 
     Lo único que cambió (5-sep-2026): antes de armar la petición se comprueba que no sea una
-    escritura al ESQUEMA. Ver el bloque de arriba."""
+    escritura al ESQUEMA. Ver el bloque de arriba. Paso 5b: cada escritura se cuenta ANTES de mandarla (si la
+    respuesta se pierde, ya cuenta) y se descuenta solo si ni la conexión se abrió (como `_nc_directo` de la App)."""
     if _es_escritura_de_esquema(method, path):
         raise EsquemaDeNocodbEsSoloLectura(
             f"la app NO escribe el esquema de NocoDB, y este pedido lo haría: "
@@ -179,6 +219,9 @@ def _nc_directo(method, path, body=None, query=None):
     url = NOCODB_BASE + path
     if query:
         url += "?" + urllib.parse.urlencode(query)
+    es_escritura = str(method or "").strip().upper() not in _VERBOS_QUE_LEEN
+    if es_escritura:
+        _mi_pedido.escrituras = escrituras_mandadas_en_este_pedido() + 1
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(
         url, data=data, method=method,
@@ -191,6 +234,11 @@ def _nc_directo(method, path, body=None, query=None):
     except urllib.error.HTTPError as e:
         detail = e.read().decode()[:300]
         raise ErrorDeNocodb(e.code, f"NocoDB {e.code} en {method} {path}: {detail}")
+    except Exception as e:
+        if es_escritura and _no_llego_a_salir(e):
+            # Ni la conexión se abrió: este pedido no cuenta como mandado.
+            _mi_pedido.escrituras = max(0, escrituras_mandadas_en_este_pedido() - 1)
+        raise
 
 def nc(method, path, body=None, query=None):
     """Llamada a la API v2 de NocoDB. Sin el desvío de lectura de la App: si NocoDB no contesta, el error sale tal cual."""
