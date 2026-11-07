@@ -11,7 +11,8 @@ La foto de referencia es `contrato_dorado/contrato.json` (sacada de la App). Est
       Mercadeo puesta en la cabecera de Registro; y no se lee NocoDB.
   R3c con la llave de Registro, las cuatro rutas contestan (no 401); credito y buscar dan 200. creditos-vivos da 502 con
       este doble, porque el doble no sabe el operador `gt` que pide la ruta (límite del doble, no de la ruta).
-  L1  con `PERSONAS_LECTURA_LLAVE` vacía, `/fichas` y `/config` dan 401 sin cabecera y con cabecera vacía, y no se lee NocoDB.
+  L1  con `PERSONAS_LECTURA_LLAVE` vacía, TODAS las rutas de Mercadeo (sacadas de `servidor.LECTURA_POST`) y `config` dan 401
+      sin cabecera y con cabecera vacía, y no se lee NocoDB.
 
 Lo que NO ve (declarado): la foto solo se verifica contra su hash (`test_contrato_dorado.py`, CD1). Si alguien cambia un cuerpo
 y recalcula el SHA256, esta prueba sigue verde mientras la foto y el servidor coincidan. Quien rehace la foto lo hace desde la
@@ -30,6 +31,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(RAIZ))
 
 import doble_nocodb as doble_mod  # noqa: E402
 
@@ -187,7 +189,7 @@ def _pedir_lectura(puerto, metodo, ruta, cuerpo, valor_cabecera):
 
 
 class ElLecturaConLaVariableVacia(unittest.TestCase):
-    """Con `PERSONAS_LECTURA_LLAVE` vacía en el servidor: ninguna cabecera abre las rutas de Mercadeo ni `config`."""
+    """Con `PERSONAS_LECTURA_LLAVE` vacía en el servidor: ninguna ruta de Mercadeo ni `config` se abre, con ninguna cabecera."""
 
     @classmethod
     def setUpClass(cls):
@@ -197,14 +199,21 @@ class ElLecturaConLaVariableVacia(unittest.TestCase):
     def tearDownClass(cls):
         _parar(cls.proceso, cls.doble)
 
-    def test_L1_fichas_y_config_401_sin_cabecera_o_con_cabecera_vacia_sin_leer(self):
+    def test_L1_todas_las_rutas_de_mercadeo_y_config_401_sin_cabecera_o_vacia_sin_leer(self):
+        # La lista sale de la tabla REAL del servidor (`LECTURA_POST`), no de una lista tecleada aquí.
+        import servidor  # importar no arranca nada; solo lee la tabla de rutas
+        mercadeo = sorted(ruta for ruta, nombre in servidor.LECTURA_POST.items() if nombre not in servidor.REGISTRO_NOMBRES)
+        self.assertEqual(len(mercadeo), 4, "Mercadeo debe tener cuatro rutas POST (identidad, fichas, pagina, anotaciones)")
         for cabecera in (None, ""):
+            for ruta in mercadeo:
+                antes = self.doble.lecturas
+                self.assertEqual(_pedir_lectura(self.puerto, "POST", ruta, {}, cabecera), 401,
+                                 "%s con cabecera %r" % (ruta, cabecera))
+                self.assertEqual(self.doble.lecturas, antes, ruta + ": leyó NocoDB con la variable de Mercadeo vacía")
             antes = self.doble.lecturas
-            self.assertEqual(_pedir_lectura(self.puerto, "POST", "/api/servicio/personas/fichas", {}, cabecera), 401,
-                             "fichas con cabecera %r" % cabecera)
-            self.assertEqual(_pedir_lectura(self.puerto, "GET", "/api/servicio/personas/config", None, cabecera), 401,
+            self.assertEqual(_pedir_lectura(self.puerto, "GET", servidor.CONFIG_RUTA, None, cabecera), 401,
                              "config con cabecera %r" % cabecera)
-            self.assertEqual(self.doble.lecturas, antes, "leyó NocoDB con la variable de Mercadeo vacía")
+            self.assertEqual(self.doble.lecturas, antes, "config leyó NocoDB con la variable de Mercadeo vacía")
 
 
 if __name__ == "__main__":
