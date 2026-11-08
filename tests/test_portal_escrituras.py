@@ -45,14 +45,23 @@ Pruebas:
   H2  una ruta que la tabla no conoce (inventada, o una que la App contesta y el programa no porta) da 404 y cero pedidos.
   Q1  el `quien` que se pasa a cada función es el de la cabecera (espía que solo mira el argumento); el del cuerpo no cuenta.
   Q2  la cabecera con el nombre en UTF-8 llega entera («Pérez»), no como «PÃ©rez».
+  Las tres de UNIÓN (unir, unir/continuar, unir/deshacer, paso 5c parte 4) entran en TODAS las pruebas de arriba por la tabla
+  (K0, K1, K1b, K3, I1, H1, H2, Q1, E2). Sus escenarios van en el modo de unión del doble (`union=True`), con su llave en el entorno;
+  sin esa llave, 503 «sin_registro» (`unir_sin_registro`). Lo que la foto cubre de unión: 400 de validación, 404, 409
+  (`cambio_quien_queda`, `no_unible` no se da con estas fichas), 502 con NocoDB caída en lectura y en escritura, unión sin
+  enlaces, unión a medias con `continuar`, deshacer, y los 200 de repetición (`ya_estaba`).
 
 Lo que NO ve (declarado):
   - La puerta de sesión de la App (`portal_personas`: 401 sin sesión, 403 sin permiso). El programa no la tiene.
+  - La unión CON enlaces (asistencias, sesiones, proyectos, pagos, inscripciones que hay que mover): el doble del modo de unión
+    declara que las listas de enlace salen vacías; una unión que tendría que mover algo da 500 y la prueba lo ve. Tampoco la marca
+    VÁLIDA de un aviso de «Por resolver» (`unir_con_aviso` da `marcado: false`: el doble no tiene aviso real), ni `deshacer` con
+    NocoDB caída en medio de sus escrituras (el doble solo tumba un método entero).
   - Que la App reenvíe la llave, la identidad y el `quien`: eso es de la App (encargo siguiente); aquí solo se prueba lo que el
     programa hace con lo que recibe.
   - El doble no es NocoDB: no imita sus códigos ni sus textos de error; una operación que cae se simula con `caidas`.
   - Ramas que la foto no ejercita: la marca válida de «Por resolver» (resolver y reabrir dan 400 o 409 con sus claves de prueba: la
-    bandeja del doble tiene una sola marca, de otro grupo); la unión; el cambio de teléfono (lee sesiones y conversaciones, que el
+    bandeja del doble tiene una sola marca, de otro grupo); el cambio de teléfono (lee sesiones y conversaciones, que el
     doble no tiene); la columna `notas` (el doble no la declara); los 400 de `dicho_el`, `nota` y `confirmo` de permiso.
   - El campo `cuando` de las anotaciones es la hora de la corrida: la foto y la prueba lo reemplazan por «<ahora>» en los dos lados
     (`escenarios_portal_escrituras.normalizar`) y la prueba solo comprueba que sea una fecha ISO con zona.
@@ -86,6 +95,7 @@ QUIEN = esc.QUIEN_DORADO
 RUTA_CREAR = esc.RUTA_PORTAL
 RUTA_REGISTRO = ["/api/servicio/personas/cara", "/api/servicio/personas/nueva", "/api/servicio/personas/editar"]
 RUTA_REGISTRO_LECTURA = "/api/servicio/personas/credito"
+AVISO_DE_PRUEBA = "aviso-" + "d" * 40        # formato válido de aviso (no existe en el doble): va en las tres de unión para la Q1
 
 
 def muestra(patron):
@@ -101,6 +111,9 @@ def cuerpo_de(nombre):
         "permiso": {"valor": "no", "visto": 2},
         "resolver": {"clave": "resuelto-" + "c" * 40},
         "reabrir": {"clave": "resuelto-" + "c" * 40},
+        "unir": {"otra": 12, "clave": "union-prueba-0001", "aviso": AVISO_DE_PRUEBA},
+        "continuar": {"aviso": AVISO_DE_PRUEBA},
+        "deshacer": {"union": 1, "sobra": 12, "aviso": AVISO_DE_PRUEBA},
     }[nombre]
 
 
@@ -116,17 +129,23 @@ def _cuandos_son_iso(x):
     """Cierto si todo valor de una clave `cuando` (a cualquier nivel) es una fecha ISO con zona. Lo que no lo es queda sin cambiar
     al normalizar y no iguala la foto, así que esta comprobación solo le pone el motivo al fallo."""
     if isinstance(x, dict):
-        return all((not (k == "cuando") or esc._es_iso(v)) and _cuandos_son_iso(v) for k, v in x.items())
+        return all((not esc.es_clave_de_hora(k) or esc._es_iso(v)) and _cuandos_son_iso(v) for k, v in x.items())
     if isinstance(x, list):
         return all(_cuandos_son_iso(v) for v in x)
     return True
 
 
-def _correr(pasos, entorno=None, caidas=(), caidas_una_vez=()):
-    escenario = {"nombre": "prueba", "pasos": pasos, "caidas": list(caidas), "caidas_una_vez": list(caidas_una_vez)}
+def _correr(pasos, entorno=None, caidas=(), caidas_una_vez=(), union=False):
+    escenario = {"nombre": "prueba", "pasos": pasos, "caidas": list(caidas), "caidas_una_vez": list(caidas_una_vez), "union": union}
     if entorno is not None:
         escenario["entorno"] = entorno
     return esc.ejecutar(escenario, COMANDO, cwd=str(RAIZ))
+
+
+def _correr_escenario(escenario, pasos):
+    """Corre los pasos de un escenario de la foto con SU modo (caídas, unión y entorno): lo mismo que hace la foto."""
+    return _correr(pasos, entorno=escenario.get("entorno"), caidas=escenario.get("caidas", ()),
+                   caidas_una_vez=escenario.get("caidas_una_vez", ()), union=escenario.get("union", False))
 
 
 class EscriturasDelPortalEnElPrograma(unittest.TestCase):
@@ -166,7 +185,7 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
             with self.subTest(escenario=nombre):
                 foto = self.por_nombre[nombre]
                 pasos = [p for p in escenario["pasos"] if esc.es_dorado(p)]
-                real, errores = _correr(pasos, caidas=escenario.get("caidas", ()), caidas_una_vez=escenario.get("caidas_una_vez", ()))
+                real, errores = _correr_escenario(escenario, pasos)
                 self.assertEqual(errores, [], "el doble recibió un pedido que no conoce")
                 self.assertEqual(len(real), len(foto["pasos"]))
                 for r in real:
@@ -275,7 +294,7 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
             escenario = next(e for e in esc.ESCENARIOS if e["nombre"] == nombre)
             accion = "crear" if escenario["pasos"][0]["ruta"] == RUTA_CREAR else "editar"
             pasos = [p for p in escenario["pasos"] if esc.es_dorado(p)]
-            real, errores = _correr(pasos, caidas=escenario.get("caidas", ()), caidas_una_vez=escenario.get("caidas_una_vez", ()))
+            real, errores = _correr_escenario(escenario, pasos)
             self.assertEqual(errores, [], nombre)
             primero, segundo = real
             cubiertos[accion].add(primero["status"])
@@ -340,7 +359,7 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
                 nombre = juego[accion]["cuerpo_distinto"]
                 escenario = next(e for e in esc.ESCENARIOS if e["nombre"] == nombre)
                 pasos = [p for p in escenario["pasos"] if esc.es_dorado(p)]
-                real, errores = _correr(pasos, caidas=escenario.get("caidas", ()), caidas_una_vez=escenario.get("caidas_una_vez", ()))
+                real, errores = _correr_escenario(escenario, pasos)
                 self.assertEqual(errores, [])
                 segundo = real[1]
                 self.assertNotIn(ya_clave[accion], segundo["respuesta"])
@@ -418,11 +437,14 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
     # ---- Q: el quien de la cabecera -----------------------------------------------------------------------------------
 
     def test_Q1_cada_funcion_recibe_el_quien_de_la_cabecera_y_no_el_del_cuerpo(self):
+        """Espías que solo miran los argumentos (no escriben). Crear, editar, permiso, resolver y reabrir reciben `quien` como último
+        argumento. Unir y deshacer lo reciben (unir como 5.º, deshacer como 2.º). Continuar NO recibe `quien` (como la App); su aviso
+        de «Por resolver», que sí lo lleva (`marcar_aviso_de_la_union`), lo recibe de la cabecera. El `quien` del cuerpo no cuenta."""
         recibidos = {}
 
         def espia(nombre, devuelve):
             def f(*args, **kwargs):
-                recibidos[nombre] = args[-1]          # crear(cuerpo, quien), editar(id, cuerpo, quien), permiso(id, cuerpo, quien), resolver(clave, quien)
+                recibidos[nombre] = (args, kwargs)
                 return devuelve
             return f
         parches = [
@@ -430,6 +452,10 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
             mock.patch.object(personas, "editar_persona_portal", espia("editar", (200, {"estado": "sin_cambios"}))),
             mock.patch.object(personas, "anotar_permiso", espia("permiso", (200, {"estado": "ya_estaba"}))),
             mock.patch.object(personas, "portal_por_resolver_marcar", espia("resolver", (400, {"error": "x"}))),
+            mock.patch.object(personas, "unir_fichas", espia("unir", (200, {"estado": "unida"}))),
+            mock.patch.object(personas, "continuar_union", espia("continuar", (200, {"estado": "unida"}))),
+            mock.patch.object(personas, "deshacer_union", espia("deshacer", (200, {"estado": "deshecha"}))),
+            mock.patch.object(personas, "marcar_aviso_de_la_union", espia("aviso", {"clave": AVISO_DE_PRUEBA, "marcado": True})),
         ]
         for p in parches:
             p.start()
@@ -438,14 +464,19 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
                 cuerpo = dict(cuerpo_de(nombre), quien="Otra Persona")
                 ruta = muestra(patron)
                 crudo = json.dumps(cuerpo).encode("utf-8")
-                personas_portal_escritura.responder(nombre, ruta, ("2",) if nombre in ("editar", "permiso") else (), crudo, QUIEN)
+                grupos = () if nombre in ("crear", "resolver", "reabrir") else ("2",)
+                personas_portal_escritura.responder(nombre, ruta, grupos, crudo, QUIEN)
         finally:
             for p in parches:
                 p.stop()
-        self.assertEqual(recibidos["crear"], QUIEN)
-        self.assertEqual(recibidos["editar"], QUIEN)
-        self.assertEqual(recibidos["permiso"], QUIEN)
-        self.assertEqual(recibidos["resolver"], QUIEN)
+        self.assertEqual(recibidos["crear"][0][-1], QUIEN)
+        self.assertEqual(recibidos["editar"][0][-1], QUIEN)
+        self.assertEqual(recibidos["permiso"][0][-1], QUIEN)
+        self.assertEqual(recibidos["resolver"][0][-1], QUIEN)
+        self.assertEqual(recibidos["unir"][0][4], QUIEN, "unir_fichas(ficha, otra, resoluciones, clave, quien, ...)")
+        self.assertEqual(recibidos["deshacer"][0][1], QUIEN, "deshacer_union(ficha, quien, ...)")
+        self.assertEqual(recibidos["continuar"], ((2,), {}), "continuar_union(ficha): la App no le pasa quien")
+        self.assertEqual(recibidos["aviso"][0][3], QUIEN, "el aviso de «Por resolver» lleva el quien de la cabecera")
 
     def test_Q2_el_nombre_en_utf8_llega_entero(self):
         self.assertEqual(servidor.quien_de_la_cabecera("Ana PÃ©rez"), "Ana Pérez")

@@ -27,6 +27,7 @@ import subprocess
 import sys
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(RAIZ))              # el programa (`personas`, que el doble usa para las columnas de la unión)
 sys.path.insert(0, str(RAIZ / "tests"))
 sys.path.insert(0, str(RAIZ / "tools"))
 import candado  # noqa: E402  (la forma del candado de «envío hecho»: el mismo código que compara la prueba)
@@ -121,9 +122,9 @@ def candado_de_la_app_en_la_foto(copia):
     return candado.candado_de_la_app(ast.parse((copia / "server.py").read_text(encoding="utf-8")))
 
 
-def correr_escenario(copia, pasos, caidas, caidas_una_vez=()):
+def correr_escenario(copia, pasos, caidas, caidas_una_vez=(), union=False, entorno_extra=None):
     """Corre los pasos de un escenario en la App y devuelve, por paso, `{status, respuesta, pedidos}`."""
-    doble = doble_escrituras.DobleEscrituras(caidas=caidas, caidas_una_vez=caidas_una_vez)
+    doble = doble_escrituras.DobleEscrituras(caidas=caidas, caidas_una_vez=caidas_una_vez, union=union)
     url_doble = doble.arrancar()
     entorno = {
         "PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8",
@@ -132,6 +133,7 @@ def correr_escenario(copia, pasos, caidas, caidas_una_vez=()):
         "NOCODB_T_PERSONAS_QUITADAS": esc.ENTORNO_BASE["NOCODB_T_PERSONAS_QUITADAS"],
         "NOCODB_T_BANDEJA_PERSONAS": esc.ENTORNO_BASE["NOCODB_T_BANDEJA_PERSONAS"],
     }
+    entorno.update(entorno_extra or {})
     entrada = "".join(json.dumps({
         "ruta": p["ruta"], "quien": p["quien"],
         "datos_b64": base64.b64encode(esc.datos_del_paso(p)).decode("ascii")}, ensure_ascii=False) + "\n" for p in pasos)
@@ -171,7 +173,8 @@ def main():
     escenarios_foto = []
     for escenario in esc.ESCENARIOS:
         pasos = [p for p in escenario["pasos"] if esc.es_dorado(p)]
-        resultados = correr_escenario(copia, pasos, escenario.get("caidas", ()), escenario.get("caidas_una_vez", ()))
+        resultados = correr_escenario(copia, pasos, escenario.get("caidas", ()), escenario.get("caidas_una_vez", ()),
+                                      union=escenario.get("union", False), entorno_extra=escenario.get("entorno"))
         escenarios_foto.append({"nombre": escenario["nombre"], "caidas": list(escenario.get("caidas", ())),
                                 "caidas_una_vez": list(escenario.get("caidas_una_vez", ())), "pasos": [
             dict({"ruta": p["ruta"], "quien": p["quien"]}, **({"crudo": p["crudo"]} if "crudo" in p else {"cuerpo": p["cuerpo"]}),

@@ -10544,6 +10544,2154 @@
           "status": 200
         }
       ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "unir_sin_registro",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": 12
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se puede unir ahora: falta conectar el registro de uniones. No se hizo nada.",
+            "motivo": "sin_registro",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 503
+        },
+        {
+          "cuerpo": {},
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se puede unir ahora: falta conectar el registro de uniones. No se hizo nada.",
+            "motivo": "sin_registro",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir/continuar",
+          "status": 503
+        },
+        {
+          "cuerpo": {},
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se puede deshacer ahora: falta conectar el registro de uniones. No se hizo nada.",
+            "motivo": "sin_registro",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir/deshacer",
+          "status": 503
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "unir_errores",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido para unir no está completo: faltan la otra ficha o las resoluciones no son un diccionario.",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": "x"
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido para unir no está completo: faltan la otra ficha o las resoluciones no son un diccionario.",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": 12,
+            "resoluciones": "x"
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido para unir no está completo: faltan la otra ficha o las resoluciones no son un diccionario.",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": 12,
+            "queda": "x"
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido para unir no está completo: `queda` tiene que ser el número de una ficha.",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "aviso": "no-es-clave",
+            "clave": "union-prueba-0001",
+            "otra": 12
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido no está completo: `aviso` tiene que ser la clave de un aviso de «Por resolver».",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": 11
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Hay que escoger otra ficha, no la misma.",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": 99
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/99"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Una de las dos fichas ya no está en la base.",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 404
+        },
+        {
+          "cuerpo": {
+            "otra": 12
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Falta la clave del intento.",
+            "motivo": "clave",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "x",
+            "otra": 12
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Falta la clave del intento.",
+            "motivo": "clave",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 400
+        },
+        {
+          "crudo": "{",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido llegó ilegible. No se guardó nada."
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "GET"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "unir_lectura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": 12
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo leer la base para unir. No se hizo nada. Inténtalo en un momento.",
+            "motivo": "no_se_pudo_comprobar",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "POST"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "unir_escritura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": 12
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c7ofb5a4o5qb1q2/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "antes": "{\"lee_de_sobra\":{},\"queda\":{\"telefono_2\":{\"antes\":\"\",\"despues\":\"18090001102\"}},\"sobra\":{\"bsuid\":{\"antes\":null,\"despues\":null},\"caras\":{\"antes\":null,\"despues\":null},\"email\":{\"antes\":\"\",\"despues\":null},\"email_2\":{\"antes\":\"\",\"despues\":null},\"nombre\":{\"antes\":\"Union Uno\",\"despues\":null},\"nombre_whatsapp\":{\"antes\":\"\",\"despues\":null},\"telefono\":{\"antes\":\"18090001102\",\"despues\":null},\"telefono_2\":{\"antes\":\"\",\"despues\":null},\"unida_a\":{\"antes\":null,\"despues\":11}}}",
+                "clave": "union-prueba-0001",
+                "creada_en": "<ahora>",
+                "creada_por": "Ana Pérez",
+                "estado": "en_curso",
+                "plan": "{\"asistencias\":[],\"pagos\":[],\"proyectos\":[],\"sesiones\":[],\"titulo_q\":\"Union Uno\"}",
+                "queda_id": 11,
+                "sobra_id": 12
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Algo falló mientras se guardaba, y no se puede confirmar si lo que mandaste quedó guardado. NO lo repitas todavía: abre la cuenta (o el pago, o la caja) y mira si ya aparece. Solo si no aparece, vuelve a hacerlo. Detalle técnico: No se pudo apuntar la unión, así que no se movió nada. Inténtalo otra vez.",
+            "estado": "sin_confirmar",
+            "motivo": "no_se_pudo_apuntar",
+            "ok": false,
+            "sin_confirmar": true
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "unir_ok",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": 12
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c7ofb5a4o5qb1q2/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "antes": "{\"lee_de_sobra\":{},\"queda\":{\"telefono_2\":{\"antes\":\"\",\"despues\":\"18090001102\"}},\"sobra\":{\"bsuid\":{\"antes\":null,\"despues\":null},\"caras\":{\"antes\":null,\"despues\":null},\"email\":{\"antes\":\"\",\"despues\":null},\"email_2\":{\"antes\":\"\",\"despues\":null},\"nombre\":{\"antes\":\"Union Uno\",\"despues\":null},\"nombre_whatsapp\":{\"antes\":\"\",\"despues\":null},\"telefono\":{\"antes\":\"18090001102\",\"despues\":null},\"telefono_2\":{\"antes\":\"\",\"despues\":null},\"unida_a\":{\"antes\":null,\"despues\":11}}}",
+                "clave": "union-prueba-0001",
+                "creada_en": "<ahora>",
+                "creada_por": "Ana Pérez",
+                "estado": "en_curso",
+                "plan": "{\"asistencias\":[],\"pagos\":[],\"proyectos\":[],\"sesiones\":[],\"titulo_q\":\"Union Uno\"}",
+                "queda_id": 11,
+                "sobra_id": 12
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c7ofb5a4o5qb1q2/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": {
+                "Id": 11,
+                "telefono_2": "18090001102"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 12,
+                "nombre": null,
+                "telefono": null,
+                "unida_a": 11
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono_2,unida_a"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c7ofb5a4o5qb1q2/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,11)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/11"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "unida",
+                "terminada_en": "<ahora>"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records/1"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "estado": "unida",
+            "movido": {
+              "asistencias": 0,
+              "pagos": 0,
+              "proyectos": 0,
+              "sesiones": 0
+            },
+            "ok": true,
+            "queda": 11,
+            "sobra": 12,
+            "union_id": 1
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 200
+        },
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": 12
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "estado": "unida",
+            "ok": true,
+            "queda": 11,
+            "sobra": 12,
+            "union_id": 1,
+            "ya_estaba": true
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "unir_queda_cambio",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": 12,
+            "queda": 12
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "La ficha que queda ya no es la que se vio al revisar. No se hizo nada: hay que revisar de nuevo.",
+            "motivo": "cambio_quien_queda",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 409
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "unir_con_aviso",
+      "pasos": [
+        {
+          "cuerpo": {
+            "aviso": "aviso-cccccccccccccccccccccccccccccccccccccccc",
+            "clave": "union-prueba-0001",
+            "otra": 12
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c7ofb5a4o5qb1q2/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "antes": "{\"lee_de_sobra\":{},\"queda\":{\"telefono_2\":{\"antes\":\"\",\"despues\":\"18090001102\"}},\"sobra\":{\"bsuid\":{\"antes\":null,\"despues\":null},\"caras\":{\"antes\":null,\"despues\":null},\"email\":{\"antes\":\"\",\"despues\":null},\"email_2\":{\"antes\":\"\",\"despues\":null},\"nombre\":{\"antes\":\"Union Uno\",\"despues\":null},\"nombre_whatsapp\":{\"antes\":\"\",\"despues\":null},\"telefono\":{\"antes\":\"18090001102\",\"despues\":null},\"telefono_2\":{\"antes\":\"\",\"despues\":null},\"unida_a\":{\"antes\":null,\"despues\":11}}}",
+                "clave": "union-prueba-0001",
+                "creada_en": "<ahora>",
+                "creada_por": "Ana Pérez",
+                "estado": "en_curso",
+                "plan": "{\"asistencias\":[],\"pagos\":[],\"proyectos\":[],\"sesiones\":[],\"titulo_q\":\"Union Uno\"}",
+                "queda_id": 11,
+                "sobra_id": 12
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c7ofb5a4o5qb1q2/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": {
+                "Id": 11,
+                "telefono_2": "18090001102"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 12,
+                "nombre": null,
+                "telefono": null,
+                "unida_a": 11
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono_2,unida_a"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c7ofb5a4o5qb1q2/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,11)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/11"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "unida",
+                "terminada_en": "<ahora>"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,clave,estado,origen,tipo_aviso,ficha_id,otra_ficha_id",
+                "limit": "200",
+                "where": "(clave,eq,aviso-cccccccccccccccccccccccccccccccccccccccc)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "aviso": {
+              "clave": "aviso-cccccccccccccccccccccccccccccccccccccccc",
+              "marcado": false,
+              "motivo": "ya_no_aplica"
+            },
+            "estado": "unida",
+            "movido": {
+              "asistencias": 0,
+              "pagos": 0,
+              "proyectos": 0,
+              "sesiones": 0
+            },
+            "ok": true,
+            "queda": 11,
+            "sobra": 12,
+            "union_id": 1
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [
+        "PATCH"
+      ],
+      "nombre": "unir_a_medias_y_continuar",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "union-prueba-0001",
+            "otra": 12
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,email,email_2,bsuid,nombre,nombre_whatsapp,instagram,Cumpleanos,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Maestro Clientes,inscripciones,Riesgo_noshow,Agendo,Ultima_visita,Maestro_id,Posible_proveedor,Precio_referencia,Visitas,notas,Tono,Clave,Resumen,Comportamiento_reserva,Preferencias_operativas,Sensibilidad_precio,Consumo,instrumento,genero,caras,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c7ofb5a4o5qb1q2/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "antes": "{\"lee_de_sobra\":{},\"queda\":{\"telefono_2\":{\"antes\":\"\",\"despues\":\"18090001102\"}},\"sobra\":{\"bsuid\":{\"antes\":null,\"despues\":null},\"caras\":{\"antes\":null,\"despues\":null},\"email\":{\"antes\":\"\",\"despues\":null},\"email_2\":{\"antes\":\"\",\"despues\":null},\"nombre\":{\"antes\":\"Union Uno\",\"despues\":null},\"nombre_whatsapp\":{\"antes\":\"\",\"despues\":null},\"telefono\":{\"antes\":\"18090001102\",\"despues\":null},\"telefono_2\":{\"antes\":\"\",\"despues\":null},\"unida_a\":{\"antes\":null,\"despues\":11}}}",
+                "clave": "union-prueba-0001",
+                "creada_en": "<ahora>",
+                "creada_por": "Ana Pérez",
+                "estado": "en_curso",
+                "plan": "{\"asistencias\":[],\"pagos\":[],\"proyectos\":[],\"sesiones\":[],\"titulo_q\":\"Union Uno\"}",
+                "queda_id": 11,
+                "sobra_id": 12
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,union-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c7ofb5a4o5qb1q2/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": {
+                "Id": 11,
+                "telefono_2": "18090001102"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "La unión no se terminó. Las dos fichas pueden haber quedado a medias: ábrelas y usa «Terminar la unión». No la des por hecha.",
+            "estado": "sin_confirmar",
+            "motivo": "no_termino",
+            "ok": false,
+            "puede_terminar": true,
+            "sin_confirmar": true,
+            "union_id": 1
+          },
+          "ruta": "/api/portal-personas/11/unir",
+          "status": 502
+        },
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c7ofb5a4o5qb1q2/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": {
+                "Id": 11,
+                "telefono_2": "18090001102"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 12,
+                "nombre": null,
+                "telefono": null,
+                "unida_a": 11
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono_2,unida_a"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c7ofb5a4o5qb1q2/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,11)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/c4bb25mgcv6ghak/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/11"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "unida",
+                "terminada_en": "<ahora>"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records/1"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "estado": "unida",
+            "movido": {
+              "asistencias": 0,
+              "pagos": 0,
+              "proyectos": 0,
+              "sesiones": 0
+            },
+            "ok": true,
+            "queda": 11,
+            "sobra": 12,
+            "union_id": 1
+          },
+          "ruta": "/api/portal-personas/11/unir/continuar",
+          "status": 200
+        },
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Esta ficha no tiene una unión sin terminar.",
+            "motivo": "sin_union_en_curso",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir/continuar",
+          "status": 404
+        },
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(queda_id,eq,11)~or(sobra_id,eq,11)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "deshaciendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono_2,telefono,email,email_2,unida_a"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": {
+                "Id": 11,
+                "telefono_2": ""
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": {
+                "Id": 12,
+                "nombre": "Union Uno",
+                "telefono": "18090001102",
+                "unida_a": null
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,11)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono_2,unida_a"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/11"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/12"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,12)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,titulo,checkin_at,registrado_por,persona_id,sesion_id",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,11)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "deshecha_en": "<ahora>",
+                "deshecha_por": "Ana Pérez",
+                "estado": "deshecha"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records/1"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "devuelto": {
+              "asistencias": 0,
+              "pagos": 0,
+              "proyectos": 0,
+              "sesiones": 0
+            },
+            "estado": "deshecha",
+            "no_devuelto": [],
+            "ok": true,
+            "queda": 11,
+            "sobra": 12,
+            "sobra_nombre": "Union Uno",
+            "union_id": 1
+          },
+          "ruta": "/api/portal-personas/11/unir/deshacer",
+          "status": 200
+        },
+        {
+          "cuerpo": {
+            "sobra": 12,
+            "union": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(queda_id,eq,11)~or(sobra_id,eq,11)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "estado": "deshecha",
+            "ok": true,
+            "queda": 11,
+            "sobra": 12,
+            "union_id": 1,
+            "ya_estaba": true
+          },
+          "ruta": "/api/portal-personas/11/unir/deshacer",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "continuar_sin_union",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Esta ficha no tiene una unión sin terminar.",
+            "motivo": "sin_union_en_curso",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir/continuar",
+          "status": 404
+        },
+        {
+          "cuerpo": {
+            "aviso": "no-es-clave"
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido no está completo: `aviso` tiene que ser la clave de un aviso de «Por resolver».",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir/continuar",
+          "status": 400
+        },
+        {
+          "crudo": "{",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido llegó ilegible. No se guardó nada."
+          },
+          "ruta": "/api/portal-personas/11/unir/continuar",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "GET"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "continuar_lectura_caida",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo leer el registro de uniones. Inténtalo en un momento.",
+            "motivo": "no_se_pudo_comprobar",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir/continuar",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "deshacer_errores",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(queda_id,eq,11)~or(sobra_id,eq,11)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Esta ficha no tiene una unión que se pueda deshacer.",
+            "motivo": "sin_union_para_deshacer",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir/deshacer",
+          "status": 404
+        },
+        {
+          "cuerpo": {
+            "union": "x"
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido para deshacer no está completo: `union` tiene que ser el número de una unión.",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir/deshacer",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "sobra": "x"
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido para deshacer no está completo: `sobra` tiene que ser el número de una ficha.",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir/deshacer",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "aviso": "no-es-clave"
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido no está completo: `aviso` tiene que ser la clave de un aviso de «Por resolver».",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir/deshacer",
+          "status": 400
+        },
+        {
+          "crudo": "{",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido llegó ilegible. No se guardó nada."
+          },
+          "ruta": "/api/portal-personas/11/unir/deshacer",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "GET"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "deshacer_lectura_caida",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(queda_id,eq,11)~or(sobra_id,eq,11)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo leer el registro de uniones. No se hizo nada. Inténtalo en un momento.",
+            "motivo": "no_se_pudo_comprobar",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/11/unir/deshacer",
+          "status": 502
+        }
+      ]
     }
   ],
   "exito_de_la_app": {

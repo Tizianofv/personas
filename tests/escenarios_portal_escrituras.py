@@ -200,6 +200,78 @@ ESCENARIOS = [
     ]},
 ]
 
+# UNIÓN (paso 5c, parte 4). Los escenarios de unir van en el modo de unión del doble (`"union": True`, con la tabla de uniones
+# en el entorno). Sin esa variable, la App y el programa contestan 503 «sin_registro» sin tocar NocoDB.
+RUTA_UNIR = RUTA_PORTAL + "/11/unir"
+RUTA_CONTINUAR = RUTA_PORTAL + "/11/unir/continuar"
+RUTA_DESHACER = RUTA_PORTAL + "/11/unir/deshacer"
+ENTORNO_UNION = {"NOCODB_T_UNIONES_PERSONAS": doble_escrituras.T_UNIONES}
+CLAVE_UNION = "union-prueba-0001"          # formato válido (`[A-Za-z0-9_-]{8,64}`)
+CLAVE_AVISO_UNION = "aviso-" + "c" * 40    # formato válido de aviso; no existe en el doble
+
+ESCENARIOS_UNION = [
+    {"nombre": "unir_sin_registro", "pasos": [
+        _p(RUTA_UNIR, {"otra": 12, "clave": CLAVE_UNION}),
+        _p(RUTA_CONTINUAR, {}),
+        _p(RUTA_DESHACER, {}),
+    ]},
+    {"nombre": "unir_errores", "union": True, "entorno": ENTORNO_UNION, "pasos": [
+        _p(RUTA_UNIR, {}),
+        _p(RUTA_UNIR, {"otra": "x", "clave": CLAVE_UNION}),
+        _p(RUTA_UNIR, {"otra": 12, "resoluciones": "x", "clave": CLAVE_UNION}),
+        _p(RUTA_UNIR, {"otra": 12, "queda": "x", "clave": CLAVE_UNION}),
+        _p(RUTA_UNIR, {"otra": 12, "aviso": "no-es-clave", "clave": CLAVE_UNION}),
+        _p(RUTA_UNIR, {"otra": 11, "clave": CLAVE_UNION}),
+        _p(RUTA_UNIR, {"otra": 99, "clave": CLAVE_UNION}),
+        _p(RUTA_UNIR, {"otra": 12}),
+        _p(RUTA_UNIR, {"otra": 12, "clave": "x"}),
+        _p(RUTA_UNIR, crudo="{"),
+    ]},
+    {"nombre": "unir_lectura_caida", "union": True, "entorno": ENTORNO_UNION, "caidas": ["GET"], "pasos": [
+        _p(RUTA_UNIR, {"otra": 12, "clave": CLAVE_UNION})]},
+    {"nombre": "unir_escritura_caida", "union": True, "entorno": ENTORNO_UNION, "caidas": ["POST"], "pasos": [
+        _p(RUTA_UNIR, {"otra": 12, "clave": CLAVE_UNION})]},
+    {"nombre": "unir_ok", "union": True, "entorno": ENTORNO_UNION, "pasos": [
+        _p(RUTA_UNIR, {"otra": 12, "clave": CLAVE_UNION}),
+        _p(RUTA_UNIR, {"otra": 12, "clave": CLAVE_UNION}),
+    ]},
+    {"nombre": "unir_queda_cambio", "union": True, "entorno": ENTORNO_UNION, "pasos": [
+        _p(RUTA_UNIR, {"otra": 12, "queda": 12, "clave": CLAVE_UNION}),
+    ]},
+    {"nombre": "unir_con_aviso", "union": True, "entorno": ENTORNO_UNION, "pasos": [
+        _p(RUTA_UNIR, {"otra": 12, "clave": CLAVE_UNION, "aviso": CLAVE_AVISO_UNION}),
+    ]},
+    # Una unión que se corta a mitad (la primera escritura PATCH cae una vez): queda «en curso». Después, `continuar` la termina
+    # (sin `quien`: la App no lo pasa) y `deshacer` la deshace. Con repetición, cada pedido sigue lo que quedó.
+    {"nombre": "unir_a_medias_y_continuar", "union": True, "entorno": ENTORNO_UNION, "caidas_una_vez": ["PATCH"], "pasos": [
+        _p(RUTA_UNIR, {"otra": 12, "clave": CLAVE_UNION}),
+        _p(RUTA_CONTINUAR, {}),
+        _p(RUTA_CONTINUAR, {}),
+        _p(RUTA_DESHACER, {}),
+        _p(RUTA_DESHACER, {"union": 1, "sobra": 12}),
+    ]},
+    {"nombre": "continuar_sin_union", "union": True, "entorno": ENTORNO_UNION, "pasos": [
+        _p(RUTA_CONTINUAR, {}),
+        _p(RUTA_CONTINUAR, {"aviso": "no-es-clave"}),
+        _p(RUTA_CONTINUAR, crudo="{"),
+    ]},
+    {"nombre": "continuar_lectura_caida", "union": True, "entorno": ENTORNO_UNION, "caidas": ["GET"], "pasos": [
+        _p(RUTA_CONTINUAR, {}),
+    ]},
+    {"nombre": "deshacer_errores", "union": True, "entorno": ENTORNO_UNION, "pasos": [
+        _p(RUTA_DESHACER, {}),
+        _p(RUTA_DESHACER, {"union": "x"}),
+        _p(RUTA_DESHACER, {"sobra": "x"}),
+        _p(RUTA_DESHACER, {"aviso": "no-es-clave"}),
+        _p(RUTA_DESHACER, crudo="{"),
+    ]},
+    {"nombre": "deshacer_lectura_caida", "union": True, "entorno": ENTORNO_UNION, "caidas": ["GET"], "pasos": [
+        _p(RUTA_DESHACER, {}),
+    ]},
+]
+
+ESCENARIOS.extend(ESCENARIOS_UNION)
+
 # Pasos que la App no contesta igual (no tiene identidad): ver `es_dorado`.
 
 
@@ -211,12 +283,18 @@ def es_dorado(paso):
 AHORA = "<ahora>"
 
 
+def es_clave_de_hora(clave):
+    """Las claves donde se guarda la hora de la corrida: `cuando` (anotaciones) y las que acaban en `_en` (`creada_en`,
+    `terminada_en`, `deshecha_en`, `resuelto_en`, `devuelta_en`: el registro de uniones y de «Por resolver»)."""
+    return clave == "cuando" or clave.endswith("_en")
+
+
 def normalizar(valor):
-    """Quita de un registro lo que depende de la hora de la corrida: el valor de cualquier clave `cuando` que sea una fecha ISO se
-    cambia por «<ahora>». Lo aplican la foto y la prueba, a los dos lados, así que la comparación no ve la hora. Lo que sí se comprueba
-    (en `test_portal_escrituras.py`) es que ese valor sea una fecha ISO con zona y no otra cosa."""
+    """Quita de un registro lo que depende de la hora de la corrida: el valor de cualquier clave de hora (`es_clave_de_hora`) que sea
+    una fecha ISO se cambia por «<ahora>». Lo aplican la foto y la prueba, a los dos lados, así que la comparación no ve la hora. Lo que
+    sí se comprueba (en `test_portal_escrituras.py`) es que ese valor sea una fecha ISO con zona y no otra cosa."""
     if isinstance(valor, dict):
-        return {k: (AHORA if k == "cuando" and _es_iso(v) else normalizar(v)) for k, v in valor.items()}
+        return {k: (AHORA if es_clave_de_hora(k) and _es_iso(v) else normalizar(v)) for k, v in valor.items()}
     if isinstance(valor, list):
         return [normalizar(v) for v in valor]
     return valor
@@ -302,7 +380,8 @@ def ejecutar(escenario, comando, cwd, entorno_extra=None):
     """Corre los pasos de un escenario contra `comando` (un servidor en PORT, con NOCODB_BASE puesto al doble). Devuelve
     (pasos, errores_del_doble). Cada paso dice código, respuesta y los pedidos que llegaron al doble en ese paso. El proceso y el doble
     se cierran al terminar, pase lo que pase."""
-    doble = doble_escrituras.DobleEscrituras(caidas=escenario.get("caidas", ()), caidas_una_vez=escenario.get("caidas_una_vez", ()))
+    doble = doble_escrituras.DobleEscrituras(caidas=escenario.get("caidas", ()), caidas_una_vez=escenario.get("caidas_una_vez", ()),
+                                             union=escenario.get("union", False))
     url_doble = doble.arrancar()
     puerto = _puerto_libre()
     entorno = dict(ENTORNO_MINIMO)

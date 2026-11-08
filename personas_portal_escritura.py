@@ -15,6 +15,12 @@ Lo que cada acción hace (las funciones son las de `personas.py`, copia de la Ap
   permiso   `personas.anotar_permiso`, SIN `una_vez` (a propósito, como la App)
   resolver  `personas.portal_por_resolver_marcar(clave, quien)`
   reabrir   `personas.portal_por_resolver_marcar(clave, quien, reabrir=True)`
+  unir      `personas.unir_fichas(ficha, otra, resoluciones, clave, quien, queda_visto)`, SIN `una_vez` (la App no lo usa aquí)
+  continuar `personas.continuar_union(ficha)` (la App NO le pasa `quien`); el aviso de «Por resolver» sí lleva `quien`
+  deshacer  `personas.deshacer_union(ficha, quien, union_visto, sobra_esperada)`, SIN `una_vez`
+
+Las tres de unión, como `Handler.portal_personas_post` de la App: validan el cuerpo (400 con sus textos), leen la clave del aviso
+(`aviso`) y, si la unión o el deshacer salen bien, marcan el aviso (`_con_el_aviso_marcado`, copia de `Handler.con_el_aviso_marcado`).
 
 `una_vez` y `escribir_una_vez` son copias de `server.py` de la App (`594ec12`, líneas 2172-2225 y 12902): una caché en memoria de
 cada `clave_envio` (600 s, 2000 entradas). Solo vive en este proceso, como en la App.
@@ -22,6 +28,7 @@ cada `clave_envio` (600 s, 2000 entradas). Solo vive en este proceso, como en la
 import copy
 import hashlib
 import json
+import re
 import threading
 import time
 
@@ -96,7 +103,61 @@ def leer_cuerpo(crudo):
     return json.loads(crudo.decode())
 
 
+def _con_el_aviso_marcado(aviso, modo, estado, codigo, datos, quien):
+    """Copia de `Handler.con_el_aviso_marcado` de la App: si el pedido vino de un aviso y salió bien, marca el aviso y suma `aviso`."""
+    if aviso and codigo == 200 and isinstance(datos, dict) and datos.get("estado") == estado:
+        return dict(datos, aviso=personas.marcar_aviso_de_la_union(aviso, modo, datos, quien))
+    return datos
+
+
+def _unir(ficha, cuerpo, quien):
+    """Copia del bloque `mu` de `portal_personas_post` de la App (`594ec12`)."""
+    otra = cuerpo.get("otra") if isinstance(cuerpo, dict) else None
+    otra = int(otra) if isinstance(otra, str) and re.fullmatch(r"\d{1,9}", otra) else otra
+    resoluciones = cuerpo.get("resoluciones") if isinstance(cuerpo, dict) else None
+    if isinstance(otra, bool) or not isinstance(otra, int) or not 0 < otra < 10 ** 9 or not (resoluciones is None or isinstance(resoluciones, dict)):
+        return 400, {"ok": False, "error": "El pedido para unir no está completo: faltan la otra ficha o las resoluciones no son un diccionario."}
+    visto = cuerpo.get("queda") if isinstance(cuerpo, dict) else None
+    if visto is not None and (isinstance(visto, bool) or not isinstance(visto, int) or not 0 < visto < 10 ** 9):
+        return 400, {"ok": False, "error": "El pedido para unir no está completo: `queda` tiene que ser el número de una ficha."}
+    aviso, mal = personas.aviso_del_pedido(cuerpo)
+    if mal:
+        return 400, {"ok": False, "error": mal}
+    codigo, datos = personas.unir_fichas(ficha, otra, resoluciones, cuerpo.get("clave"), quien, queda_visto=visto)
+    return codigo, _con_el_aviso_marcado(aviso, "unir", "unida", codigo, datos, quien)
+
+
+def _continuar(ficha, cuerpo, quien):
+    """Copia del bloque `mc` de `portal_personas_post` de la App (`594ec12`): `continuar_union` no recibe `quien`."""
+    aviso, mal = personas.aviso_del_pedido(cuerpo)
+    if mal:
+        return 400, {"ok": False, "error": mal}
+    codigo, datos = personas.continuar_union(ficha)
+    return codigo, _con_el_aviso_marcado(aviso, "unir", "unida", codigo, datos, quien)
+
+
+def _deshacer(ficha, cuerpo, quien):
+    """Copia del bloque `md` de `portal_personas_post` de la App (`594ec12`)."""
+    visto = cuerpo.get("union") if isinstance(cuerpo, dict) else None
+    if visto is not None and (isinstance(visto, bool) or not isinstance(visto, int) or not 0 < visto < 10 ** 9):
+        return 400, {"ok": False, "error": "El pedido para deshacer no está completo: `union` tiene que ser el número de una unión."}
+    esperada = cuerpo.get("sobra") if isinstance(cuerpo, dict) else None
+    if esperada is not None and (isinstance(esperada, bool) or not isinstance(esperada, int) or not 0 < esperada < 10 ** 9):
+        return 400, {"ok": False, "error": "El pedido para deshacer no está completo: `sobra` tiene que ser el número de una ficha."}
+    aviso, mal = personas.aviso_del_pedido(cuerpo)
+    if mal:
+        return 400, {"ok": False, "error": mal}
+    codigo, datos = personas.deshacer_union(ficha, quien, union_visto=visto, sobra_esperada=esperada)
+    return codigo, _con_el_aviso_marcado(aviso, "deshacer", "deshecha", codigo, datos, quien)
+
+
 def _ejecutar(nombre, ruta, grupos, cuerpo, quien):
+    if nombre == "unir":
+        return _unir(int(grupos[0]), cuerpo, quien)
+    if nombre == "continuar":
+        return _continuar(int(grupos[0]), cuerpo, quien)
+    if nombre == "deshacer":
+        return _deshacer(int(grupos[0]), cuerpo, quien)
     if nombre == "editar":
         pid = int(grupos[0])
         (codigo, datos), repetido = una_vez(
