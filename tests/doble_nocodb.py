@@ -52,7 +52,14 @@ QUITADAS = [
     {"Id": 2, "ficha_id": 4, "estado": "devuelta", "antes": json.dumps(dict(_ANTES_DE_PRUEBA, nombre="Persona de prueba 4"), ensure_ascii=False),
      "creada_por": "Persona de prueba quien", "creada_en": "2026-10-06T12:00:00Z"},
 ]
-TABLAS = {T_PERSONAS: PERSONAS, TABLA_ANOTACIONES: ANOTACIONES, T_ASISTENCIAS: ASISTENCIAS, T_QUITADAS: QUITADAS}
+# La bandeja de «Por resolver» (`NOCODB_T_BANDEJA_PERSONAS`, paso 5c parte 2). Una marca de prueba que no coincide con ningún grupo real:
+# la lista de «resueltos» de la pantalla queda vacía. Eso NO prueba la rama de «resueltos» (declarado en el mapa).
+T_BANDEJA = "tabla-bandeja-prueba"
+BANDEJA = [
+    {"Id": 1, "origen": "por-resolver", "clave": "resuelto-" + "0" * 40, "estado": "resuelto",
+     "resuelto_por": "Persona de prueba quien", "resuelto_en": "2026-10-07T12:00:00Z"},
+]
+TABLAS = {T_PERSONAS: PERSONAS, TABLA_ANOTACIONES: ANOTACIONES, T_ASISTENCIAS: ASISTENCIAS, T_QUITADAS: QUITADAS, T_BANDEJA: BANDEJA}
 
 # Columnas que el doble declara para la tabla de Personas. Son las claves de las filas de prueba más UNA columna inventada
 # («columna_de_prueba_sin_clasificar») que la App no conoce: así la lista de «sin clasificar» tiene contenido real que el contrato guarda.
@@ -82,7 +89,7 @@ class Doble:
             return filas
         partes = _CONDICION.findall(where)
         separadores = set(re.findall(r"~(and|or)", where))
-        residuo = _CONDICION.sub("", where)
+        residuo = re.sub(r"~(and|or)", "", _CONDICION.sub("", where))   # lo que queda fuera de las condiciones y de sus conectores
         if residuo.strip("~") or len(separadores) > 1:
             raise ValueError("where con forma no soportada")
         modo = separadores.pop() if separadores else "and"
@@ -97,6 +104,13 @@ class Doble:
                     resultados.append(v != valor)
                 elif op == "like":
                     resultados.append(valor.strip("%").lower() in v.lower())
+                elif op in ("gt", "gte", "lt", "lte"):
+                    # Comparación numérica (la que usan `Id` y `credito`). Un valor vacío no cumple.
+                    if v == "":
+                        resultados.append(False)
+                    else:
+                        a, b = float(v), float(valor)
+                        resultados.append({"gt": a > b, "gte": a >= b, "lt": a < b, "lte": a <= b}[op])
                 else:
                     raise ValueError("operador de orden no soportado en el doble: " + op)
             return all(resultados) if modo == "and" else any(resultados)
@@ -114,6 +128,17 @@ class Doble:
                 return 404, {"msg": "doble: tabla desconocida"}
             self.lecturas += 1
             return 200, {"id": meta.group(1), "columns": COLUMNAS_META[meta.group(1)]}
+        # Un registro por su `Id` (`GET .../records/<Id>`, la forma que lee la ficha del portal). Si no existe: 404, como NocoDB.
+        uno = re.fullmatch(r"/api/v2/tables/([^/]+)/records/(\d+)", ruta)
+        if uno:
+            if uno.group(1) not in TABLAS:
+                self.errores.append("tabla desconocida: %s" % ruta)
+                return 404, {"msg": "doble: tabla desconocida"}
+            self.lecturas += 1
+            for fila in TABLAS[uno.group(1)]:
+                if fila.get("Id") == int(uno.group(2)):
+                    return 200, dict(fila)
+            return 404, {"msg": "doble: registro no existe"}
         m = re.fullmatch(r"/api/v2/tables/([^/]+)/records", ruta)
         if not m or m.group(1) not in TABLAS:
             self.errores.append("tabla desconocida: %s" % ruta)
