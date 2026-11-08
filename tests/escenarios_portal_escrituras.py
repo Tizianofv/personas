@@ -395,6 +395,10 @@ ESCENARIOS_CHECKIN = [
     {"nombre": "checkin_editar_lectura_caida", "caidas": ["GET"], "pasos": [
         _c(RUTA_CHECKIN_EDITAR, {"instagram": "checkin_lectura"}, metodo="PATCH")]},
     {"nombre": "checkin_editar_sin_ficha", "pasos": [_c("/api/personas/99", {"instagram": "x"}, metodo="PATCH")]},
+    # El `quien` que viene en el CUERPO no se escribe (la App lo ignora en estas rutas): crear y editar.
+    {"nombre": "checkin_crear_quien_en_cuerpo", "pasos": [_c(RUTA_CHECKIN, {"nombre": "Checkin Quien", "quien": "Otra Persona"})]},
+    {"nombre": "checkin_editar_quien_en_cuerpo", "pasos": [
+        _c(RUTA_CHECKIN_EDITAR, {"instagram": "checkin_quien", "quien": "Otra Persona"}, metodo="PATCH")]},
 ]
 ESCENARIOS.extend(ESCENARIOS_CHECKIN)
 

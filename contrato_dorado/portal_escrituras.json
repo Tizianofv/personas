@@ -17142,6 +17142,127 @@
           "status": 502
         }
       ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_crear_quien_en_cuerpo",
+      "pasos": [
+        {
+          "cuerpo": {
+            "nombre": "Checkin Quien",
+            "quien": "Otra Persona"
+          },
+          "metodo": "POST",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "nombre": "Checkin Quien"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<ahora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 5,
+                "quien": "sistema",
+                "valor": "checkin"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,instagram,email,email_2,instrumento,genero,Cumpleanos,notas,Posible_proveedor"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/5"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "persona": {
+              "Id": 5,
+              "nombre": "Checkin Quien"
+            }
+          },
+          "ruta": "/api/personas",
+          "status": 201
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_editar_quien_en_cuerpo",
+      "pasos": [
+        {
+          "cuerpo": {
+            "instagram": "checkin_quien",
+            "quien": "Otra Persona"
+          },
+          "metodo": "PATCH",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "instagram": "checkin_quien"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,instagram,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,instrumento,genero,Cumpleanos,notas,Posible_proveedor"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "persona": {
+              "Cumpleanos": null,
+              "Id": 2,
+              "email": "p2@ejemplo.test",
+              "email_2": "",
+              "instagram": "checkin_quien",
+              "nombre": "Persona de prueba 2",
+              "nombre_whatsapp": "",
+              "telefono": "18097770002",
+              "telefono_2": ""
+            }
+          },
+          "ruta": "/api/personas/2",
+          "status": 200
+        }
+      ]
     }
   ],
   "exito_de_la_app": {
