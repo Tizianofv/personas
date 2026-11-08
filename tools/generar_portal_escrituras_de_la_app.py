@@ -29,6 +29,7 @@ import sys
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "tests"))
 sys.path.insert(0, str(RAIZ / "tools"))
+import candado  # noqa: E402  (la forma del candado de «envío hecho»: el mismo código que compara la prueba)
 import doble_escrituras  # noqa: E402
 import escenarios_portal_escrituras as esc  # noqa: E402
 import generar_portal_de_la_app as gpl  # noqa: E402  (su evaluador de constantes `_valor`, el mismo que lee las rutas GET)
@@ -115,6 +116,11 @@ def exitos_de_la_app(copia):
     return salida
 
 
+def candado_de_la_app_en_la_foto(copia):
+    """La forma del candado de la App (`server.py`): `llave_de_envio`, `escribir_una_vez`, `Handler.una_vez` y sus constantes."""
+    return candado.candado_de_la_app(ast.parse((copia / "server.py").read_text(encoding="utf-8")))
+
+
 def correr_escenario(copia, pasos, caidas, caidas_una_vez=()):
     """Corre los pasos de un escenario en la App y devuelve, por paso, `{status, respuesta, pedidos}`."""
     doble = doble_escrituras.DobleEscrituras(caidas=caidas, caidas_una_vez=caidas_una_vez)
@@ -177,6 +183,7 @@ def main():
                   "Datos del doble tests/doble_nocodb.py y tests/doble_escrituras.py.",
         "rutas_de_la_app": rutas_post_de_la_app(copia),
         "exito_de_la_app": exitos_de_la_app(copia),
+        "candado_de_la_app": candado_de_la_app_en_la_foto(copia),
         "escenarios": escenarios_foto,
     }
     texto = json.dumps(foto, ensure_ascii=False, indent=2, sort_keys=True) + "\n"

@@ -1,4 +1,17 @@
 {
+  "candado_de_la_app": {
+    "constantes": {
+      "UNA_VEZ_MAX": "2000",
+      "UNA_VEZ_VIDA_S": "600",
+      "_UNA_VEZ": "{}",
+      "_UNA_VEZ_LOCK": "threading.Lock()"
+    },
+    "funciones": {
+      "escribir_una_vez": "def escribir_una_vez(ambito, llave, contenido, escribir, exito=None):\n    if llave is None:\n        return (escribir(), False)\n    huella = hashlib.sha256(json.dumps(contenido, sort_keys=True, default=str, ensure_ascii=False).encode()).hexdigest()\n    clave = (ambito, llave)\n    with _UNA_VEZ_LOCK:\n        ahora = time.monotonic()\n        for k in [k for (k, e) in _UNA_VEZ.items() if e['usos'] == 0 and ahora - e['t'] > UNA_VEZ_VIDA_S]:\n            del _UNA_VEZ[k]\n        e = _UNA_VEZ.get(clave)\n        if e is None or e['huella'] != huella:\n            while len(_UNA_VEZ) >= UNA_VEZ_MAX:\n                libre = next((k for (k, x) in _UNA_VEZ.items() if x['usos'] == 0), None)\n                if libre is None:\n                    break\n                del _UNA_VEZ[libre]\n            e = {'huella': huella, 'lock': threading.Lock(), 'hecho': False, 'res': None, 't': ahora, 'usos': 0}\n            _UNA_VEZ[clave] = e\n        e['usos'] += 1\n    try:\n        with e['lock']:\n            if e['hecho']:\n                return (copy.deepcopy(e['res']), True)\n            res = escribir()\n            if exito is not None and (not exito(res)):\n                return (res, False)\n            e['res'] = copy.deepcopy(res)\n            e['hecho'] = True\n            e['t'] = time.monotonic()\n            return (res, False)\n    finally:\n        with _UNA_VEZ_LOCK:\n            e['usos'] -= 1",
+      "llave_de_envio": "def llave_de_envio(cuerpo):\n    if not isinstance(cuerpo, dict):\n        return None\n    return str(cuerpo.get('clave_envio') or '').strip()[:100] or None",
+      "una_vez": "def una_vez(ambito, ruta, cuerpo, escribir, exito=None):\n    return escribir_una_vez(ambito, llave_de_envio(cuerpo), {'ruta': ruta, 'cuerpo': cuerpo}, escribir, exito)"
+    }
+  },
   "escenarios": [
     {
       "caidas": [],

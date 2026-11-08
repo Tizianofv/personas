@@ -29,6 +29,15 @@ Pruebas:
       mismos que la foto (crear y editar), y a cada uno se le exige el MISMO juego de escenarios, sacado de la foto: mismo cuerpo,
       cuerpo distinto, fallo y cada código que la foto da al sitio. Además, el escenario de cuerpo distinto de cada sitio escribe
       otra vez (el 2.º no trae ya_*): así se pone roja una huella que ignore el cuerpo, en los dos.
+  A1  el candado de «envío hecho» del programa (`llave_de_envio`, `escribir_una_vez`, `una_vez` y sus constantes) tiene la MISMA
+      forma que el de la App `594ec12` (`candado_de_la_app` de la foto, sacado por AST con `tests/candado.py`). Cualquier
+      diferencia de código (llave nula, vencimiento, tope, expulsión, candado, copia) se ve aquí.
+  B1  en todo el programa (todos los `.py` fuera de `tests/` y `tools/`), cada uso de `una_vez` o `escribir_una_vez` es un sitio:
+      una llamada directa `una_vez(...)` en la rama de su acción de `_ejecutar`. Alias, atributo, import, otra llamada o una
+      referencia suelta dan rojo.
+  C1  con una clave de envío, sin clave escribe siempre (dos envíos sin clave, dos escrituras).
+  C2  con clave, recuerda 600 s: a los 599 s no vuelve a escribir, a los 700 s sí (reloj simulado).
+  C3  una excepción de la escritura no se recuerda: el mismo envío vuelve a escribir.
   K2  las rutas de Registro (cara, nueva, editar, credito) con la llave del portal: 401, cero pedidos.
   I1  con la llave bien: sin `quien`, con `quien` en blanco, sin tipo, con otro tipo («B», «a», vacío): 400 con el texto de
       identidad, cero pedidos. En CADA entrada de la tabla (las tres puertas, en todas las rutas).
@@ -54,6 +63,7 @@ Lo que NO ve (declarado):
 import ast
 import hashlib
 import json
+import types
 import sys
 import unittest
 from pathlib import Path
@@ -67,6 +77,7 @@ import escenarios_portal_escrituras as esc  # noqa: E402
 import servidor  # noqa: E402  (la tabla real: K0, H1, H2 y Q1 comparan con ella)
 import personas  # noqa: E402
 import personas_portal_escritura  # noqa: E402
+import candado  # noqa: E402  (el candado de «envío hecho»: la forma y los usos, sacados del código)
 
 FOTA = RAIZ / "contrato_dorado" / "portal_escrituras.json"
 SHA_DECLARADO = RAIZ / "contrato_dorado" / "SHA256_portal_escrituras"
@@ -280,22 +291,10 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
                                 "códigos de la foto sin reintento: %s" % sorted(codigos[accion] - cubiertos[accion]))
 
     def _accion_de_cada_sitio_una_vez(self):
-        """Del AST del programa: ámbito de cada `una_vez` y la acción (`if nombre == ...`) en que está. Exige que sea todo el
-        conjunto de llamadas a `una_vez` del módulo (ningún sitio queda sin acción)."""
-        arbol = ast.parse((RAIZ / "personas_portal_escritura.py").read_text(encoding="utf-8"))
-        ejecutar = next(n for n in arbol.body if isinstance(n, ast.FunctionDef) and n.name == "_ejecutar")
-        por_ambito = {}
-        for nodo in ast.walk(ejecutar):
-            if isinstance(nodo, ast.If) and isinstance(nodo.test, ast.Compare) and isinstance(nodo.test.left, ast.Name) \
-                    and nodo.test.left.id == "nombre" and isinstance(nodo.test.ops[0], ast.Eq):
-                accion = nodo.test.comparators[0].value
-                for sub in ast.walk(nodo):
-                    if isinstance(sub, ast.Call) and isinstance(sub.func, ast.Name) and sub.func.id == "una_vez":
-                        por_ambito[sub.args[0].value] = accion
-        todos = {n.args[0].value for n in ast.walk(arbol)
-                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == "una_vez"}
-        self.assertEqual(set(por_ambito), todos, "un sitio de una_vez sin acción")
-        return {ambito: accion for ambito, accion in por_ambito.items()}
+        """Los sitios de `una_vez` del programa (`candado.usos_y_sitios`, B1): ámbito -> acción. Ningún uso fuera de ellos."""
+        violaciones, sitios = candado.usos_y_sitios(RAIZ)
+        self.assertEqual(violaciones, [], "uso de una_vez fuera de un sitio")
+        return {ambito: accion for ambito, accion, _archivo, _linea in sitios}
 
     def _juego_de_escenarios_de_la_foto(self):
         """Por acción (crear / editar): los escenarios de dos pasos con la misma clave, clasificados (fallo, mismo cuerpo,
@@ -346,6 +345,15 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
                 segundo = real[1]
                 self.assertNotIn(ya_clave[accion], segundo["respuesta"])
                 self.assertTrue([q for q in segundo["pedidos"] if q["metodo"] != "GET"], "el cuerpo distinto tiene que escribir")
+
+    def test_A1_el_candado_del_programa_es_el_de_la_app(self):
+        arbol = ast.parse((RAIZ / "personas_portal_escritura.py").read_text(encoding="utf-8"))
+        self.assertEqual(candado.candado_del_modulo(arbol), self.foto["candado_de_la_app"])
+
+    def test_B1_no_hay_usos_de_una_vez_fuera_de_los_sitios(self):
+        violaciones, sitios = candado.usos_y_sitios(RAIZ)
+        self.assertEqual(violaciones, [])
+        self.assertEqual(sorted({ambito for ambito, _a, _f, _l in sitios}), ["portal-persona-crear", "portal-persona-editar"])
 
     def test_K2_la_llave_del_portal_no_abre_las_rutas_de_registro(self):
         pasos = [{"ruta": ruta, "llave": "portal", "quien": QUIEN, "tipo": "A", "cuerpo": {"persona_id": 1, "vec": [0.5] * 128}}
@@ -440,6 +448,74 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
         self.assertEqual(servidor.quien_de_la_cabecera("  Ana  "), "Ana")
         self.assertEqual(servidor.quien_de_la_cabecera(None), "")
         self.assertEqual(servidor.quien_de_la_cabecera("Ana€"), "Ana€")
+
+
+class CandadoEnProceso(unittest.TestCase):
+    """C1 a C3: el candado con reloj simulado. Solo se cambia la fuente del instante (`time` del módulo, en la prueba); el camino de
+    código es el de producción."""
+
+    def setUp(self):
+        self.reloj = [0.0]
+        self.parche = mock.patch.object(personas_portal_escritura, "time", types.SimpleNamespace(monotonic=lambda: self.reloj[0]))
+        self.parche.start()
+        self._vaciar()
+
+    def tearDown(self):
+        self.parche.stop()
+        self._vaciar()
+
+    @staticmethod
+    def _vaciar():
+        with personas_portal_escritura._UNA_VEZ_LOCK:
+            personas_portal_escritura._UNA_VEZ.clear()
+
+    @staticmethod
+    def _llamar(clave, escribir):
+        cuerpo = {"cambios": {"instagram": "x"}}
+        if clave is not None:
+            cuerpo["clave_envio"] = clave
+        return personas_portal_escritura.una_vez("portal-persona-editar", "/api/portal-personas/2/editar", cuerpo, escribir)
+
+    def test_C1_sin_clave_escribe_siempre(self):
+        escrituras = []
+
+        def escribir():
+            escrituras.append(1)
+            return (200, {"estado": "guardado"})
+        self._llamar(None, escribir)
+        _res, repetido = self._llamar(None, escribir)
+        self.assertEqual(len(escrituras), 2)
+        self.assertFalse(repetido)
+
+    def test_C2_con_clave_recuerda_600_s_y_despues_vence(self):
+        escrituras = []
+
+        def escribir():
+            escrituras.append(1)
+            return (200, {"estado": "guardado"})
+        self._llamar("k", escribir)
+        self.reloj[0] = 599.0
+        _res, repetido = self._llamar("k", escribir)
+        self.assertTrue(repetido)
+        self.assertEqual(len(escrituras), 1)
+        self.reloj[0] = 700.0
+        _res, repetido = self._llamar("k", escribir)
+        self.assertFalse(repetido)
+        self.assertEqual(len(escrituras), 2)
+
+    def test_C3_una_excepcion_no_se_recuerda(self):
+        intentos = []
+
+        def escribir():
+            intentos.append(1)
+            if len(intentos) == 1:
+                raise RuntimeError("la base no contesta")
+            return (200, {"estado": "guardado"})
+        with self.assertRaises(RuntimeError):
+            self._llamar("k2", escribir)
+        _res, repetido = self._llamar("k2", escribir)
+        self.assertEqual(len(intentos), 2)
+        self.assertFalse(repetido)
 
 
 if __name__ == "__main__":
