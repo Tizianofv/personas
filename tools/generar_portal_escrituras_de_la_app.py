@@ -99,9 +99,9 @@ def rutas_post_de_la_app(copia):
     return [{"patron": p, "exacta": not regex} for p, regex in sorted(rutas.items())]
 
 
-def correr_escenario(copia, pasos, caidas):
+def correr_escenario(copia, pasos, caidas, caidas_una_vez=()):
     """Corre los pasos de un escenario en la App y devuelve, por paso, `{status, respuesta, pedidos}`."""
-    doble = doble_escrituras.DobleEscrituras(caidas=caidas)
+    doble = doble_escrituras.DobleEscrituras(caidas=caidas, caidas_una_vez=caidas_una_vez)
     url_doble = doble.arrancar()
     entorno = {
         "PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8",
@@ -149,8 +149,9 @@ def main():
     escenarios_foto = []
     for escenario in esc.ESCENARIOS:
         pasos = [p for p in escenario["pasos"] if esc.es_dorado(p)]
-        resultados = correr_escenario(copia, pasos, escenario.get("caidas", ()))
-        escenarios_foto.append({"nombre": escenario["nombre"], "caidas": list(escenario.get("caidas", ())), "pasos": [
+        resultados = correr_escenario(copia, pasos, escenario.get("caidas", ()), escenario.get("caidas_una_vez", ()))
+        escenarios_foto.append({"nombre": escenario["nombre"], "caidas": list(escenario.get("caidas", ())),
+                                "caidas_una_vez": list(escenario.get("caidas_una_vez", ())), "pasos": [
             dict({"ruta": p["ruta"], "quien": p["quien"]}, **({"crudo": p["crudo"]} if "crudo" in p else {"cuerpo": p["cuerpo"]}),
                  **r) for p, r in zip(pasos, resultados)]})
     foto = {

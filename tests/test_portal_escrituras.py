@@ -16,6 +16,10 @@ Pruebas:
   K1  sin llave, con llave vacía, con la de otro grupo (Mercadeo, Registro, escritura de Registro) o una llave mala: 401 en CADA
       entrada de la tabla, y cero pedidos a NocoDB. Y sin llave con un cuerpo que no es JSON: 401 (la llave va antes que el cuerpo).
   K1b con `PERSONAS_PORTAL_LLAVE` vacía, la cabecera vacía no abre nada: 401 en cada entrada, cero pedidos.
+  K3  sin llave y sin identidad a la vez (cabecera de llave ausente, quien y tipo ausentes): 401, cero pedidos, en cada entrada
+      de la tabla. La llave va antes que la identidad.
+  R1  un fallo de escritura no se recuerda como guardado: editar y crear, con la misma `clave_envio`, fallan una vez (la base
+      no contesta), y el segundo envío VUELVE a escribir (hay pedido de escritura) y no trae `ya_guardado` / `ya_creada`.
   K2  las rutas de Registro (cara, nueva, editar, credito) con la llave del portal: 401, cero pedidos.
   I1  con la llave bien: sin `quien`, con `quien` en blanco, sin tipo, con otro tipo («B», «a», vacío): 400 con el texto de
       identidad, cero pedidos. En CADA entrada de la tabla (las tres puertas, en todas las rutas).
@@ -96,8 +100,8 @@ def _cuandos_son_iso(x):
     return True
 
 
-def _correr(pasos, entorno=None, caidas=()):
-    escenario = {"nombre": "prueba", "pasos": pasos, "caidas": list(caidas)}
+def _correr(pasos, entorno=None, caidas=(), caidas_una_vez=()):
+    escenario = {"nombre": "prueba", "pasos": pasos, "caidas": list(caidas), "caidas_una_vez": list(caidas_una_vez)}
     if entorno is not None:
         escenario["entorno"] = entorno
     return esc.ejecutar(escenario, COMANDO, cwd=str(RAIZ))
@@ -140,7 +144,7 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
             with self.subTest(escenario=nombre):
                 foto = self.por_nombre[nombre]
                 pasos = [p for p in escenario["pasos"] if esc.es_dorado(p)]
-                real, errores = _correr(pasos, caidas=escenario.get("caidas", ()))
+                real, errores = _correr(pasos, caidas=escenario.get("caidas", ()), caidas_una_vez=escenario.get("caidas_una_vez", ()))
                 self.assertEqual(errores, [], "el doble recibió un pedido que no conoce")
                 self.assertEqual(len(real), len(foto["pasos"]))
                 for r in real:
@@ -190,6 +194,36 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
             with self.subTest(ruta=r["ruta"]):
                 self.assertEqual(r["status"], 401)
                 self.assertEqual(r["pedidos"], [])
+
+    def test_K3_sin_llave_y_sin_identidad_da_401_antes_que_400(self):
+        pasos = []
+        for patron, (nombre, _tipo, _exige) in servidor.PORTAL_ESCRITURA.items():
+            pasos.append({"ruta": muestra(patron), "llave": None, "quien": None, "tipo": None, "cuerpo": cuerpo_de(nombre)})
+        real, errores = _correr(pasos)
+        self.assertEqual(errores, [])
+        self.assertEqual(len(real), len(servidor.PORTAL_ESCRITURA))
+        for r in real:
+            with self.subTest(ruta=r["ruta"]):
+                self.assertEqual(r["status"], 401)
+                self.assertEqual(r["respuesta"], {"error": "llave de servicio inválida"})
+                self.assertEqual(r["pedidos"], [])
+
+    def test_R1_un_fallo_no_se_recuerda_como_guardado_ni_creado(self):
+        por_nombre = {e["nombre"]: e for e in esc.ESCENARIOS}
+        for escenario_nombre, exito, escribe in (("editar_reintento_tras_fallo", 200, "PATCH"),
+                                                 ("crear_reintento_tras_fallo", 201, "POST")):
+            with self.subTest(escenario=escenario_nombre):
+                escenario = por_nombre[escenario_nombre]
+                real, errores = esc.ejecutar(escenario, COMANDO, cwd=str(RAIZ))
+                self.assertEqual(errores, [])
+                primero, segundo = real
+                self.assertEqual(primero["status"], 502)
+                self.assertIs(primero["respuesta"].get("sin_confirmar"), True)
+                self.assertEqual(segundo["status"], exito)
+                self.assertNotIn("ya_guardado", segundo["respuesta"])
+                self.assertNotIn("ya_creada", segundo["respuesta"])
+                self.assertIn(escribe, [q["metodo"] for q in segundo["pedidos"]],
+                              "el reintento tiene que volver a escribir")
 
     def test_K2_la_llave_del_portal_no_abre_las_rutas_de_registro(self):
         pasos = [{"ruta": ruta, "llave": "portal", "quien": QUIEN, "tipo": "A", "cuerpo": {"persona_id": 1, "vec": [0.5] * 128}}

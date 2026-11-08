@@ -114,7 +114,7 @@ PORTAL_FUERA_DEL_PROGRAMA = {
 
 
 # ESCRITURAS del portal (paso 5c, parte 3): TABLA ÚNICA de las cinco POST. Mismo formato que `PORTAL_LECTURA`. Lo que la App
-# atiende por POST y NO se porta está en `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`, con su motivo. CP3 de la prueba de escrituras las
+# atiende por POST y NO se porta está en `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`, con su motivo. K0 de `tests/test_portal_escrituras.py` las
 # compara con las rutas POST de `Handler.portal_personas_post` de la App (AST).
 PORTAL_ESCRITURA = {
     "/api/portal-personas": ("crear", PORTAL_TIPO_A, True),

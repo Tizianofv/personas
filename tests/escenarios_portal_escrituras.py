@@ -149,6 +149,15 @@ ESCENARIOS = [
         _p(RUTA_RESOLVER, {"clave": CLAVE_RESUELTO}),
         _p(RUTA_REABRIR, {"clave": CLAVE_RESUELTO}),
     ]},
+    # Un fallo de escritura NO se recuerda como guardado: el segundo envío con la MISMA clave tiene que volver a escribir.
+    {"nombre": "editar_reintento_tras_fallo", "caidas_una_vez": ["PATCH"], "pasos": [
+        _p(RUTA_EDITAR, dict(EDITAR, clave_envio="envio-editar-fallo")),
+        _p(RUTA_EDITAR, dict(EDITAR, clave_envio="envio-editar-fallo")),
+    ]},
+    {"nombre": "crear_reintento_tras_fallo", "caidas_una_vez": ["POST"], "pasos": [
+        _p(RUTA_PORTAL, dict(CREAR, clave_envio="envio-crear-fallo")),
+        _p(RUTA_PORTAL, dict(CREAR, clave_envio="envio-crear-fallo")),
+    ]},
     {"nombre": "quien_del_cuerpo_no_cuenta", "pasos": [
         _p(RUTA_PORTAL, {"quien": "Otra Persona", "cambios": {"nombre": "Quien Cuerpo"}}),
         _p(RUTA_PORTAL + "/2/editar", {"id": 2, "quien": "Otra Persona", "base": {"nombre": "Persona de prueba 2"},
@@ -258,7 +267,7 @@ def ejecutar(escenario, comando, cwd, entorno_extra=None):
     """Corre los pasos de un escenario contra `comando` (un servidor en PORT, con NOCODB_BASE puesto al doble). Devuelve
     (pasos, errores_del_doble). Cada paso dice código, respuesta y los pedidos que llegaron al doble en ese paso. El proceso y el doble
     se cierran al terminar, pase lo que pase."""
-    doble = doble_escrituras.DobleEscrituras(caidas=escenario.get("caidas", ()))
+    doble = doble_escrituras.DobleEscrituras(caidas=escenario.get("caidas", ()), caidas_una_vez=escenario.get("caidas_una_vez", ()))
     url_doble = doble.arrancar()
     puerto = _puerto_libre()
     entorno = dict(ENTORNO_MINIMO)
