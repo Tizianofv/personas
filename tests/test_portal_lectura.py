@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Las lecturas que contesta `servidor.py`: las del portal (tipo «A», paso 5c, partes 1, 2 y 5) y las de sesión (tipo «C», parte 6: el
-buscador `GET /api/personas` y `GET /api/persona-instrumentos`). Pruebas de la llave, la identidad y las respuestas.
+"""Las lecturas que contesta `servidor.py`: las del portal (tipo «A», paso 5c, partes 1, 2 y 5), las de sesión (tipo «C», parte 6: el
+buscador `GET /api/personas` y `GET /api/persona-instrumentos`) y la de Google (tipo «D», parte 8: `GET /api/google/contactos/conteo`,
+que la App contesta solo al PIN de administración; la llamada a Google es el doble de `tests/doble_google.py`). Pruebas de la llave, la
+identidad y las respuestas.
 
 La foto de referencia es `contrato/portal_lectura.json`, sacada de la App de registro en `594ec12` por
 `tools/generar_portal_de_la_app.py`: `rutas_de_la_app` (las GET del portal, leídas con AST de `portal_personas_get`),
@@ -14,9 +16,10 @@ una identidad usan el tipo de la ruta del pedido, no uno fijo; las que miran el 
 Pruebas (las de llave e identidad recorren TODA la tabla `servidor.PORTAL_LECTURA`, no una lista tecleada):
   CP1  los bytes de `contrato/portal_lectura.json` tienen el SHA256 de `contrato/SHA256_portal`.
   CP2  la tabla y la foto cubren lo mismo: cada entrada de la tabla tiene un pedido de la foto que casa con ella, y cada pedido
-       casa con una entrada. C2: cada pedido de la foto es un 200, salvo las caídas (502 en el portal, 500 en las de sesión) y el de
-       «no_existe» (404).
-  C3   las rutas de sesión de la foto (`rutas_de_sesion_de_la_app`) están en la tabla con tipo «C», y las del portal con tipo «A».
+       casa con una entrada. C2: cada pedido de la foto da el código que fija `generador.RUTAS`; las caídas dan el de su tipo (502 en
+       el portal, 500 en las de sesión, 503 en la de Google).
+  C3   las rutas de sesión de la foto (`rutas_de_sesion_de_la_app`) están en la tabla con tipo «C»; las del portal, con tipo «A»; las de
+       `rutas_de_tipo_d_de_la_app`, con tipo «D», y cada entrada de tipo «D» de la tabla sale de esa lista.
   CP5  la foto tiene un pedido por cada escenario de `tools/generar_portal_de_la_app.RUTAS` (el generador es la fuente): quitar uno
        de la foto da rojo aunque se recalcule el SHA (CP1 no lo ve).
   P4   los pedidos con caída corren en su propio servidor y doble (`caidas=GET`): el mismo código y cuerpo que la App, y el doble
@@ -39,6 +42,10 @@ Pruebas (las de llave e identidad recorren TODA la tabla `servidor.PORTAL_LECTUR
 
 Lo que NO ve (declarado):
   - La puerta de sesión de la App (`portal_personas`: 401 sin sesión, 403 sin permiso). El programa no la tiene.
+  - La puerta de administración de la ruta de Google (`veredicto().entra`: 401; `veredicto().es_admin`: 403). La App la mira antes de
+    reenviar; el programa no la tiene, y la foto la da por buena en su driver (`DRIVER_D`).
+  - Google real: el doble sustituye solo la llamada HTTP (`PEDIR_GOOGLE`). Las credenciales reales y la respuesta real de Google no se
+    prueban aquí; la foto tampoco (ver `doble_google.py`, «Lo que NO imita»).
   - Que la App reenvíe la llave y la identidad: eso es de la App; aquí solo se prueba lo que el programa hace con lo que recibe.
   - La foto se verifica por su hash (CP1). Si alguien cambia un cuerpo y recalcula el SHA256, P2 sigue verde mientras servidor y foto
     coincidan. Quien rehace la foto lo hace desde la App (`tools/generar_portal_de_la_app.py`).
@@ -74,6 +81,8 @@ import doble_nocodb as doble_mod  # noqa: E402
 import test_contrato_rutas as ctr  # noqa: E402  (su `_arrancar` y `_parar`: el mismo arranque que las pruebas de lectura)
 sys.path.insert(0, str(RAIZ / "tools"))
 import generar_portal_de_la_app as generador  # noqa: E402  (la fuente de los escenarios de la foto y de su entorno, `ENTORNO_FOTO`)
+import doble_google  # noqa: E402  (el doble de la llamada a Google de la parte 8)
+import google_contactos  # noqa: E402  (las variables y las claves del conteo, las del programa)
 
 CARPETA = RAIZ / "contrato"
 LLAVE_PORTAL = "llave-de-prueba-portal-personas"
@@ -195,17 +204,18 @@ class ElPortalDeLectura(unittest.TestCase):
             self.assertIsNotNone(self.ejemplos[patron], "entrada de la tabla sin pedido de la foto: %s" % patron)
         for pedido in self.foto["pedidos"]:
             self.assertTrue(any(re.fullmatch(p, pedido["ruta"]) for p in tabla), "pedido de la foto sin entrada: %s" % pedido["ruta"])
-        # C2: 200, salvo la caída (502 en el portal y 500 en las de sesión, como la App en `do_GET`; cada una con su doble propio) y el
-        # pedido de «no existe» (404). Los códigos los fija el generador.
+        # C2: cada pedido da el código que fija el generador (`RUTAS`, el quinto campo). Además, una caída de NocoDB da el código de su
+        # tipo (502 en el portal, 500 en las de sesión, como la App en `do_GET`, 503 en la de Google, como su `except Exception`), y la
+        # ficha que no existe, 404. Cada caída va en su propio doble.
+        esperados = {nombre: esperado for nombre, _ruta, _consulta, _caidas, esperado in generador.RUTAS}
         for pedido in self.foto["pedidos"]:
             with self.subTest(nombre=pedido["nombre"]):
+                self.assertEqual(pedido["status"], esperados[pedido["nombre"]], "C2: la foto no da lo que fija el generador")
                 if pedido["caidas"]:
-                    esperado = 500 if _tipo_del_pedido(pedido) == "C" else 502
+                    esperado = {"C": 500, "D": 503}.get(_tipo_del_pedido(pedido), 502)
                     self.assertEqual(pedido["status"], esperado, "C2: una caída de NocoDB da %s en esta ruta" % esperado)
                 elif pedido["nombre"].endswith("_no_existe"):
                     self.assertEqual(pedido["status"], 404, "C2: una ficha que no existe es un 404")
-                else:
-                    self.assertEqual(pedido["status"], 200, "C2: la foto tiene un caso que no es 200")
 
     def test_CP5_la_foto_tiene_un_pedido_por_cada_escenario_del_generador(self):
         """El generador (`generador.RUTAS`) es la fuente de los escenarios. Si la foto pierde uno, esto da rojo aunque se recalcule el
@@ -219,12 +229,13 @@ class ElPortalDeLectura(unittest.TestCase):
         self.assertEqual(tabla & set(fuera), set(), "una ruta está en la tabla y también fuera")
         for patron, motivo in fuera.items():
             self.assertTrue(motivo.strip(), "una salida sin motivo: %s" % patron)
-        app = {r["patron"] for r in self.foto["rutas_de_la_app"]} | {r["patron"] for r in self.foto["rutas_de_sesion_de_la_app"]}
+        app = ({r["patron"] for r in self.foto["rutas_de_la_app"]} | {r["patron"] for r in self.foto["rutas_de_sesion_de_la_app"]}
+               | {r["patron"] for r in self.foto["rutas_de_tipo_d_de_la_app"]})
         self.assertEqual(tabla | set(fuera), app)
 
     def test_C3_las_rutas_de_sesion_son_tipo_C_y_las_del_portal_tipo_A(self):
         """El tipo que la tabla da a cada ruta sale de la App: las de `do_GET` bajo `autorizado()` son «C»; las de `portal_personas_get`
-        son «A». Si la tabla pone otro tipo, la identidad de la ruta queda mal: esta prueba lo ve."""
+        son «A»; la de `veredicto().es_admin` es «D». Si la tabla pone otro tipo, la identidad de la ruta queda mal: esta prueba lo ve."""
         tabla = _tabla().PORTAL_LECTURA
         for r in self.foto["rutas_de_sesion_de_la_app"]:
             with self.subTest(patron=r["patron"]):
@@ -237,6 +248,14 @@ class ElPortalDeLectura(unittest.TestCase):
                     self.assertEqual(_tipo_de_patron(r["patron"]), "A")
                 else:
                     self.assertIn(r["patron"], fuera, "ruta del portal de la App que no está ni en la tabla ni fuera")
+        de_tipo_d = {r["patron"] for r in self.foto["rutas_de_tipo_d_de_la_app"]}
+        for r in self.foto["rutas_de_tipo_d_de_la_app"]:
+            with self.subTest(patron=r["patron"]):
+                self.assertIn(r["patron"], tabla)
+                self.assertEqual(_tipo_de_patron(r["patron"]), "D")
+        for patron, valor in tabla.items():
+            if valor[1] == "D":
+                self.assertIn(patron, de_tipo_d, "entrada de tipo D en la tabla que la App no contesta con puerta de administración")
 
     def test_P2_cada_pedido_de_la_foto_es_igual_a_la_app(self):
         # Los pedidos con caída van en P4 (su propio doble). Aquí, todos los demás, contra este servidor, con el tipo de su ruta.
@@ -244,7 +263,8 @@ class ElPortalDeLectura(unittest.TestCase):
         # `edicion` de la ficha cambia). La bandera se apaga al terminar.
         try:
             for pedido in self.foto["pedidos"]:
-                if pedido["caidas"]:
+                # Los de tipo D necesitan el doble de Google, que este servidor no tiene: van en `ElConteoDeGoogle`.
+                if pedido["caidas"] or _tipo_del_pedido(pedido) == "D":
                     continue
                 self.doble.instrumentos = pedido["ruta"] == "/api/persona-instrumentos"
                 with self.subTest(ruta=_url(pedido)):
@@ -271,7 +291,8 @@ class ElPortalDeLectura(unittest.TestCase):
     def test_P4_las_caidas_de_nocodb_dan_lo_que_dio_la_app(self):
         """Cada pedido con `caidas` corre en SU servidor y doble, con esas caídas (la base no contesta a GET): el mismo código y el mismo
         cuerpo que la App, el doble contó la caída, y no recibió una lectura que no conoce."""
-        con_caida = [p for p in self.foto["pedidos"] if p["caidas"]]
+        # Los de tipo D (la caída de Google) van en `ElConteoDeGoogle`: necesitan el doble de Google.
+        con_caida = [p for p in self.foto["pedidos"] if p["caidas"] and _tipo_del_pedido(p) != "D"]
         self.assertTrue(con_caida, "la foto no tiene ningún pedido con caída")
         for pedido in con_caida:
             with self.subTest(nombre=pedido["nombre"]):
@@ -348,7 +369,7 @@ class ElPortalDeLectura(unittest.TestCase):
                 ("quien en blanco", _cabeceras(quien="   ", tipo=tipo)),
                 ("sin tipo", _cabeceras(tipo=None)),
             ] + [("tipo %s en ruta %s" % (ajeno, tipo), _cabeceras(tipo=ajeno))
-                 for ajeno in ("A", "B", "C") if ajeno != tipo]
+                 for ajeno in ("A", "B", "C", "D") if ajeno != tipo]
             for nombre, cabeceras in casos:
                 with self.subTest(patron=patron, caso=nombre):
                     codigo, cuerpo = self._sin_leer_nocodb(lambda: _pedir(self.puerto, _url(pedido), cabeceras))
@@ -409,6 +430,94 @@ class ElFlagDeIdentidadManda(unittest.TestCase):
             servidor_http.shutdown()
             servidor_http.server_close()
             doble.parar()
+
+
+GANCHO_GOOGLE = RAIZ / "tests" / "servidor_con_google_falso.py"
+
+
+def _arrancar_google(escenario, caidas=()):
+    """Un servidor del repo con el doble de Google de `escenario` (sus variables, salvo en «sin credencial»). Devuelve (proceso, puerto,
+    doble). Corre `tests/servidor_con_google_falso.py`, que es `servidor.py` con `PEDIR_GOOGLE` cambiado: el resto es el código real."""
+    modo = "sin_token" if escenario == "sin_token" else "ok"
+    extra = dict(_entorno_comun(), PERSONAS_PORTAL_LLAVE=LLAVE_PORTAL, **doble_google.entorno(escenario))
+    return ctr._arrancar(extra, caidas=caidas, script=GANCHO_GOOGLE, argumentos=(modo,))
+
+
+class ElDobleDeGoogle(unittest.TestCase):
+    def test_G0_el_doble_usa_las_variables_de_la_app_y_sin_credencial_no_pone_ninguna(self):
+        # El doble lleva los mismos nombres de variable que `google_contactos` (los de la App); sin credencial, no pone ninguna.
+        self.assertEqual(set(doble_google.VARIABLES_DE_PRUEBA), set(google_contactos.VARIABLES))
+        self.assertEqual(doble_google.entorno("sin_credencial"), {})
+        self.assertEqual(set(doble_google.entorno("ok")), set(google_contactos.VARIABLES))
+
+
+class ElConteoDeGoogle(unittest.TestCase):
+    """La ruta de tipo D (parte 8) con el doble de Google. Cada escenario de la foto corre en su propio servidor (la variable de Google
+    y el `PEDIR_GOOGLE` del lanzador cambian por escenario)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.foto = _foto()
+        cls.pedidos_d = [p for p in cls.foto["pedidos"] if _tipo_del_pedido(p) == "D"]
+        cls.pedido_ok = [p for p in cls.pedidos_d if p["nombre"] == "google_conteo"][0]
+        cls.proceso, cls.puerto, cls.doble = _arrancar_google("ok")
+
+    @classmethod
+    def tearDownClass(cls):
+        ctr._parar(cls.proceso, cls.doble)
+
+    def test_G1_cada_pedido_de_google_de_la_foto_es_igual_a_la_app_y_lee_lo_mismo(self):
+        """Mismo código, mismo cuerpo y MISMAS lecturas a NocoDB que la App (`lecturas_a_nocodb` de la foto). Cada escenario en su
+        servidor: «sin token» y «sin credencial» no leen NocoDB; en la caída de NocoDB el doble cuenta una caída servida (no una lectura)."""
+        self.assertTrue(self.pedidos_d, "la foto no tiene pedidos de tipo D")
+        for pedido in self.pedidos_d:
+            with self.subTest(nombre=pedido["nombre"]):
+                escenario = generador.ESCENARIO_GOOGLE.get(pedido["nombre"], "ok")
+                proceso, puerto, doble = _arrancar_google(escenario, caidas=tuple(pedido["caidas"]))
+                try:
+                    codigo, cuerpo = _pedir(puerto, _url(pedido), _cabeceras(tipo="D"))
+                finally:
+                    ctr._parar(proceso, doble)
+                self.assertEqual((codigo, cuerpo), (pedido["status"], pedido["respuesta"]))
+                self.assertEqual(doble.lecturas, pedido["lecturas_a_nocodb"], "las lecturas a NocoDB no son las de la App")
+                self.assertEqual(doble.no_get, [], "el doble recibió algo que no es GET")
+                self.assertEqual(doble.errores, [], "el doble recibió una lectura que no conoce")
+                if pedido["caidas"]:
+                    self.assertGreater(doble.caidas_servidas, 0, "la caída no se usó: la App no leyó NocoDB")
+
+    def test_G2_sin_llave_o_con_otra_401_y_no_se_lee(self):
+        # Con el servidor de Google ya puesto, una llave ausente, vacía, de otro grupo o casi igual frena antes de Google y de NocoDB.
+        casos = [("sin cabecera", None), ("vacía", ""), ("de Mercadeo", doble_mod.LLAVE_LECTURA), ("casi igual", LLAVE_PORTAL + "x")]
+        for nombre, llave in casos:
+            with self.subTest(caso=nombre):
+                antes = self.doble.lecturas
+                codigo, cuerpo = _pedir(self.puerto, _url(self.pedido_ok), _cabeceras(llave=llave, tipo="D"))
+                self.assertEqual((codigo, cuerpo), (401, ERROR_LLAVE))
+                self.assertEqual(self.doble.lecturas, antes, "el servidor leyó NocoDB en un pedido que debía frenar")
+
+    def test_G3_identidad_que_no_es_de_tipo_D_o_no_tiene_quien_400_y_no_se_lee(self):
+        # La ruta de administración solo entra con identidad de tipo «D». Otro tipo, sin tipo, o un `quien` vacío: 400, sin Google ni NocoDB.
+        casos = [("sin tipo", _cabeceras(tipo=None)),
+                 ("sin quien", _cabeceras(quien=None, tipo="D")),
+                 ("quien en blanco", _cabeceras(quien="   ", tipo="D"))] + \
+                [("tipo %s" % t, _cabeceras(tipo=t)) for t in ("A", "B", "C")]
+        for nombre, cabeceras in casos:
+            with self.subTest(caso=nombre):
+                antes = self.doble.lecturas
+                codigo, cuerpo = _pedir(self.puerto, _url(self.pedido_ok), cabeceras)
+                self.assertEqual((codigo, cuerpo), (400, ERROR_IDENTIDAD))
+                self.assertEqual(self.doble.lecturas, antes, "el servidor leyó NocoDB en un pedido que debía frenar")
+
+    def test_G4_la_respuesta_es_solo_cifras_sin_nombres_ni_numeros_de_nadie(self):
+        # La respuesta de éxito trae las claves del conteo y nada que identifique a una persona de la libreta ni de la base.
+        codigo, cuerpo = _pedir(self.puerto, _url(self.pedido_ok), _cabeceras(tipo="D"))
+        self.assertEqual(codigo, 200)
+        self.assertEqual(set(cuerpo), set(google_contactos.CLAVES_CONTEO))
+        texto = json.dumps(cuerpo, ensure_ascii=False)
+        self.assertNotIn("@", texto)
+        for nombre in ("Persona de prueba", "Nombre distinto", "Sin ficha", "Sin nada"):
+            self.assertNotIn(nombre, texto)
+        self.assertIsNone(re.search(r"\d{7,}", texto), "la respuesta trae un número largo (un teléfono)")
 
 
 if __name__ == "__main__":

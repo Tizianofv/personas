@@ -4,14 +4,17 @@ de registro.
 
 Uso:  python3 -B tools/generar_portal_de_la_app.py <carpeta de una copia `git archive` de la App de registro>
 
-Tres cosas salen de la App:
+Lo que sale de la App:
   1. `rutas_de_la_app`: las rutas GET del portal (tipo «A») que atiende `Handler.portal_personas_get`. Se leen con AST del `server.py`
      de la App (las comparaciones `path == X` y las llamadas `re.fullmatch(X, path)`), resolviendo las constantes de `server.py` y de
      `personas.py`. Son las rutas que la App CONTESTA; la prueba CP3 las compara con la tabla del programa.
   2. `rutas_de_sesion_de_la_app` (parte 6, tipo «C»): las GET de `RUTAS_DE_SESION` (el buscador y las opciones de instrumento), que la App
      contesta en `Handler.do_GET` DESPUÉS de `if not self.autorizado()`. El generador comprueba con AST que cada una es una comparación
      `path == X` de `do_GET` con línea posterior a esa puerta; si falta alguna, no saca la foto.
-  3. `pedidos`: las respuestas de la App para los pedidos de `RUTAS`. Cada pedido corre en un proceso aparte: se importa el `server`
+  3. `rutas_de_tipo_d_de_la_app` (parte 8, tipo «D»): las GET de `do_GET` cuyo despacho (un `return self.<método>()` bajo `if path == X`)
+     es un método que mira `veredicto().es_admin`. Sale con AST. La puerta escrita dentro de `do_GET` no se ve: el generador no la mira.
+     La ruta de Google (`RUTAS_DE_TIPO_D`) tiene que salir aquí; si no, no saca la foto.
+  4. `pedidos`: las respuestas de la App para los pedidos de `RUTAS`. Cada pedido corre en un proceso aparte: se importa el `server`
      de la App, se pasa la URL por su `Handler.parse` (el mismo que usa la App) y se llama al método de la App que la atiende
      (`portal_personas_get` para el portal; `do_GET` para las de sesión) con un objeto que solo guarda lo que la App mandaría con
      `send_json`. Eso ejercita el enrutado y las funciones REALES de la App.
@@ -26,8 +29,9 @@ caídas de las lecturas de sesión, parte 6, porque la App contesta así en `do_
 Parte 5: `borrar/revisar` pide en la App el permiso `puede_borrar_fichas`. La puerta de permiso no se copia (igual que la de sesión):
 el objeto que contesta tiene `puede_borrar_fichas` = verdadero, y eso va escrito en el DRIVER.
 
-Frontera declarada (rule 18): `RUTAS_DE_SESION` es una lista escrita a mano con las dos GET de tipo C del contrato (filas 9 y 10 de
-`CONTRATO-SESION.md`). Una GET de tipo C NUEVA que la App añada no aparece sola: quien la añada la pone aquí y en la tabla del programa.
+Frontera declarada (rule 18): `RUTAS_DE_SESION` y `RUTAS_DE_TIPO_D` son listas escritas a mano (las filas 9, 10 y 12 de `CONTRATO-SESION.md`).
+Una GET de tipo C o D NUEVA que la App añada no aparece sola: quien la añada la pone aquí y en la tabla del programa. El generador
+comprueba que las de la lista están en la App (AST); no comprueba que la lista esté completa.
 """
 import ast
 import hashlib
@@ -38,10 +42,15 @@ import sys
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "tests"))
+import doble_google as doble_google_mod  # noqa: E402  (el doble de Google de la parte 8: sin imports del programa ni de la App)
 import doble_nocodb as doble_mod  # noqa: E402
 
 # Las GET de SESIÓN (tipo C, parte 6): la App las contesta en `do_GET`, bajo `autorizado()`. Son las filas 9 y 10 de `CONTRATO-SESION.md`.
 RUTAS_DE_SESION = ("/api/personas", "/api/persona-instrumentos")
+# La GET de tipo D (parte 8, fila 12 de `CONTRATO-SESION.md`): la App la contesta en `google_contactos_conteo`, solo al PIN de administración.
+RUTAS_DE_TIPO_D = ("/api/google/contactos/conteo",)
+# Escenario de Google de cada pedido de tipo D (lo que sale del doble de `tests/doble_google.py`). Los que no están, son «ok».
+ESCENARIO_GOOGLE = {"google_conteo_sin_token": "sin_token", "google_conteo_sin_credencial": "sin_credencial"}
 
 # (nombre, ruta, consulta, caidas, código esperado). La consulta va cruda, como en la URL; la App la lee con su `parse`. `caidas` son
 # los métodos que el doble de ESE pedido contesta con 500 (la base no contesta). Un pedido con caídas va en su propio doble (lo lee la
@@ -71,6 +80,12 @@ RUTAS = [
     ("sesion_buscar_caida", "/api/personas", "q=Persona%20de%20prueba", ("GET",), 500),
     ("sesion_instrumentos", "/api/persona-instrumentos", "", (), 200),
     ("sesion_instrumentos_caida", "/api/persona-instrumentos", "", ("GET",), 500),
+    # Parte 8, tipo D: el conteo de Google. Éxito; token de Google que no llega (502, la etapa dice «token»); la base caída al leer las
+    # fichas (503 genérico, después de Google); y sin las tres variables de Google (503 con sus nombres, sin tocar Google).
+    ("google_conteo", "/api/google/contactos/conteo", "", (), 200),
+    ("google_conteo_sin_token", "/api/google/contactos/conteo", "", (), 502),
+    ("google_conteo_caida", "/api/google/contactos/conteo", "", ("GET",), 503),
+    ("google_conteo_sin_credencial", "/api/google/contactos/conteo", "", (), 503),
 ]
 # Las variables de entorno que el programa necesita para «revisar un borrado» (tablas de envíos y de uniones). Van en el entorno de
 # AMBOS lados (la App y el programa), igual que las demás tablas de la foto: la foto y la prueba tienen la misma configuración.
@@ -114,6 +129,43 @@ DRIVER_SESION = (
     "H.fuera_de_alcance = lambda self, path, metodo: False\n"
     "H.falta_el_conteo = lambda self, path, metodo: False\n"
     "H.autorizado = lambda self: True\n"
+    "class Recogida(H):\n"
+    "    enviado = None\n"
+    "    def __init__(self, ruta):\n"
+    "        self.path = ruta\n"
+    "    def estrenar_el_pedido(self):\n"
+    "        pass\n"
+    "    def send_json(self, obj, status=200):\n"
+    "        self.enviado = (status, obj)\n"
+    "        return True\n"
+    "r = Recogida(sys.argv[1])\n"
+    "r.do_GET()\n"
+    "codigo, cuerpo = r.enviado\n"
+    "sys.stdout.write('\\n' + json.dumps({'status': codigo, 'respuesta': cuerpo}, ensure_ascii=False) + '\\n')\n"
+)
+
+
+# La App, la ruta de TIPO D (parte 8): `do_GET` entero, como el driver de sesión, con `veredicto()` dado por bueno (entra y es admin: la
+# puerta de administración de la App no se copia). La llamada HTTP a Google se cambia por el doble de `tests/doble_google.py`, en el
+# escenario de `ESCENARIO_GOOGLE` (variable del entorno de este proceso). El parche va sobre el módulo `google_contactos` de la App: el
+# `conteo` de la App lo llama por nombre, así que el cambio llega; `pedir` ya no es el de la red.
+DRIVER_D = (
+    "import json, os, sys\n"
+    "sys.path.insert(0, os.getcwd())\n"
+    "sys.path.insert(0, os.environ['CARPETA_DOBLE_GOOGLE'])\n"
+    "import server\n"
+    "import doble_google\n"
+    "H = server.Handler\n"
+    "H.frenado = lambda self, path: False\n"
+    "H.fuera_de_alcance = lambda self, path, metodo: False\n"
+    "H.falta_el_conteo = lambda self, path, metodo: False\n"
+    "class Veredicto:\n"
+    "    entra = True\n"
+    "    es_admin = True\n"
+    "H.veredicto = lambda self: Veredicto()\n"
+    "gc = server.google_contactos\n"
+    "_conteo_de_la_app = gc.conteo\n"
+    "gc.conteo = lambda env, leer, pedir=None: _conteo_de_la_app(env, leer, pedir=doble_google.pedir_falso(os.environ['ESCENARIO_GOOGLE']))\n"
     "class Recogida(H):\n"
     "    enviado = None\n"
     "    def __init__(self, ruta):\n"
@@ -205,7 +257,44 @@ def rutas_de_sesion_de_la_app(copia):
     return [{"patron": p, "bajo_autorizado": True} for p in sorted(vistas)]
 
 
-def pedir_a_la_app(copia, ruta, consulta, url_doble):
+def _usa_es_admin(arbol, nombre_metodo):
+    """¿El método `Handler.<nombre_metodo>` de la App mira `.es_admin` en algún sitio de su cuerpo? (AST)."""
+    metodos = [n for n in arbol.body if isinstance(n, ast.ClassDef) and n.name == "Handler"][0].body
+    for n in metodos:
+        if isinstance(n, ast.FunctionDef) and n.name == nombre_metodo:
+            return any(isinstance(x, ast.Attribute) and x.attr == "es_admin" for x in ast.walk(n))
+    return False
+
+
+def rutas_de_tipo_d_de_la_app(copia):
+    """Las rutas GET de `Handler.do_GET` cuyo despacho es un `return self.<método>()` bajo `if path == X`, y ese método mira `.es_admin`
+    (la puerta de administración). Con AST, sin lista tecleada. Una comparación que no es una constante se salta (no es una ruta)."""
+    arboles, constantes = _constantes(copia)
+    do_get = _metodo_de_handler(arboles["server.py"], "do_GET")
+    rutas = set()
+    for nodo in ast.walk(do_get):
+        if not isinstance(nodo, ast.If):
+            continue
+        prueba = nodo.test
+        if not (isinstance(prueba, ast.Compare) and isinstance(prueba.left, ast.Name) and prueba.left.id == "path"
+                and len(prueba.ops) == 1 and isinstance(prueba.ops[0], ast.Eq)):
+            continue
+        try:
+            valor = _valor("server", prueba.comparators[0], constantes)
+        except (SystemExit, KeyError):
+            continue
+        for st in nodo.body:
+            if isinstance(st, ast.Return) and isinstance(st.value, ast.Call) and isinstance(st.value.func, ast.Attribute) \
+                    and isinstance(st.value.func.value, ast.Name) and st.value.func.value.id == "self" \
+                    and _usa_es_admin(arboles["server.py"], st.value.func.attr):
+                rutas.add(valor)
+    faltan = sorted(set(RUTAS_DE_TIPO_D) - rutas)
+    if faltan:
+        raise SystemExit("la App no despacha con puerta de administración estas rutas de tipo D: %s" % faltan)
+    return [{"patron": p, "gate": "veredicto().es_admin"} for p in sorted(rutas)]
+
+
+def pedir_a_la_app(copia, ruta, consulta, url_doble, escenario="ok"):
     entorno = {
         "PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8",
         "NOCODB_BASE": url_doble, "NOCODB_TOKEN": "token-de-prueba", "APP_PIN": "pin-de-prueba",
@@ -214,8 +303,18 @@ def pedir_a_la_app(copia, ruta, consulta, url_doble):
         "NOCODB_T_PERSONAS_ANOTACIONES": doble_mod.TABLA_ANOTACIONES,
         **ENTORNO_FOTO,
     }
+    if ruta in RUTAS_DE_TIPO_D:
+        # Solo la ruta de Google recibe las variables de Google (según el escenario) y el escenario y la carpeta del doble.
+        entorno.update(doble_google_mod.entorno(escenario))
+        entorno["ESCENARIO_GOOGLE"] = escenario
+        entorno["CARPETA_DOBLE_GOOGLE"] = str(RAIZ / "tests")
     url = ruta + ("?" + consulta if consulta else "")
-    driver = DRIVER_SESION if ruta in RUTAS_DE_SESION else DRIVER
+    if ruta in RUTAS_DE_TIPO_D:
+        driver = DRIVER_D
+    elif ruta in RUTAS_DE_SESION:
+        driver = DRIVER_SESION
+    else:
+        driver = DRIVER
     salida = subprocess.run([sys.executable, "-I", "-B", "-c", driver, url], cwd=str(copia), env=entorno,
                             capture_output=True, text=True, timeout=300)
     if salida.returncode != 0:
@@ -231,13 +330,14 @@ def main():
         raise SystemExit("esa carpeta no es una copia de la App con server.py y personas.py")
     rutas = rutas_de_la_app(copia)
     rutas_sesion = rutas_de_sesion_de_la_app(copia)
+    rutas_tipo_d = rutas_de_tipo_d_de_la_app(copia)
     pedidos = []
     for nombre, ruta, consulta, caidas, esperado in RUTAS:
         # Con la columna `instrumento` solo en el pedido de instrumentos: así los demás pedidos del portal no cambian su doble.
         doble = doble_mod.Doble(caidas=caidas, instrumentos=(ruta == "/api/persona-instrumentos"))
         url = doble.arrancar()
         try:
-            resultado = pedir_a_la_app(copia, ruta, consulta, url)
+            resultado = pedir_a_la_app(copia, ruta, consulta, url, escenario=ESCENARIO_GOOGLE.get(nombre, "ok"))
         finally:
             doble.parar()
         if doble.errores or doble.no_get:
@@ -249,15 +349,18 @@ def main():
         pedidos.append({"nombre": nombre, "ruta": ruta, "consulta": consulta, "status": resultado["status"],
                         "caidas": list(caidas), "lecturas_a_nocodb": doble.lecturas, "respuesta": resultado["respuesta"]})
     foto = {
-        "version": 4,
+        "version": 5,
         "fuente": "App de registro, commit 594ec12: server.Handler.parse y portal_personas_get (las rutas GET del portal, leídas "
                   "con AST: rutas_de_la_app), y server.Handler.do_GET para las de sesión (rutas_de_sesion_de_la_app: GET /api/personas "
-                  "y GET /api/persona-instrumentos, bajo autorizado()), con las funciones de personas.py de la App. Sin la puerta de "
-                  "sesión de portal_personas, ni la de permiso (`puede_borrar_fichas`), ni autorizado(), ni las guardas de antes del "
-                  "despacho. Datos del doble tests/doble_nocodb.py.",
+                  "y GET /api/persona-instrumentos, bajo autorizado()) y para la de tipo D (rutas_de_tipo_d_de_la_app: GET "
+                  "/api/google/contactos/conteo, bajo veredicto().es_admin, con la llamada a Google cambiada por tests/doble_google.py), "
+                  "con las funciones de personas.py de la App. Sin la puerta de sesión de portal_personas, ni la de permiso "
+                  "(`puede_borrar_fichas`), ni autorizado(), ni la de administración, ni las guardas de antes del despacho. Datos del "
+                  "doble tests/doble_nocodb.py.",
         "escrituras_a_nocodb": 0,
         "rutas_de_la_app": rutas,
         "rutas_de_sesion_de_la_app": rutas_sesion,
+        "rutas_de_tipo_d_de_la_app": rutas_tipo_d,
         "pedidos": pedidos,
     }
     texto = json.dumps(foto, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
@@ -268,6 +371,7 @@ def main():
     (RAIZ / "contrato" / "SHA256_portal").write_text("%s  portal_lectura.json\n" % sha, encoding="utf-8")
     print("rutas de la App (portal): %d" % len(rutas))
     print("rutas de la App (sesión): %d" % len(rutas_sesion))
+    print("rutas de la App (tipo D): %d" % len(rutas_tipo_d))
     print("pedidos: %d" % len(pedidos))
     print("sha256: %s" % sha)
 

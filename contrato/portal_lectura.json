@@ -1,6 +1,6 @@
 {
   "escrituras_a_nocodb": 0,
-  "fuente": "App de registro, commit 594ec12: server.Handler.parse y portal_personas_get (las rutas GET del portal, leídas con AST: rutas_de_la_app), y server.Handler.do_GET para las de sesión (rutas_de_sesion_de_la_app: GET /api/personas y GET /api/persona-instrumentos, bajo autorizado()), con las funciones de personas.py de la App. Sin la puerta de sesión de portal_personas, ni la de permiso (`puede_borrar_fichas`), ni autorizado(), ni las guardas de antes del despacho. Datos del doble tests/doble_nocodb.py.",
+  "fuente": "App de registro, commit 594ec12: server.Handler.parse y portal_personas_get (las rutas GET del portal, leídas con AST: rutas_de_la_app), y server.Handler.do_GET para las de sesión (rutas_de_sesion_de_la_app: GET /api/personas y GET /api/persona-instrumentos, bajo autorizado()) y para la de tipo D (rutas_de_tipo_d_de_la_app: GET /api/google/contactos/conteo, bajo veredicto().es_admin, con la llamada a Google cambiada por tests/doble_google.py), con las funciones de personas.py de la App. Sin la puerta de sesión de portal_personas, ni la de permiso (`puede_borrar_fichas`), ni autorizado(), ni la de administración, ni las guardas de antes del despacho. Datos del doble tests/doble_nocodb.py.",
   "pedidos": [
     {
       "caidas": [],
@@ -848,6 +848,75 @@
       },
       "ruta": "/api/persona-instrumentos",
       "status": 500
+    },
+    {
+      "caidas": [],
+      "consulta": "",
+      "lecturas_a_nocodb": 1,
+      "nombre": "google_conteo",
+      "respuesta": {
+        "casan_por_correo": 1,
+        "casan_por_los_dos_con_la_misma_ficha": 1,
+        "casan_por_telefono": 3,
+        "casan_solo_por_correo": 0,
+        "casan_solo_por_telefono": 1,
+        "chocan": 1,
+        "chocan_fichas_distintas": 0,
+        "chocan_mismo_telefono_nombre_distinto": 1,
+        "con_correo": 2,
+        "con_telefono": 5,
+        "contactos_en_google": 6,
+        "fichas_con_dato_de_casar": 2,
+        "fichas_en_nocodb": 2,
+        "fichas_no_en_google": 0,
+        "fichas_no_en_google_sin_dato": 0,
+        "sin_ficha": 3,
+        "sin_telefono_ni_correo": 1
+      },
+      "ruta": "/api/google/contactos/conteo",
+      "status": 200
+    },
+    {
+      "caidas": [],
+      "consulta": "",
+      "lecturas_a_nocodb": 0,
+      "nombre": "google_conteo_sin_token",
+      "respuesta": {
+        "codigo": "sin_token",
+        "error": "Google no contestó como se esperaba. No se contó nada.",
+        "etapa": "token"
+      },
+      "ruta": "/api/google/contactos/conteo",
+      "status": 502
+    },
+    {
+      "caidas": [
+        "GET"
+      ],
+      "consulta": "",
+      "lecturas_a_nocodb": 0,
+      "nombre": "google_conteo_caida",
+      "respuesta": {
+        "error": "No se pudo contar. No se escribió nada."
+      },
+      "ruta": "/api/google/contactos/conteo",
+      "status": 503
+    },
+    {
+      "caidas": [],
+      "consulta": "",
+      "lecturas_a_nocodb": 0,
+      "nombre": "google_conteo_sin_credencial",
+      "respuesta": {
+        "error": "Falta la credencial de Google en el servidor.",
+        "faltan": [
+          "GOOGLE_CONTACTOS_CLIENT_ID",
+          "GOOGLE_CONTACTOS_CLIENT_SECRET",
+          "GOOGLE_CONTACTOS_REFRESH_TOKEN"
+        ]
+      },
+      "ruta": "/api/google/contactos/conteo",
+      "status": 503
     }
   ],
   "rutas_de_la_app": [
@@ -894,5 +963,11 @@
       "patron": "/api/personas"
     }
   ],
-  "version": 4
+  "rutas_de_tipo_d_de_la_app": [
+    {
+      "gate": "veredicto().es_admin",
+      "patron": "/api/google/contactos/conteo"
+    }
+  ],
+  "version": 5
 }
