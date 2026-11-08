@@ -31,8 +31,9 @@ _METODOS_CON_CUERPO = ("POST", "PATCH", "PUT", "DELETE")
 
 
 class DobleEscrituras:
-    def __init__(self, caidas=()):
+    def __init__(self, caidas=(), caidas_una_vez=()):
         self.tablas = {t: copy.deepcopy(filas) for t, filas in doble_nocodb.TABLAS.items()}
+        self.caidas_una_vez = set(caidas_una_vez)     # métodos que fallan UNA sola vez (la siguiente vez contestan bien)
         self.pedidos = []
         self.errores = []
         self.caidas = set(caidas)
@@ -84,6 +85,9 @@ class DobleEscrituras:
             self.pedidos.append({"metodo": metodo, "ruta": ruta, "query": dict(sorted(query.items())), "cuerpo": cuerpo})
             if metodo in self.caidas:
                 return 500, {"msg": "doble: la base no contesta"}
+            if metodo in self.caidas_una_vez:
+                self.caidas_una_vez.discard(metodo)
+                return 500, {"msg": "doble: la base no contesta (una vez)"}
             if metodo == "GET":
                 meta = re.fullmatch(r"/api/v2/meta/tables/([^/]+)", ruta)
                 if meta:

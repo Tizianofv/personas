@@ -25,8 +25,15 @@ de identidad que venga del navegador no decide nada si la llave no es la del por
 reenviar; este programa no la ve. Las respuestas: `personas_portal_lectura.py` (copia de la App, `594ec12`), con la foto de
 `contrato/portal_lectura.json`. Las dos rutas de la App que NO se portan están en `PORTAL_FUERA_DEL_PROGRAMA`, con su motivo.
 
-NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): el resto de la tabla 1.2 de `DISENO.md`: las demás rutas de sesión
-del portal (POST), la búsqueda GET, las instrumentos, Google y la puerta de Natalia.
+ESCRITURAS DEL PORTAL (paso 5c, parte 3): cinco POST en la tabla `PORTAL_ESCRITURA` (crear, editar, permiso, resolver y reabrir).
+Misma cabecera de llave (X-Personas-Portal-Llave) y la misma identidad que las lecturas, más el `quien` que pone la App en
+X-Personas-Portal-Quien: es el que queda escrito, y el `quien` del cuerpo no se lee. La llave se mira antes que el cuerpo. Las
+respuestas: `personas_portal_escritura.py` (copia de `Handler.portal_personas_post` de la App, `594ec12`, sin su puerta de sesión).
+Lo que la App atiende por POST y el programa NO porta (unir, unir/continuar, unir/deshacer, borrar, devolver) está en
+`PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`, con su motivo; el programa lo contesta 404 sin tocar NocoDB.
+
+NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): la búsqueda GET, las instrumentos, Google, la puerta de Natalia
+y las rutas POST de unión y borrado de arriba.
 
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN,
 PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, NOCODB_T_*.
@@ -42,6 +49,7 @@ import base
 import personas_escritura_rutas
 import personas_escrituras
 import personas_lectura
+import personas_portal_escritura
 import personas_portal_lectura
 import personas_servicio_rutas
 
@@ -105,13 +113,49 @@ PORTAL_FUERA_DEL_PROGRAMA = {
 }
 
 
-def _portal_entrada(ruta):
-    """La entrada de `PORTAL_LECTURA` que casa con la ruta: `(patrón, valor, grupos)`, o `None` si ninguna casa."""
-    for patron, valor in PORTAL_LECTURA.items():
+# ESCRITURAS del portal (paso 5c, parte 3): TABLA ÚNICA de las cinco POST. Mismo formato que `PORTAL_LECTURA`. Lo que la App
+# atiende por POST y NO se porta está en `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`, con su motivo. K0 de `tests/test_portal_escrituras.py` las
+# compara con las rutas POST de `Handler.portal_personas_post` de la App (AST).
+PORTAL_ESCRITURA = {
+    "/api/portal-personas": ("crear", PORTAL_TIPO_A, True),
+    r"/api/portal-personas/(\d{1,9})/editar": ("editar", PORTAL_TIPO_A, True),
+    r"/api/portal-personas/(\d{1,9})/permiso": ("permiso", PORTAL_TIPO_A, True),
+    "/api/portal-personas/por-resolver/resolver": ("resolver", PORTAL_TIPO_A, True),
+    "/api/portal-personas/por-resolver/reabrir": ("reabrir", PORTAL_TIPO_A, True),
+}
+PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA = {
+    r"/api/portal-personas/(\d{1,9})/unir": (
+        "unir fichas: la App la contesta por POST, pero esta parte del paso 5c no la porta (encargo de la sala, sesion-3). Pendiente."),
+    r"/api/portal-personas/(\d{1,9})/unir/continuar": (
+        "continuar una unión: igual que `unir`, pendiente en el paso 5c (no es de esta parte)."),
+    r"/api/portal-personas/(\d{1,9})/unir/deshacer": (
+        "deshacer una unión: igual que `unir`, pendiente en el paso 5c (no es de esta parte)."),
+    r"/api/portal-personas/(\d{1,9})/borrar": (
+        "borrar una ficha: pide el permiso de borrar fichas de la sesión («puede_borrar_fichas», `server.py` de la App): el programa "
+        "no ve sesiones ni permisos por persona."),
+    r"/api/portal-personas/(\d{1,9})/devolver": (
+        "devolver una ficha guardada aparte: pide el mismo permiso que `borrar` (`puede_borrar_fichas`): el programa no lo ve."),
+}
+
+
+def _portal_entrada(ruta, tabla=None):
+    """La entrada de `tabla` (por defecto `PORTAL_LECTURA`) que casa con la ruta: `(patrón, valor, grupos)`, o `None` si ninguna casa."""
+    for patron, valor in (PORTAL_LECTURA if tabla is None else tabla).items():
         m = re.fullmatch(patron, ruta)
         if m:
             return patron, valor, m.groups()
     return None
+
+
+def quien_de_la_cabecera(valor):
+    """El nombre de quien pide, de la cabecera X-Personas-Portal-Quien. `http.server` lee las cabeceras como latin-1; la App manda el
+    nombre en UTF-8, así que se deshace esa lectura («PÃ©rez» -> «Pérez»). Si no es UTF-8 válido, queda tal cual, sin recortar más."""
+    texto = str(valor or "")
+    try:
+        texto = texto.encode("latin-1").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        pass
+    return texto.strip()
 
 
 def igual_seguro(a, b):
@@ -159,6 +203,10 @@ class Manejador(BaseHTTPRequestHandler):
                 return self._enviar(401, ERROR_LLAVE)
             codigo, cuerpo = ESCRITURA_FUNCIONES[ESCRITURA_RUTAS[ruta]](personas_escrituras, self._pedido())
             return self._enviar(codigo, cuerpo)
+        entrada = _portal_entrada(ruta, PORTAL_ESCRITURA)
+        if entrada is not None:
+            patron, (nombre, tipo, exige_identidad), grupos = entrada
+            return self._portal_escritura(ruta, nombre, tipo, exige_identidad, grupos)
         if ruta not in LECTURA_POST:
             return self._enviar(404, {"error": "ruta no existe"})
         nombre = LECTURA_POST[ruta]
@@ -170,13 +218,28 @@ class Manejador(BaseHTTPRequestHandler):
         codigo, cuerpo = FUNCIONES[nombre](base, self._pedido())
         return self._enviar(codigo, cuerpo)
 
+    def _portal_escritura(self, ruta, nombre, tipo, exige_identidad, grupos):
+        """Una escritura del portal. Mismo orden que las lecturas: la llave se mira ANTES de leer el cuerpo y antes de NocoDB; con la
+        llave bien, la identidad debe venir (quien no vacío, tipo igual al de la ruta). Solo entonces se lee el cuerpo y se escribe.
+        `quien` sale SIEMPRE de la cabecera: el `quien` del cuerpo no se mira (`personas_portal_escritura.responder`)."""
+        if not lucy_llave_valida(self.headers.get("X-Personas-Portal-Llave"), LLAVE_PERSONAS_PORTAL):
+            return self._enviar(401, ERROR_LLAVE)
+        quien = quien_de_la_cabecera(self.headers.get("X-Personas-Portal-Quien"))
+        if exige_identidad:
+            if not quien or (self.headers.get("X-Personas-Portal-Tipo") or "").strip() != tipo:
+                return self._enviar(400, ERROR_IDENTIDAD)
+        largo = int(self.headers.get("Content-Length") or 0)
+        crudo = self.rfile.read(largo) if largo else b""
+        codigo, cuerpo = personas_portal_escritura.responder(nombre, ruta, grupos, crudo, quien)
+        return self._enviar(codigo, cuerpo)
+
     def _portal_lectura(self, nombre, tipo, exige_identidad, grupos, consulta):
         """Una lectura del portal. La llave se mira ANTES que la identidad y que NocoDB. Con la llave bien, la identidad debe venir
         (quien no vacío y tipo igual al de la ruta). Después, `personas_portal_lectura.responder` (con los errores de la App)."""
         if not lucy_llave_valida(self.headers.get("X-Personas-Portal-Llave"), LLAVE_PERSONAS_PORTAL):
             return self._enviar(401, ERROR_LLAVE)
         if exige_identidad:
-            quien = (self.headers.get("X-Personas-Portal-Quien") or "").strip()
+            quien = quien_de_la_cabecera(self.headers.get("X-Personas-Portal-Quien"))
             if not quien or (self.headers.get("X-Personas-Portal-Tipo") or "").strip() != tipo:
                 return self._enviar(400, ERROR_IDENTIDAD)
         codigo, cuerpo = personas_portal_lectura.responder(nombre, grupos, consulta)
