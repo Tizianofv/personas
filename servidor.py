@@ -130,9 +130,14 @@ PORTAL_LECTURA = {
 # Rutas que la App contesta y que el programa NO sirve, con el motivo. CP3 exige que tabla + esto = las rutas de la App.
 PORTAL_FUERA_DEL_PROGRAMA = {
     "/api/portal-personas/entrada/cuadro": (
-        "cuadro de la entrada: lee la bandeja de la entrada y cuenta con el cliente de Personas de la App (`personas_cliente`, que "
-        "llama al programa por red) y con funciones de `server.py` de la App (`cuadro_de_la_entrada`). El programa no tiene ni lo "
-        "uno ni lo otro (grep: 0 coincidencias en `personas.py`, `base.py` y `servidor.py`)."),
+        "cuadro de la entrada (`cuadro_de_la_entrada`, App en 594ec12, `server.py:7350`). Lo que pide ya está en el programa: la "
+        "bandeja (`base._bandeja_leer`, `personas._bandeja_pagina`; la ruta `/api/servicio/personas/bandeja`, `personas_servicio_rutas"
+        ".bandeja`, es la que la App llama por red con `personas_cliente`) y la puerta (`personas.PUERTA_CASOS`, `PUERTA_AVISOS`, "
+        "`clave_id`, `clave_telefono`). Lo que NO está: el formato del `resultado` de cada fila (`_entrada_leer_resultado` y "
+        "`_entrada_resumen`, `server.py:7016` y `:7001`). Lo escribe la entrada de Natalia (`entrada_procesar`, `server.py:7140`, "
+        "un `json.dumps` del resumen) y lo lee también `POST /api/fichas/entrada` (`_entrada_cuerpo`, `server.py:7040`). Es de la "
+        "entrada, no de Personas: portarlo sin su escritor partiría el contrato entre dos repos. Sus piezas propias (`CuadroPersonas`, "
+        "`cuadro_renglon`, `CUADRO_*`) dependen de él."),
 }
 
 
