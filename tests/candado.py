@@ -40,7 +40,9 @@ def normalizar_funcion(nodo, renombres=None, quitar_self=False):
 
 
 def candado_del_modulo(arbol):
-    """La forma del candado de un módulo de Python (el programa): funciones normalizadas y constantes."""
+    """La forma del candado de un módulo de Python (el programa): funciones normalizadas y constantes NOMBRADAS. No compara cómo se
+    enlazan a nivel de módulo los nombres que usa el candado (`copy`, `time`, `hashlib`, `json`, `threading`): reasignarlos queda
+    FUERA de esta comparación (frontera declarada; la burla SH, medida por el testigo, pasa A1)."""
     funciones, constantes = {}, {}
     for nodo in arbol.body:
         if isinstance(nodo, ast.FunctionDef) and nodo.name in FUNCIONES:
@@ -68,7 +70,9 @@ def _es_rama_de_accion(nodo):
 
 def usos_y_sitios(raiz):
     """Recorre TODOS los `.py` del programa (fuera de `tests/`, `tools/` y de las carpetas que empiezan por punto) y busca cada
-    uso de `una_vez` o `escribir_una_vez`: nombre, atributo, alias o import, o una definición. Lo permitido es SOLO:
+    uso de `una_vez` o `escribir_una_vez`. VE: `Name`, `Attribute`, `alias` y `FunctionDef`. NO VE los accesos por cadena
+    (`globals()["una_vez"]`, `getattr(..., "una_vez")`, `vars`, `__dict__`): no son un `Name`, y pasan (frontera declarada; la
+    burla GA, medida por el testigo, pasa B1). Lo permitido es SOLO:
       - la definición de `una_vez` y de `escribir_una_vez` en `personas_portal_escritura.py`, y la llamada a `escribir_una_vez`
         dentro de `una_vez`;
       - una llamada directa `una_vez(...)` dentro de la rama `if nombre == "<acción>"` de `_ejecutar` (un sitio).

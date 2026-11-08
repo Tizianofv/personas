@@ -347,10 +347,14 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
                 self.assertTrue([q for q in segundo["pedidos"] if q["metodo"] != "GET"], "el cuerpo distinto tiene que escribir")
 
     def test_A1_el_candado_del_programa_es_el_de_la_app(self):
+        """Compara las funciones y constantes NOMBRADAS del candado. NO compara el enlace a nivel de módulo de `copy`, `time`,
+        `hashlib`, `json` y `threading`: reasignarlos queda fuera (frontera declarada; la burla SH pasa esta prueba)."""
         arbol = ast.parse((RAIZ / "personas_portal_escritura.py").read_text(encoding="utf-8"))
         self.assertEqual(candado.candado_del_modulo(arbol), self.foto["candado_de_la_app"])
 
     def test_B1_no_hay_usos_de_una_vez_fuera_de_los_sitios(self):
+        """Ve `Name`, `Attribute`, `alias` y `FunctionDef`. NO ve accesos por cadena (`globals()[...]`, `getattr`): pasan (la burla
+        GA pasa esta prueba)."""
         violaciones, sitios = candado.usos_y_sitios(RAIZ)
         self.assertEqual(violaciones, [])
         self.assertEqual(sorted({ambito for ambito, _a, _f, _l in sitios}), ["portal-persona-crear", "portal-persona-editar"])
