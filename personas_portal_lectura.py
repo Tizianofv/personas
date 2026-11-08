@@ -19,14 +19,27 @@ lo contesta con 502 si NocoDB falla al leer la ficha (el 404 de «ficha» es sol
 Parte 6 (tipo C): `buscar` (`GET /api/personas?q=`) e `instrumentos` (`GET /api/persona-instrumentos`). No son del portal: la App las
 contesta en `do_GET`, bajo `autorizado()`, y su error no pasa por `portal_personas_get`. Su error es el de `do_GET` de la App: 500 con
 el texto de la excepción (`{"error": str(e)}`), no el 502 del portal. Ver `DE_SESION`.
+
+Parte 8 (tipo D): `google_conteo` (`GET /api/google/contactos/conteo`), que cuenta cuántos contactos de la libreta de Google casan con las
+fichas. La App lo contesta en `google_contactos_conteo` (`594ec12`, `server.py` 13590): su puerta es `veredicto().entra` (401) y
+`veredicto().es_admin` (403), y las mira ANTES de reenviar; este módulo no las ve. Aquí va solo lo que la App hace DESPUÉS de la puerta:
+la respuesta del conteo y sus tres errores (sin credencial, Google, y cualquier otro). Sus errores NO son los del portal: se contestan
+dentro de `_google_conteo`, con los textos de la App. Las credenciales son las tres variables de `google_contactos.VARIABLES`, leídas del
+entorno del proceso (`os.environ`; a diferencia de la App, este programa no lee `.env`): el servicio las tiene que tener; si falta alguna,
+503 con sus nombres, antes de llamar a Google.
+La llamada HTTP a Google es `PEDIR_GOOGLE`; las pruebas la cambian por `tests/doble_google.py` (ver `tests/servidor_con_google_falso.py`).
 """
+import os
 import re
 
 import base
+import google_contactos
 import personas
 
 ERROR_LECTURA = "No se pudo leer la base de personas. Inténtalo en un momento."
 FICHA_NO_ESTA = "Esa persona ya no está en la base."
+# La llamada HTTP a Google de la ruta de tipo D (parte 8). Por defecto, la de `google_contactos`; las pruebas la cambian por un doble.
+PEDIR_GOOGLE = google_contactos._pedir
 # Las lecturas de tipo C (parte 6): sus errores salen como en el `do_GET` de la App (500 con el texto), no como en el portal (502).
 DE_SESION = ("buscar", "instrumentos")
 
@@ -104,10 +117,26 @@ def _instrumentos(grupos, consulta):
     return 200, {"instrumentos": base._opciones_select(base.T_PERSONAS, "instrumento")}
 
 
+def _google_conteo(grupos, consulta):
+    """`GET /api/google/contactos/conteo` (tipo D, parte 8): cuántos contactos de Google casan con las fichas. No escribe nada (salvo el
+    canje del token, que es un POST de autenticación a Google) y solo devuelve cifras (ni nombres, ni teléfonos, ni correos). Los errores son los de `google_contactos_conteo` de la App, tal cual: sin credencial
+    503 con los nombres que faltan (antes de tocar Google); un error de Google 502 con la etapa y el código; cualquier otro 503 genérico.
+    No se escribe logs: la App imprime el tipo del error, aquí no."""
+    try:
+        cifras = google_contactos.conteo(os.environ, personas._leer_fichas_de_la_puerta, pedir=PEDIR_GOOGLE)
+    except google_contactos.SinCredencial as e:
+        return 503, {"error": "Falta la credencial de Google en el servidor.", "faltan": list(e.faltan)}
+    except google_contactos.ErrorGoogle as e:
+        return 502, {"error": "Google no contestó como se esperaba. No se contó nada.", "etapa": e.etapa, "codigo": e.codigo}
+    except Exception:  # noqa: BLE001 — la App contesta igual a cualquier otro fallo (su `except Exception`)
+        return 503, {"error": "No se pudo contar. No se escribió nada."}
+    return 200, cifras
+
+
 FUNCIONES = {
     "lista": _lista, "ficha": _ficha, "nueva": _nueva, "borradas": _borradas,
     "por_resolver": _por_resolver, "unir_revisar": _unir_revisar, "borrar_revisar": _borrar_revisar,
-    "buscar": _buscar, "instrumentos": _instrumentos,
+    "buscar": _buscar, "instrumentos": _instrumentos, "google_conteo": _google_conteo,
 }
 
 

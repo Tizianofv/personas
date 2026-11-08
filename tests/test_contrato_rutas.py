@@ -50,9 +50,10 @@ def _puerto_libre():
         return s.getsockname()[1]
 
 
-def _arrancar(extra_entorno=None, caidas=()):
+def _arrancar(extra_entorno=None, caidas=(), script=None, argumentos=()):
     """Arranca `servidor.py` como proceso aparte contra un doble nuevo. Devuelve (proceso, puerto, doble). `caidas`: métodos del doble
-    que contestan 500 (la base no contesta); por defecto ninguno."""
+    que contestan 500 (la base no contesta); por defecto ninguno. `script` y `argumentos` cambian el programa que arranca (la parte 8
+    usa `tests/servidor_con_google_falso.py`); por defecto, `servidor.py` sin argumentos."""
     doble = doble_mod.Doble(caidas=caidas)
     url_doble = doble.arrancar()
     puerto = _puerto_libre()
@@ -65,7 +66,8 @@ def _arrancar(extra_entorno=None, caidas=()):
         "NOCODB_T_PERSONAS_ANOTACIONES": doble_mod.TABLA_ANOTACIONES,
     }
     entorno.update(extra_entorno or {})
-    proceso = subprocess.Popen([sys.executable, "-B", str(RAIZ / "servidor.py")], cwd=str(RAIZ), env=entorno,
+    programa = str(script or (RAIZ / "servidor.py"))
+    proceso = subprocess.Popen([sys.executable, "-B", programa, *argumentos], cwd=str(RAIZ), env=entorno,
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     for _ in range(100):
         if proceso.poll() is not None:
