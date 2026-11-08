@@ -16,14 +16,17 @@ ESCRITURAS PARA REGISTRO (paso 5b, `personas_escritura_rutas.py`), con las misma
 🔴 Su llave se mira ANTES de leer el cuerpo y no abre ninguna lectura, ni la de Mercadeo ni la de Registro. Sin ella, con otra o con
 la variable vacía: 401, y no se escribe nada.
 
-LECTURAS DEL PORTAL (paso 5c, partes 1, 2 y 5): siete rutas GET, en la tabla `PORTAL_LECTURA` de abajo (lista, ficha, nueva, borradas,
-por-resolver, unir/revisar y borrar/revisar). Cabecera X-Personas-Portal-Llave (PERSONAS_PORTAL_LLAVE), más la identidad que pone la App:
-X-Personas-Portal-Quien (quien pide, no vacío) y X-Personas-Portal-Tipo (= «A»).
+LECTURAS DEL PORTAL Y DE SESIÓN (paso 5c, partes 1, 2 y 5; parte 6 para las de tipo C): nueve rutas GET, en la tabla `PORTAL_LECTURA` de
+abajo: siete del portal (lista, ficha, nueva, borradas, por-resolver, unir/revisar y borrar/revisar), tipo «A», y dos de tipo «C» que la App
+contesta bajo `autorizado()` (`GET /api/personas?q=`, el buscador, y `GET /api/persona-instrumentos`). Cabecera X-Personas-Portal-Llave
+(PERSONAS_PORTAL_LLAVE), más la identidad que pone la App: X-Personas-Portal-Quien (quien pide, no vacío) y X-Personas-Portal-Tipo (= el
+tipo de la ruta, «A» o «C»).
 🔴 La llave del portal se mira PRIMERO: sin ella, con otra (la de Mercadeo y la de Registro incluidas) o con la variable vacía: 401,
 y no se lee NocoDB. Con la llave bien pero sin identidad, o con un tipo que no es el de la ruta: 400, y no se lee NocoDB. La cabecera
 de identidad que venga del navegador no decide nada si la llave no es la del portal. La App mira la puerta de sesión antes de
 reenviar; este programa no la ve. Las respuestas: `personas_portal_lectura.py` (copia de la App, `594ec12`), con la foto de
-`contrato/portal_lectura.json`. La única ruta de la App que NO se porta es `entrada/cuadro`, en `PORTAL_FUERA_DEL_PROGRAMA`, con su motivo.
+`contrato/portal_lectura.json`. De las GET del portal y de sesión que la App contesta, la única que NO se porta es `entrada/cuadro`, en
+`PORTAL_FUERA_DEL_PROGRAMA`, con su motivo (las GET de proveedores y de Google no están en esta tabla: son de otro tipo, fuera de este encargo).
 
 ESCRITURAS DEL PORTAL (paso 5c, partes 3, 4 y 5): diez POST en la tabla `PORTAL_ESCRITURA` (crear, editar, permiso, resolver, reabrir, las
 tres de unir: unir, unir/continuar y unir/deshacer, y la parte 5: borrar y devolver).
@@ -34,8 +37,8 @@ respuestas: `personas_portal_escritura.py` (copia de `Handler.portal_personas_po
 lo mira antes de reenviar. Quien tenga la llave del portal puede borrar y devolver sin ese permiso, igual que puede escribir con
 cualquier `quien`. Esa frontera está declarada aquí y en `el-programa-personas.md`. La App no se toca.
 
-NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): la búsqueda GET, las instrumentos, Google, la puerta de Natalia
-y las rutas de sesión del check-in.
+NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): las escrituras de tipo C del check-in (crear, parecidas, cara,
+editar), Google, la puerta de Natalia, las GET de proveedores y `entrada/cuadro`.
 
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN,
 PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, NOCODB_T_*.
@@ -91,10 +94,12 @@ FUNCIONES = {
 ERROR_LLAVE = {"error": "llave de servicio inválida"}
 ERROR_IDENTIDAD = {"error": "identidad de portal ausente o no corresponde a la ruta"}
 
-# TABLA ÚNICA de las lecturas del portal: patrón de ruta (el mismo texto que la App usa en `portal_personas_get`) -> (nombre de la
-# lectura en `personas_portal_lectura`, tipo que la App pone en la identidad, ¿exige identidad?). Las claves salen de la App: las
-# compara CP3 con `rutas_de_la_app` de la foto. El tipo «A» es el de la tabla 1.2 de `CONTRATO-SESION.md` (puerta `entra_personas`).
+# TABLA ÚNICA de las lecturas: patrón de ruta (el mismo texto que la App usa) -> (nombre de la lectura en `personas_portal_lectura`,
+# tipo que la App pone en la identidad, ¿exige identidad?). Las claves salen de la App: CP3 las compara con `rutas_de_la_app` (las del
+# portal, de `portal_personas_get`) y `rutas_de_sesion_de_la_app` (las de sesión, de `do_GET`, bajo `autorizado()`) de la foto. El tipo «A»
+# es el de la puerta `entra_personas` del portal; el «C» es el de `autorizado()` (filas 9 y 10 de `CONTRATO-SESION.md`).
 PORTAL_TIPO_A = "A"
+PORTAL_TIPO_C = "C"
 PORTAL_LECTURA = {
     "/api/portal-personas": ("lista", PORTAL_TIPO_A, True),
     r"/api/portal-personas/(\d{1,9})": ("ficha", PORTAL_TIPO_A, True),
@@ -104,6 +109,9 @@ PORTAL_LECTURA = {
     r"/api/portal-personas/(\d{1,9})/unir/revisar": ("unir_revisar", PORTAL_TIPO_A, True),
     # Parte 5: revisar un borrado (no escribe). La App pide el permiso `puede_borrar_fichas` antes de reenviar; el programa no lo mira.
     r"/api/portal-personas/(\d{1,9})/borrar/revisar": ("borrar_revisar", PORTAL_TIPO_A, True),
+    # Parte 6, tipo C (cualquier sesión válida en la App): el buscador del check-in y de los selectores, y las opciones de instrumento.
+    "/api/personas": ("buscar", PORTAL_TIPO_C, True),
+    "/api/persona-instrumentos": ("instrumentos", PORTAL_TIPO_C, True),
 }
 # Rutas que la App contesta y que el programa NO sirve, con el motivo. CP3 exige que tabla + esto = las rutas de la App.
 PORTAL_FUERA_DEL_PROGRAMA = {

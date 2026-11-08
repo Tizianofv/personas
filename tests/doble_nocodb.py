@@ -79,6 +79,11 @@ COLUMNAS_META = {
                  for c in sorted({k for fila in PERSONAS for k in fila})]
                 + [{"title": "columna_de_prueba_sin_clasificar", "uidt": "SingleLineText", "system": False}],
 }
+# Parte 6 (`GET /api/persona-instrumentos`): el MultiSelect `instrumento` con opciones de prueba inventadas. NO va en `COLUMNAS_META`:
+# las escrituras del portal (`doble_escrituras`, que copia `COLUMNAS_META`) tienen su foto sacada sin ella. Se agrega solo en las
+# instancias que lo piden (`Doble(instrumentos=True)` o `doble.instrumentos = True`), y solo en la lectura de meta de Personas.
+COLUMNA_INSTRUMENTO = {"title": "instrumento", "uidt": "MultiSelect", "system": False,
+                       "colOptions": {"options": [{"title": "Guitarra"}, {"title": "Productor"}, {"title": "DJ"}]}}
 _CONDICION = re.compile(r"\((\w+),(eq|neq|gt|gte|lt|lte|like),([^)]*)\)")
 _QUERY_PERMITIDA = {"fields", "where", "limit", "offset", "sort"}
 
@@ -86,7 +91,7 @@ _QUERY_PERMITIDA = {"fields", "where", "limit", "offset", "sort"}
 class Doble:
     """Doble de NocoDB, solo GET. Lo que pide fuera de lo conocido se registra como error y responde 500 (la prueba lo ve)."""
 
-    def __init__(self, caidas=()):
+    def __init__(self, caidas=(), instrumentos=False):
         self.errores = []
         self.no_get = []
         self.lecturas = 0
@@ -94,6 +99,8 @@ class Doble:
         # `caidas`: métodos que responden 500 SIEMPRE (la base no contesta). Solo GET aquí. Un pedido caído no es un error del doble.
         self.caidas = set(caidas)
         self.caidas_servidas = 0
+        # `instrumentos`: la columna `instrumento` (MultiSelect) aparece en la meta de Personas. Por defecto no (ver COLUMNA_INSTRUMENTO).
+        self.instrumentos = instrumentos
 
     def _filas(self, tabla, where):
         filas = list(TABLAS[tabla])
@@ -147,7 +154,10 @@ class Doble:
                 self.errores.append("metadatos de tabla desconocida: %s" % ruta)
                 return 404, {"msg": "doble: tabla desconocida"}
             self.lecturas += 1
-            return 200, {"id": meta.group(1), "columns": COLUMNAS_META[meta.group(1)]}
+            columnas = list(COLUMNAS_META[meta.group(1)])
+            if meta.group(1) == T_PERSONAS and self.instrumentos:
+                columnas.append(COLUMNA_INSTRUMENTO)
+            return 200, {"id": meta.group(1), "columns": columnas}
         # Un registro por su `Id` (`GET .../records/<Id>`, la forma que lee la ficha del portal). Si no existe: 404, como NocoDB.
         uno = re.fullmatch(r"/api/v2/tables/([^/]+)/records/(\d+)", ruta)
         if uno:

@@ -1,6 +1,6 @@
 {
   "escrituras_a_nocodb": 0,
-  "fuente": "App de registro, commit 594ec12: server.Handler.parse y portal_personas_get (las rutas GET del portal, leídas con AST: rutas_de_la_app), con las funciones de personas.py de la App. Sin la puerta de sesión de portal_personas ni la de permiso (`puede_borrar_fichas`). Datos del doble tests/doble_nocodb.py.",
+  "fuente": "App de registro, commit 594ec12: server.Handler.parse y portal_personas_get (las rutas GET del portal, leídas con AST: rutas_de_la_app), y server.Handler.do_GET para las de sesión (rutas_de_sesion_de_la_app: GET /api/personas y GET /api/persona-instrumentos, bajo autorizado()), con las funciones de personas.py de la App. Sin la puerta de sesión de portal_personas, ni la de permiso (`puede_borrar_fichas`), ni autorizado(), ni las guardas de antes del despacho. Datos del doble tests/doble_nocodb.py.",
   "pedidos": [
     {
       "caidas": [],
@@ -717,6 +717,137 @@
       },
       "ruta": "/api/portal-personas/2/borrar/revisar",
       "status": 502
+    },
+    {
+      "caidas": [],
+      "consulta": "q=Persona%20de%20prueba",
+      "lecturas_a_nocodb": 1,
+      "nombre": "sesion_buscar",
+      "respuesta": {
+        "personas": [
+          {
+            "Cumpleanos": "1990-03-14",
+            "Id": 1,
+            "email": "p1@ejemplo.test",
+            "email_2": "",
+            "instagram": "",
+            "nombre": "Persona de prueba 1",
+            "nombre_whatsapp": "",
+            "telefono": "18097770001",
+            "telefono_2": ""
+          },
+          {
+            "Cumpleanos": null,
+            "Id": 2,
+            "email": "p2@ejemplo.test",
+            "email_2": "",
+            "instagram": "",
+            "nombre": "Persona de prueba 2",
+            "nombre_whatsapp": "",
+            "telefono": "18097770002",
+            "telefono_2": ""
+          }
+        ]
+      },
+      "ruta": "/api/personas",
+      "status": 200
+    },
+    {
+      "caidas": [],
+      "consulta": "",
+      "lecturas_a_nocodb": 0,
+      "nombre": "sesion_buscar_sin_q",
+      "respuesta": {
+        "personas": []
+      },
+      "ruta": "/api/personas",
+      "status": 200
+    },
+    {
+      "caidas": [],
+      "consulta": "q=",
+      "lecturas_a_nocodb": 0,
+      "nombre": "sesion_buscar_q_vacia",
+      "respuesta": {
+        "personas": []
+      },
+      "ruta": "/api/personas",
+      "status": 200
+    },
+    {
+      "caidas": [],
+      "consulta": "q=P",
+      "lecturas_a_nocodb": 0,
+      "nombre": "sesion_buscar_q_corta",
+      "respuesta": {
+        "personas": []
+      },
+      "ruta": "/api/personas",
+      "status": 200
+    },
+    {
+      "caidas": [],
+      "consulta": "q=P%C3%A9rsona%20de%20prueba%202",
+      "lecturas_a_nocodb": 1,
+      "nombre": "sesion_buscar_con_tilde",
+      "respuesta": {
+        "personas": [
+          {
+            "Cumpleanos": null,
+            "Id": 2,
+            "email": "p2@ejemplo.test",
+            "email_2": "",
+            "instagram": "",
+            "nombre": "Persona de prueba 2",
+            "nombre_whatsapp": "",
+            "telefono": "18097770002",
+            "telefono_2": ""
+          }
+        ]
+      },
+      "ruta": "/api/personas",
+      "status": 200
+    },
+    {
+      "caidas": [
+        "GET"
+      ],
+      "consulta": "q=Persona%20de%20prueba",
+      "lecturas_a_nocodb": 0,
+      "nombre": "sesion_buscar_caida",
+      "respuesta": {
+        "error": "NocoDB 500 en GET /api/v2/tables/mhh7qqeru2ez8q1/records: {\"msg\": \"doble: la base no contesta\"}"
+      },
+      "ruta": "/api/personas",
+      "status": 500
+    },
+    {
+      "caidas": [],
+      "consulta": "",
+      "lecturas_a_nocodb": 1,
+      "nombre": "sesion_instrumentos",
+      "respuesta": {
+        "instrumentos": [
+          "Guitarra",
+          "Productor",
+          "DJ"
+        ]
+      },
+      "ruta": "/api/persona-instrumentos",
+      "status": 200
+    },
+    {
+      "caidas": [
+        "GET"
+      ],
+      "consulta": "",
+      "lecturas_a_nocodb": 0,
+      "nombre": "sesion_instrumentos_caida",
+      "respuesta": {
+        "error": "NocoDB 500 en GET /api/v2/meta/tables/mhh7qqeru2ez8q1: {\"msg\": \"doble: la base no contesta\"}"
+      },
+      "ruta": "/api/persona-instrumentos",
+      "status": 500
     }
   ],
   "rutas_de_la_app": [
@@ -753,5 +884,15 @@
       "patron": "/api/portal-personas/por-resolver"
     }
   ],
-  "version": 3
+  "rutas_de_sesion_de_la_app": [
+    {
+      "bajo_autorizado": true,
+      "patron": "/api/persona-instrumentos"
+    },
+    {
+      "bajo_autorizado": true,
+      "patron": "/api/personas"
+    }
+  ],
+  "version": 4
 }

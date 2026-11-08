@@ -1,15 +1,22 @@
 # -*- coding: utf-8 -*-
-"""Las lecturas del portal que contesta `servidor.py` (paso 5c, partes 1 y 2): la llave del portal, la identidad y las respuestas.
+"""Las lecturas que contesta `servidor.py`: las del portal (tipo «A», paso 5c, partes 1, 2 y 5) y las de sesión (tipo «C», parte 6: el
+buscador `GET /api/personas` y `GET /api/persona-instrumentos`). Pruebas de la llave, la identidad y las respuestas.
 
 La foto de referencia es `contrato/portal_lectura.json`, sacada de la App de registro en `594ec12` por
-`tools/generar_portal_de_la_app.py`: `rutas_de_la_app` (las rutas GET del portal que la App contesta, leídas con AST) y `pedidos`
-(una respuesta de la App por ruta de la tabla, con su consulta). Casi todas son 200; los escenarios de error y de caída de
-«borrar/revisar» (parte 5) son 404 y 502, con su caída en un doble propio (`caidas`).
+`tools/generar_portal_de_la_app.py`: `rutas_de_la_app` (las GET del portal, leídas con AST de `portal_personas_get`),
+`rutas_de_sesion_de_la_app` (las GET de tipo C, comprobadas con AST bajo la puerta de `do_GET`) y `pedidos` (una respuesta de la App por
+pedido, con su consulta). Casi todas son 200; los errores son 404 («no_existe»), 502 (caídas del portal) y 500 (caídas de las de sesión,
+que la App contesta así en `do_GET`); cada caída va en su propio doble (`caidas`).
+
+El TIPO de cada ruta sale de la tabla (`servidor.PORTAL_LECTURA`): «A» para las del portal y «C» para las de sesión. Las pruebas que mandan
+una identidad usan el tipo de la ruta del pedido, no uno fijo; las que miran el tipo ajeno mandan los otros dos.
 
 Pruebas (las de llave e identidad recorren TODA la tabla `servidor.PORTAL_LECTURA`, no una lista tecleada):
   CP1  los bytes de `contrato/portal_lectura.json` tienen el SHA256 de `contrato/SHA256_portal`.
   CP2  la tabla y la foto cubren lo mismo: cada entrada de la tabla tiene un pedido de la foto que casa con ella, y cada pedido
-       casa con una entrada. C2: cada pedido de la foto es un 200, salvo los de caída (502) y el de «no_existe» (404).
+       casa con una entrada. C2: cada pedido de la foto es un 200, salvo las caídas (502 en el portal, 500 en las de sesión) y el de
+       «no_existe» (404).
+  C3   las rutas de sesión de la foto (`rutas_de_sesion_de_la_app`) están en la tabla con tipo «C», y las del portal con tipo «A».
   CP5  la foto tiene un pedido por cada escenario de `tools/generar_portal_de_la_app.RUTAS` (el generador es la fuente): quitar uno
        de la foto da rojo aunque se recalcule el SHA (CP1 no lo ve).
   P4   los pedidos con caída corren en su propio servidor y doble (`caidas=GET`): el mismo código y cuerpo que la App, y el doble
@@ -39,7 +46,10 @@ Lo que NO ve (declarado):
     ningún pedido de la foto es un 400 (C2), así que no hay prueba contra la App para esas ramas. Declarado.
   - La rama «resueltos» de por-resolver y la unión de fichas dentro de la ficha (`T_UNIONES_PERSONAS` no se configura en la foto):
     la foto no las ejercita.
-  - Tipo de la identidad: solo se comprueba que sea igual al de la ruta («A»).
+  - Tipo de la identidad: solo se comprueba que sea igual al de la ruta (la tabla da «A» o «C»).
+  - Las lecturas de sesión (tipo «C»): la foto NO ejercita `autorizado()` ni las guardas de antes del despacho de `do_GET` de la App
+    (`frenado`, `fuera_de_alcance`, `falta_el_conteo`): se dan por buenas en su conductor. La puerta de sesión la mira la App antes de
+    reenviar; este programa no la ve.
   - Espacios en los bordes de la llave: HTTP los quita antes de llegar; no son una llave distinta, y K5 no los prueba.
   - La foto es de un día: ningún campo de la foto depende de la fecha de hoy (grep de las claves), pero el código sí puede.
 """
@@ -133,6 +143,23 @@ def _ejemplos():
     return ejemplos
 
 
+def _tipo_de_patron(patron):
+    """El tipo que la tabla da a una entrada («A» o «C»): lo que la identidad debe traer para esa ruta."""
+    return _tabla().PORTAL_LECTURA[patron][1]
+
+
+def _patron_del_pedido(pedido):
+    """La entrada de la tabla que casa con la ruta del pedido de la foto (la de su ejemplo)."""
+    casan = [patron for patron in _tabla().PORTAL_LECTURA if re.fullmatch(patron, pedido["ruta"])]
+    if len(casan) != 1:
+        raise AssertionError("la ruta %s no casa con exactamente una entrada: %s" % (pedido["ruta"], casan))
+    return casan[0]
+
+
+def _tipo_del_pedido(pedido):
+    return _tipo_de_patron(_patron_del_pedido(pedido))
+
+
 class ElPortalDeLectura(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -168,11 +195,13 @@ class ElPortalDeLectura(unittest.TestCase):
             self.assertIsNotNone(self.ejemplos[patron], "entrada de la tabla sin pedido de la foto: %s" % patron)
         for pedido in self.foto["pedidos"]:
             self.assertTrue(any(re.fullmatch(p, pedido["ruta"]) for p in tabla), "pedido de la foto sin entrada: %s" % pedido["ruta"])
-        # C2: 200, salvo la caída (502, con su doble propio) y el pedido de «no existe» (404). Los códigos los fija el generador.
+        # C2: 200, salvo la caída (502 en el portal y 500 en las de sesión, como la App en `do_GET`; cada una con su doble propio) y el
+        # pedido de «no existe» (404). Los códigos los fija el generador.
         for pedido in self.foto["pedidos"]:
             with self.subTest(nombre=pedido["nombre"]):
                 if pedido["caidas"]:
-                    self.assertEqual(pedido["status"], 502, "C2: una caída de NocoDB es un 502")
+                    esperado = 500 if _tipo_del_pedido(pedido) == "C" else 502
+                    self.assertEqual(pedido["status"], esperado, "C2: una caída de NocoDB da %s en esta ruta" % esperado)
                 elif pedido["nombre"].endswith("_no_existe"):
                     self.assertEqual(pedido["status"], 404, "C2: una ficha que no existe es un 404")
                 else:
@@ -190,20 +219,54 @@ class ElPortalDeLectura(unittest.TestCase):
         self.assertEqual(tabla & set(fuera), set(), "una ruta está en la tabla y también fuera")
         for patron, motivo in fuera.items():
             self.assertTrue(motivo.strip(), "una salida sin motivo: %s" % patron)
-        app = {r["patron"] for r in self.foto["rutas_de_la_app"]}
+        app = {r["patron"] for r in self.foto["rutas_de_la_app"]} | {r["patron"] for r in self.foto["rutas_de_sesion_de_la_app"]}
         self.assertEqual(tabla | set(fuera), app)
 
+    def test_C3_las_rutas_de_sesion_son_tipo_C_y_las_del_portal_tipo_A(self):
+        """El tipo que la tabla da a cada ruta sale de la App: las de `do_GET` bajo `autorizado()` son «C»; las de `portal_personas_get`
+        son «A». Si la tabla pone otro tipo, la identidad de la ruta queda mal: esta prueba lo ve."""
+        tabla = _tabla().PORTAL_LECTURA
+        for r in self.foto["rutas_de_sesion_de_la_app"]:
+            with self.subTest(patron=r["patron"]):
+                self.assertIn(r["patron"], tabla)
+                self.assertEqual(_tipo_de_patron(r["patron"]), "C")
+        fuera = _tabla().PORTAL_FUERA_DEL_PROGRAMA
+        for r in self.foto["rutas_de_la_app"]:
+            with self.subTest(patron=r["patron"]):
+                if r["patron"] in tabla:
+                    self.assertEqual(_tipo_de_patron(r["patron"]), "A")
+                else:
+                    self.assertIn(r["patron"], fuera, "ruta del portal de la App que no está ni en la tabla ni fuera")
+
     def test_P2_cada_pedido_de_la_foto_es_igual_a_la_app(self):
-        # Los pedidos con caída van en P4 (su propio doble). Aquí, todos los demás, contra este servidor.
-        for pedido in self.foto["pedidos"]:
-            if pedido["caidas"]:
-                continue
-            with self.subTest(ruta=_url(pedido)):
-                codigo, cuerpo = _pedir(self.puerto, _url(pedido), _cabeceras())
-                self.assertEqual(codigo, pedido["status"])
-                self.assertEqual(cuerpo, pedido["respuesta"])
+        # Los pedidos con caída van en P4 (su propio doble). Aquí, todos los demás, contra este servidor, con el tipo de su ruta.
+        # La columna `instrumento` del doble solo va en el pedido de instrumentos (la foto del portal se sacó sin ella: con ella, el
+        # `edicion` de la ficha cambia). La bandera se apaga al terminar.
+        try:
+            for pedido in self.foto["pedidos"]:
+                if pedido["caidas"]:
+                    continue
+                self.doble.instrumentos = pedido["ruta"] == "/api/persona-instrumentos"
+                with self.subTest(ruta=_url(pedido)):
+                    codigo, cuerpo = _pedir(self.puerto, _url(pedido), _cabeceras(tipo=_tipo_del_pedido(pedido)))
+                    self.assertEqual(codigo, pedido["status"])
+                    self.assertEqual(cuerpo, pedido["respuesta"])
+        finally:
+            self.doble.instrumentos = False
         self.assertEqual(self.doble.no_get, [], "el doble recibió algo que no es GET")
         self.assertEqual(self.doble.errores, [], "el doble recibió una lectura que no conoce")
+
+    def test_P5_el_buscador_con_menos_de_dos_letras_no_lee_nocodb(self):
+        """Igual que la App: `q` de menos de 2 caracteres (ya recortados), o sin `q`, contesta `[]` sin leer. Un `q` con dos letras sí lee."""
+        for consulta in ("", "q=", "q=%20", "q=P", "q=%20P%20"):
+            with self.subTest(consulta=consulta):
+                codigo, cuerpo = self._sin_leer_nocodb(
+                    lambda: _pedir(self.puerto, "/api/personas" + ("?" + consulta if consulta else ""), _cabeceras(tipo="C")))
+                self.assertEqual((codigo, cuerpo), (200, {"personas": []}))
+        # Con dos letras sí se busca. No se afirma que lea NocoDB: la caché de Personas (60 s) puede estar caliente por P2.
+        codigo, cuerpo = _pedir(self.puerto, "/api/personas?q=Pe", _cabeceras(tipo="C"))
+        self.assertEqual(codigo, 200)
+        self.assertTrue(cuerpo["personas"], "con dos letras el buscador tiene que encontrar a alguien del doble")
 
     def test_P4_las_caidas_de_nocodb_dan_lo_que_dio_la_app(self):
         """Cada pedido con `caidas` corre en SU servidor y doble, con esas caídas (la base no contesta a GET): el mismo código y el mismo
@@ -215,7 +278,7 @@ class ElPortalDeLectura(unittest.TestCase):
                 proceso, puerto, doble = ctr._arrancar(dict(_entorno_comun(), PERSONAS_PORTAL_LLAVE=LLAVE_PORTAL),
                                                        caidas=tuple(pedido["caidas"]))
                 try:
-                    codigo, cuerpo = _pedir(puerto, _url(pedido), _cabeceras())
+                    codigo, cuerpo = _pedir(puerto, _url(pedido), _cabeceras(tipo=_tipo_del_pedido(pedido)))
                 finally:
                     ctr._parar(proceso, doble)
                 self.assertEqual((codigo, cuerpo), (pedido["status"], pedido["respuesta"]))
@@ -242,7 +305,7 @@ class ElPortalDeLectura(unittest.TestCase):
         for patron, pedido in self._entradas():
             for cabecera, valor in ajenas:
                 with self.subTest(patron=patron, cabecera=cabecera):
-                    cabeceras = {cabecera: valor, "X-Personas-Portal-Quien": QUIEN, "X-Personas-Portal-Tipo": "A"}
+                    cabeceras = {cabecera: valor, "X-Personas-Portal-Quien": QUIEN, "X-Personas-Portal-Tipo": _tipo_de_patron(patron)}
                     codigo, cuerpo = self._sin_leer_nocodb(lambda: _pedir(self.puerto, _url(pedido), cabeceras))
                     self.assertEqual((codigo, cuerpo), (401, ERROR_LLAVE))
 
@@ -276,13 +339,16 @@ class ElPortalDeLectura(unittest.TestCase):
                 self.assertEqual(self.doble.lecturas, antes, "el servidor leyó NocoDB en un pedido que debía frenar")
 
     def test_I1_sin_identidad_o_con_tipo_ajeno_400_sin_leer(self):
-        casos = [
-            ("sin quien", _cabeceras(quien=None)),
-            ("quien en blanco", _cabeceras(quien="   ")),
-            ("sin tipo", _cabeceras(tipo=None)),
-            ("tipo de otra puerta", _cabeceras(tipo="B")),
-        ]
+        # Por cada entrada, los casos salen de SU tipo: el tipo de las otras dos puertas («A», «B», «C») son las que no son el de la ruta.
+        # Así una ruta de tipo C con «A» (y una de «A» con «C») da 400: la prueba lo ve si la tabla afloja la comparación.
         for patron, pedido in self._entradas():
+            tipo = _tipo_de_patron(patron)
+            casos = [
+                ("sin quien", _cabeceras(quien=None, tipo=tipo)),
+                ("quien en blanco", _cabeceras(quien="   ", tipo=tipo)),
+                ("sin tipo", _cabeceras(tipo=None)),
+            ] + [("tipo %s en ruta %s" % (ajeno, tipo), _cabeceras(tipo=ajeno))
+                 for ajeno in ("A", "B", "C") if ajeno != tipo]
             for nombre, cabeceras in casos:
                 with self.subTest(patron=patron, caso=nombre):
                     codigo, cuerpo = self._sin_leer_nocodb(lambda: _pedir(self.puerto, _url(pedido), cabeceras))
@@ -292,7 +358,7 @@ class ElPortalDeLectura(unittest.TestCase):
         for patron, pedido in self._entradas():
             for llave in [doble_mod.LLAVE_LECTURA, None]:
                 with self.subTest(patron=patron, llave=None if llave is None else "otra"):
-                    cabeceras = _cabeceras(llave=llave, quien="Quien sea", tipo="A")
+                    cabeceras = _cabeceras(llave=llave, quien="Quien sea", tipo=_tipo_de_patron(patron))
                     codigo, cuerpo = self._sin_leer_nocodb(lambda: _pedir(self.puerto, _url(pedido), cabeceras))
                     self.assertEqual((codigo, cuerpo), (401, ERROR_LLAVE))
 
