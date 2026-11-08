@@ -16,17 +16,17 @@ ESCRITURAS PARA REGISTRO (paso 5b, `personas_escritura_rutas.py`), con las misma
 🔴 Su llave se mira ANTES de leer el cuerpo y no abre ninguna lectura, ni la de Mercadeo ni la de Registro. Sin ella, con otra o con
 la variable vacía: 401, y no se escribe nada.
 
-LECTURAS DEL PORTAL (paso 5c, primera parte: solo dos, las más chicas de la tabla A de `CONTRATO-SESION.md`):
-  GET  /api/portal-personas/nueva, /api/portal-personas/borradas   cabecera X-Personas-Portal-Llave  (PERSONAS_PORTAL_LLAVE)
-       + identidad: X-Personas-Portal-Quien (el nombre de quien pide) y X-Personas-Portal-Tipo (= «A»), que pone la App.
+LECTURAS DEL PORTAL (paso 5c, partes 1 y 2): seis rutas GET, en la tabla `PORTAL_LECTURA` de abajo (lista, ficha, nueva, borradas,
+por-resolver y unir/revisar). Cabecera X-Personas-Portal-Llave (PERSONAS_PORTAL_LLAVE), más la identidad que pone la App:
+X-Personas-Portal-Quien (quien pide, no vacío) y X-Personas-Portal-Tipo (= «A»).
 🔴 La llave del portal se mira PRIMERO: sin ella, con otra (la de Mercadeo y la de Registro incluidas) o con la variable vacía: 401,
 y no se lee NocoDB. Con la llave bien pero sin identidad, o con un tipo que no es el de la ruta: 400, y no se lee NocoDB. La cabecera
 de identidad que venga del navegador no decide nada si la llave no es la del portal. La App mira la puerta de sesión antes de
-reenviar; este programa no la ve.
-Respuestas: las de la App (`portal_personas_get`), con la foto de `contrato/portal_lectura.json`.
+reenviar; este programa no la ve. Las respuestas: `personas_portal_lectura.py` (copia de la App, `594ec12`), con la foto de
+`contrato/portal_lectura.json`. Las dos rutas de la App que NO se portan están en `PORTAL_FUERA_DEL_PROGRAMA`, con su motivo.
 
 NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): el resto de la tabla 1.2 de `DISENO.md`: las demás rutas de sesión
-del portal, la búsqueda GET, las instrumentos, Google y la puerta de Natalia.
+del portal (POST), la búsqueda GET, las instrumentos, Google y la puerta de Natalia.
 
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN,
 PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, NOCODB_T_*.
@@ -34,14 +34,15 @@ PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLA
 import hmac
 import json
 import os
+import re
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import base
-import personas
 import personas_escritura_rutas
 import personas_escrituras
 import personas_lectura
+import personas_portal_lectura
 import personas_servicio_rutas
 
 LLAVE_PERSONAS_LECTURA = os.environ.get("PERSONAS_LECTURA_LLAVE", "").strip()
@@ -80,18 +81,37 @@ FUNCIONES = {
 ERROR_LLAVE = {"error": "llave de servicio inválida"}
 ERROR_IDENTIDAD = {"error": "identidad de portal ausente o no corresponde a la ruta"}
 
-# Rutas de LECTURA del portal: ruta -> (función, tipo que la App pone en la identidad, ¿exige identidad?). El tipo «A» es el de la
-# tabla 1.2 de `CONTRATO-SESION.md` (puerta de sesión de la App, `entra_personas`). Las dos rutas exigen identidad.
+# TABLA ÚNICA de las lecturas del portal: patrón de ruta (el mismo texto que la App usa en `portal_personas_get`) -> (nombre de la
+# lectura en `personas_portal_lectura`, tipo que la App pone en la identidad, ¿exige identidad?). Las claves salen de la App: las
+# compara CP3 con `rutas_de_la_app` de la foto. El tipo «A» es el de la tabla 1.2 de `CONTRATO-SESION.md` (puerta `entra_personas`).
 PORTAL_TIPO_A = "A"
 PORTAL_LECTURA = {
+    "/api/portal-personas": ("lista", PORTAL_TIPO_A, True),
+    r"/api/portal-personas/(\d{1,9})": ("ficha", PORTAL_TIPO_A, True),
     "/api/portal-personas/nueva": ("nueva", PORTAL_TIPO_A, True),
     "/api/portal-personas/borradas": ("borradas", PORTAL_TIPO_A, True),
+    "/api/portal-personas/por-resolver": ("por_resolver", PORTAL_TIPO_A, True),
+    r"/api/portal-personas/(\d{1,9})/unir/revisar": ("unir_revisar", PORTAL_TIPO_A, True),
 }
-# Cada función devuelve `(código, cuerpo)`. `portal_persona_nueva` devuelve solo el cuerpo (la App lo manda con 200).
-PORTAL_FUNCIONES = {
-    "nueva": lambda: (200, personas.portal_persona_nueva()),
-    "borradas": personas.listar_borradas,
+# Rutas que la App contesta y que el programa NO sirve, con el motivo. CP3 exige que tabla + esto = las rutas de la App.
+PORTAL_FUERA_DEL_PROGRAMA = {
+    "/api/portal-personas/entrada/cuadro": (
+        "cuadro de la entrada: lee la bandeja de la entrada y cuenta con el cliente de Personas de la App (`personas_cliente`, que "
+        "llama al programa por red) y con funciones de `server.py` de la App (`cuadro_de_la_entrada`). El programa no tiene ni lo "
+        "uno ni lo otro (grep: 0 coincidencias en `personas.py`, `base.py` y `servidor.py`)."),
+    r"/api/portal-personas/(\d{1,9})/borrar/revisar": (
+        "pide el permiso de borrar fichas de la sesión («puede_borrar_fichas», `server.py` de la App, `Handler.puede_borrar_fichas`): "
+        "el programa no ve sesiones ni permisos por persona."),
 }
+
+
+def _portal_entrada(ruta):
+    """La entrada de `PORTAL_LECTURA` que casa con la ruta: `(patrón, valor, grupos)`, o `None` si ninguna casa."""
+    for patron, valor in PORTAL_LECTURA.items():
+        m = re.fullmatch(patron, ruta)
+        if m:
+            return patron, valor, m.groups()
+    return None
 
 
 def igual_seguro(a, b):
@@ -150,27 +170,28 @@ class Manejador(BaseHTTPRequestHandler):
         codigo, cuerpo = FUNCIONES[nombre](base, self._pedido())
         return self._enviar(codigo, cuerpo)
 
-    def _portal_lectura(self, ruta):
+    def _portal_lectura(self, nombre, tipo, exige_identidad, grupos, consulta):
         """Una lectura del portal. La llave se mira ANTES que la identidad y que NocoDB. Con la llave bien, la identidad debe venir
-        (quien no vacío y tipo igual al de la ruta). Un fallo de la función devuelve 502 con el mismo texto que la App."""
-        nombre, tipo, exige_identidad = PORTAL_LECTURA[ruta]
+        (quien no vacío y tipo igual al de la ruta). Después, `personas_portal_lectura.responder` (con los errores de la App)."""
         if not lucy_llave_valida(self.headers.get("X-Personas-Portal-Llave"), LLAVE_PERSONAS_PORTAL):
             return self._enviar(401, ERROR_LLAVE)
         if exige_identidad:
             quien = (self.headers.get("X-Personas-Portal-Quien") or "").strip()
             if not quien or (self.headers.get("X-Personas-Portal-Tipo") or "").strip() != tipo:
                 return self._enviar(400, ERROR_IDENTIDAD)
-        try:
-            codigo, cuerpo = PORTAL_FUNCIONES[nombre]()
-        except Exception:  # noqa: BLE001 — como `portal_personas_get` de la App: la pantalla dice que falló; nunca una lista corta
-            return self._enviar(502, {"ok": False, "error": "No se pudo leer la base de personas. Inténtalo en un momento."})
+        codigo, cuerpo = personas_portal_lectura.responder(nombre, grupos, consulta)
         return self._enviar(codigo, cuerpo)
 
     def do_GET(self):
         base.estrenar_la_cuenta_de_escrituras()
-        ruta = urllib.parse.urlsplit(self.path).path
-        if ruta in PORTAL_LECTURA:
-            return self._portal_lectura(ruta)
+        url = urllib.parse.urlsplit(self.path)
+        ruta = url.path
+        # La consulta se lee como la App (`Handler.parse`): `dict(parse_qsl(...))`, sin los valores vacíos.
+        consulta = dict(urllib.parse.parse_qsl(url.query))
+        entrada = _portal_entrada(ruta)
+        if entrada is not None:
+            patron, (nombre, tipo, exige_identidad), grupos = entrada
+            return self._portal_lectura(nombre, tipo, exige_identidad, grupos, consulta)
         if ruta != CONFIG_RUTA:
             return self._enviar(404, {"error": "ruta no existe"})
         if not lucy_llave_valida(self.headers.get("X-Personas-Lectura-Llave"), LLAVE_PERSONAS_LECTURA):

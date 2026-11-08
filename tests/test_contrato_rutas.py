@@ -9,8 +9,8 @@ La foto de referencia es `contrato_dorado/contrato.json` (sacada de la App). Est
       llave de Mercadeo: y no se lee NocoDB.
   R3b con la variable llena, las cuatro rutas de Registro dan 401 sin cabecera, con una llave mala y con la llave de
       Mercadeo puesta en la cabecera de Registro; y no se lee NocoDB.
-  R3c con la llave de Registro, las cuatro rutas contestan (no 401); credito y buscar dan 200. creditos-vivos da 502 con
-      este doble, porque el doble no sabe el operador `gt` que pide la ruta (límite del doble, no de la ruta).
+  R3c con la llave de Registro, las cuatro rutas contestan (no 401); credito, buscar y creditos-vivos dan 200 (el doble sabe `gt`
+      desde el paso 5c, parte 2).
   L1  con `PERSONAS_LECTURA_LLAVE` vacía, TODAS las rutas de Mercadeo (sacadas de `servidor.LECTURA_POST`) y `config` dan 401
       sin cabecera y con cabecera vacía, y no se lee NocoDB.
 
@@ -149,9 +149,9 @@ class ElRegistroTieneSuLlave(unittest.TestCase):
             self.assertNotEqual(codigo, 401, nombre)
         self.assertEqual(_pedir_registro(self.puerto, RUTAS_REGISTRO[0][1], RUTAS_REGISTRO[0][2], LLAVE_REGISTRO)[0], 200)
         self.assertEqual(_pedir_registro(self.puerto, RUTAS_REGISTRO[1][1], RUTAS_REGISTRO[1][2], LLAVE_REGISTRO)[0], 200)
-        # creditos-vivos pide `credito > 0` (operador `gt`), y el doble de la App no sabe `gt`: contesta 500 y el servidor
-        # lo dice como 502. Es el límite del doble, no de la ruta; por eso aquí no se afirma un 200.
-        self.assertEqual(_pedir_registro(self.puerto, RUTAS_REGISTRO[3][1], RUTAS_REGISTRO[3][2], LLAVE_REGISTRO)[0], 502)
+        # creditos-vivos pide `credito > 0` (operador `gt`). Hasta el paso 5c, parte 2, el doble no sabía `gt` y esta prueba afirmaba
+        # un 502 (límite del doble). Ahora el doble compara números (`gt`, `gte`, `lt`, `lte`) y la ruta contesta 200.
+        self.assertEqual(_pedir_registro(self.puerto, RUTAS_REGISTRO[3][1], RUTAS_REGISTRO[3][2], LLAVE_REGISTRO)[0], 200)
 
 
 class ElRegistroConLaVariableVacia(unittest.TestCase):
