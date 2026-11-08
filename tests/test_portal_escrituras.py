@@ -148,6 +148,29 @@ def _correr_escenario(escenario, pasos):
                    caidas_una_vez=escenario.get("caidas_una_vez", ()), union=escenario.get("union", False))
 
 
+def _acciones_con_aviso():
+    """{acción: (función que la hace, modo, estado)} para las acciones de `_ejecutar` que llaman a `_con_el_aviso_marcado`, sacado del
+    AST de `personas_portal_escritura.py`: la acción es la rama `if nombre == "<acción>"`; la función, la que llama esa rama; el modo y el
+    estado, los argumentos constantes de la llamada a `_con_el_aviso_marcado` dentro de esa función."""
+    arbol = ast.parse((RAIZ / "personas_portal_escritura.py").read_text(encoding="utf-8"))
+    funciones = {n.name: n for n in arbol.body if isinstance(n, ast.FunctionDef)}
+    por_funcion = {}
+    for nombre, nodo in funciones.items():
+        for x in ast.walk(nodo):
+            if isinstance(x, ast.Call) and isinstance(x.func, ast.Name) and x.func.id == "_con_el_aviso_marcado":
+                por_funcion[nombre] = (x.args[1].value, x.args[2].value)
+    salida = {}
+    for x in ast.walk(funciones["_ejecutar"]):
+        if isinstance(x, ast.If) and isinstance(x.test, ast.Compare) and isinstance(x.test.left, ast.Name) and x.test.left.id == "nombre":
+            comparado = x.test.comparators[0]
+            acciones_de_la_rama = [e.value for e in comparado.elts] if isinstance(comparado, ast.Tuple) else [comparado.value]
+            for y in ast.walk(x):
+                if isinstance(y, ast.Call) and isinstance(y.func, ast.Name) and y.func.id in por_funcion:
+                    for accion in acciones_de_la_rama:
+                        salida[accion] = (y.func.id,) + por_funcion[y.func.id]
+    return salida
+
+
 class EscriturasDelPortalEnElPrograma(unittest.TestCase):
 
     @classmethod
@@ -437,14 +460,17 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
     # ---- Q: el quien de la cabecera -----------------------------------------------------------------------------------
 
     def test_Q1_cada_funcion_recibe_el_quien_de_la_cabecera_y_no_el_del_cuerpo(self):
-        """Espías que solo miran los argumentos (no escriben). Crear, editar, permiso, resolver y reabrir reciben `quien` como último
-        argumento. Unir y deshacer lo reciben (unir como 5.º, deshacer como 2.º). Continuar NO recibe `quien` (como la App); su aviso
-        de «Por resolver», que sí lo lleva (`marcar_aviso_de_la_union`), lo recibe de la cabecera. El `quien` del cuerpo no cuenta."""
+        """Espías que solo miran los argumentos (no escriben) y guardan CADA llamada. Por cada ruta de la tabla se corre el pedido y se
+        mira lo que llegó en ese pedido. Crear, editar, permiso, resolver y reabrir reciben `quien` como último argumento; unir y deshacer
+        lo reciben (unir como 5.º, deshacer como 2.º); continuar NO recibe `quien` (como la App). El aviso de «Por resolver»
+        (`_con_el_aviso_marcado`) recibe el `quien` de la cabecera en CADA acción que lo llama: las acciones y sus argumentos (modo,
+        estado) salen de `_acciones_con_aviso()`, que lee el AST de `personas_portal_escritura.py`, no de una lista tecleada.
+        El `quien` del cuerpo no cuenta."""
         recibidos = {}
 
         def espia(nombre, devuelve):
             def f(*args, **kwargs):
-                recibidos[nombre] = (args, kwargs)
+                recibidos.setdefault(nombre, []).append((args, kwargs))
                 return devuelve
             return f
         parches = [
@@ -455,28 +481,42 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
             mock.patch.object(personas, "unir_fichas", espia("unir", (200, {"estado": "unida"}))),
             mock.patch.object(personas, "continuar_union", espia("continuar", (200, {"estado": "unida"}))),
             mock.patch.object(personas, "deshacer_union", espia("deshacer", (200, {"estado": "deshecha"}))),
-            mock.patch.object(personas, "marcar_aviso_de_la_union", espia("aviso", {"clave": AVISO_DE_PRUEBA, "marcado": True})),
+            mock.patch.object(personas_portal_escritura, "_con_el_aviso_marcado",
+                              espia("aviso", {"clave": AVISO_DE_PRUEBA, "marcado": True})),
         ]
+        por_ruta = {}
         for p in parches:
             p.start()
         try:
             for patron, (nombre, _tipo, _exige) in servidor.PORTAL_ESCRITURA.items():
+                recibidos.clear()
                 cuerpo = dict(cuerpo_de(nombre), quien="Otra Persona")
                 ruta = muestra(patron)
                 crudo = json.dumps(cuerpo).encode("utf-8")
                 grupos = () if nombre in ("crear", "resolver", "reabrir") else ("2",)
                 personas_portal_escritura.responder(nombre, ruta, grupos, crudo, QUIEN)
+                por_ruta[nombre] = {k: list(v) for k, v in recibidos.items()}
         finally:
             for p in parches:
                 p.stop()
-        self.assertEqual(recibidos["crear"][0][-1], QUIEN)
-        self.assertEqual(recibidos["editar"][0][-1], QUIEN)
-        self.assertEqual(recibidos["permiso"][0][-1], QUIEN)
-        self.assertEqual(recibidos["resolver"][0][-1], QUIEN)
-        self.assertEqual(recibidos["unir"][0][4], QUIEN, "unir_fichas(ficha, otra, resoluciones, clave, quien, ...)")
-        self.assertEqual(recibidos["deshacer"][0][1], QUIEN, "deshacer_union(ficha, quien, ...)")
-        self.assertEqual(recibidos["continuar"], ((2,), {}), "continuar_union(ficha): la App no le pasa quien")
-        self.assertEqual(recibidos["aviso"][0][3], QUIEN, "el aviso de «Por resolver» lleva el quien de la cabecera")
+        self.assertEqual(por_ruta["crear"]["crear"][0][0][-1], QUIEN)
+        self.assertEqual(por_ruta["editar"]["editar"][0][0][-1], QUIEN)
+        self.assertEqual(por_ruta["permiso"]["permiso"][0][0][-1], QUIEN)
+        self.assertEqual(por_ruta["resolver"]["resolver"][0][0][-1], QUIEN)
+        self.assertEqual(por_ruta["unir"]["unir"][0][0][4], QUIEN, "unir_fichas(ficha, otra, resoluciones, clave, quien, ...)")
+        self.assertEqual(por_ruta["deshacer"]["deshacer"][0][0][1], QUIEN, "deshacer_union(ficha, quien, ...)")
+        self.assertEqual(por_ruta["continuar"]["continuar"], [((2,), {})], "continuar_union(ficha): la App no le pasa quien")
+        acciones = _acciones_con_aviso()
+        self.assertEqual(set(acciones), {"unir", "continuar", "deshacer"}, "las acciones que marcan aviso, sacadas del AST de _ejecutar")
+        for accion, (_funcion, modo, estado) in sorted(acciones.items()):
+            with self.subTest(accion=accion):
+                llamadas = por_ruta[accion].get("aviso", [])
+                self.assertEqual(len(llamadas), 1, "la acción %s tiene que marcar el aviso una vez" % accion)
+                (args, _kwargs) = llamadas[0]
+                self.assertEqual(args[0], AVISO_DE_PRUEBA, "el aviso que llega es el del cuerpo")
+                self.assertEqual(args[1], modo, "modo del aviso, del AST")
+                self.assertEqual(args[2], estado, "estado del aviso, del AST")
+                self.assertEqual(args[5], QUIEN, "el aviso de «Por resolver» lleva el quien de la cabecera")
 
     def test_Q2_el_nombre_en_utf8_llega_entero(self):
         self.assertEqual(servidor.quien_de_la_cabecera("Ana PÃ©rez"), "Ana Pérez")
