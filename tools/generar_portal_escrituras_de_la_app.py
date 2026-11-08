@@ -6,8 +6,9 @@ Uso:  python3 -B tools/generar_portal_escrituras_de_la_app.py <carpeta de una co
 
 Dos cosas salen de la App:
   1. `rutas_de_la_app`: las rutas POST del portal que atiende `Handler.portal_personas_post` (AST del `server.py` de la App:
-     `path == X`, `path in (X, Y)`, `re.fullmatch(X, path)`). Son las rutas que la App CONTESTA; la prueba CP3 las compara con
-     `servidor.PORTAL_ESCRITURA` más `servidor.PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`.
+     `path == X`, `path in (X, Y)`, `re.fullmatch(X, path)`). Son las rutas que la App CONTESTA; la prueba K0 las compara con
+     `servidor.escrituras_del_portal()` más `servidor.PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`. Desde la parte 7, `rutas_checkin_de_la_app`
+     trae las rutas POST y PATCH de `/api/personas` que leen `do_POST` y `do_PATCH` de la App (AST, solo literales).
   2. `escenarios`: las respuestas de la App a los pasos de `tests/escenarios_portal_escrituras.py` (solo los de dorado). La App se
      corre en UN proceso por escenario, con su `Handler.portal_personas` (el mismo despacho que usa `do_POST`, que incluye el
      `una_vez`, el 400 por cuerpo ilegible y los 500 con sus textos) y un objeto de prueba que hace de handler: se le ponen las
@@ -41,6 +42,7 @@ DRIVER = (
     "import base64, io, json, os, sys, types\n"
     "sys.path.insert(0, os.getcwd())\n"
     "import server\n"
+    "server.puerta = types.SimpleNamespace(buscar=lambda *a, **k: None)\n"   # la puerta de programas: no es parte de estas respuestas
     "class Pedido(server.Handler):\n"
     "    def __init__(self, ruta, quien, datos):\n"
     "        self.path = ruta\n"
@@ -58,6 +60,20 @@ DRIVER = (
     "        pass\n"
     "    def veredicto(self):\n"
     "        return types.SimpleNamespace(entra=True, es_admin=True)\n"
+    # Parte 7: las guardas de `do_POST` y `do_PATCH` (sesión, freno, alcance, conteo, cuerpo) no son parte de la respuesta de las rutas de
+    # sesión: se dan por buenas aquí, como la puerta de sesión de `portal_personas`.
+    "    def parse(self):\n"
+    "        return self.path, {}\n"
+    "    def cuerpo_rechazado(self, path):\n"
+    "        return False\n"
+    "    def frenado(self, path):\n"
+    "        return False\n"
+    "    def fuera_de_alcance(self, path, metodo):\n"
+    "        return False\n"
+    "    def falta_el_conteo(self, path, metodo):\n"
+    "        return False\n"
+    "    def autorizado(self):\n"
+    "        return True\n"
     "    def puede_borrar_fichas(self):\n"
     "        return True\n"   # parte 5: la puerta de permiso (`puede_borrar_fichas`) no se copia: se da por buena, como la de sesión
     "    def firma_escrita(self, tecleado=''):\n"
@@ -69,7 +85,12 @@ DRIVER = (
     "    p = Pedido(paso['ruta'], paso['quien'], base64.b64decode(paso['datos_b64']))\n"
     "    server.estrenar_la_cuenta_de_escrituras()\n"
     "    server.estrenar_el_historial_del_pedido(p.quien_del_cambio)\n"
-    "    server.Handler.portal_personas(p, paso['ruta'], {}, 'POST')\n"
+    "    if paso['metodo'] == 'PATCH':\n"
+    "        server.Handler.do_PATCH(p)\n"
+    "    elif paso['ruta'].startswith('/api/portal-personas'):\n"
+    "        server.Handler.portal_personas(p, paso['ruta'], {}, 'POST')\n"
+    "    else:\n"
+    "        server.Handler.do_POST(p)\n"
     "    cuerpo = json.loads(p.wfile.getvalue().decode('utf-8'))\n"
     "    sys.stdout.write('PASO ' + json.dumps({'status': p.codigo, 'respuesta': cuerpo}, ensure_ascii=False) + '\\n')\n"
     "    sys.stdout.flush()\n"
@@ -104,6 +125,37 @@ def rutas_post_de_la_app(copia):
     return [{"patron": p, "exacta": not regex} for p, regex in sorted(rutas.items())]
 
 
+def rutas_checkin_de_la_app(copia):
+    """Las rutas de SESIÓN (check-in) que `Handler.do_POST` y `Handler.do_PATCH` atienden, leídas con AST: `[{"verbo", "patron",
+    "exacta"}]`, solo las que empiezan por `/api/personas` y son literales (`path == "..."` y `re.fullmatch(r"...", path)`)."""
+    arbol = ast.parse((copia / "server.py").read_text(encoding="utf-8"))
+    constantes = {"server": {}, "personas": {}}
+    for nodo in arbol.body:
+        if isinstance(nodo, ast.Assign) and len(nodo.targets) == 1 and isinstance(nodo.targets[0], ast.Name):
+            constantes["server"][nodo.targets[0].id] = nodo.value
+    clase = [n for n in arbol.body if isinstance(n, ast.ClassDef) and n.name == "Handler"]
+    if len(clase) != 1:
+        raise SystemExit("no se encontró la clase Handler en server.py de la App")
+    rutas = {}
+    for verbo, nombre_metodo in (("POST", "do_POST"), ("PATCH", "do_PATCH")):
+        metodos = [n for n in clase[0].body if isinstance(n, ast.FunctionDef) and n.name == nombre_metodo]
+        if len(metodos) != 1:
+            raise SystemExit("no se encontró %s en la App" % nombre_metodo)
+        for nodo in ast.walk(metodos[0]):
+            if isinstance(nodo, ast.Compare) and isinstance(nodo.left, ast.Name) and nodo.left.id == "path" and len(nodo.ops) == 1 \
+                    and isinstance(nodo.ops[0], ast.Eq) and isinstance(nodo.comparators[0], ast.Constant):
+                ruta = nodo.comparators[0].value
+                if ruta.startswith("/api/personas"):
+                    rutas[(verbo, ruta, True)] = True
+            if isinstance(nodo, ast.Call) and isinstance(nodo.func, ast.Attribute) and nodo.func.attr == "fullmatch" \
+                    and len(nodo.args) == 2 and isinstance(nodo.args[1], ast.Name) and nodo.args[1].id == "path" \
+                    and isinstance(nodo.args[0], ast.Constant):
+                ruta = nodo.args[0].value
+                if ruta.startswith("/api/personas"):
+                    rutas[(verbo, ruta, False)] = True
+    return [{"verbo": v, "patron": p, "exacta": e} for (v, p, e) in sorted(rutas)]
+
+
 def exitos_de_la_app(copia):
     """El predicado `exito` de cada `una_vez` de `Handler.portal_personas_post` (AST): qué respuestas se recuerdan como envío hecho."""
     arbol = ast.parse((copia / "server.py").read_text(encoding="utf-8"))
@@ -115,8 +167,18 @@ def exitos_de_la_app(copia):
             for kw in nodo.keywords:
                 if kw.arg == "exito":
                     salida[nodo.args[0].value] = ast.unparse(kw.value.body)
-    if set(salida) != {"portal-persona-editar", "portal-persona-crear"}:
-        raise SystemExit("no se encontraron los dos `exito` de la App: %s" % sorted(salida))
+    # Parte 7: el `una_vez("persona")` de `POST /api/personas` (check-in) no lleva `exito`: lo que recuerda es la ficha creada (la App
+    # solo tira la excepción cuando no escribe). Se guarda como `null`, y X1 lo compara con el programa.
+    do_post = [n for n in clase.body if isinstance(n, ast.FunctionDef) and n.name == "do_POST"]
+    if len(do_post) != 1:
+        raise SystemExit("no se encontró do_POST en la App")
+    for nodo in ast.walk(do_post[0]):
+        if isinstance(nodo, ast.Call) and isinstance(nodo.func, ast.Attribute) and nodo.func.attr == "una_vez" \
+                and nodo.args and isinstance(nodo.args[0], ast.Constant) and nodo.args[0].value == "persona":
+            exitos = [ast.unparse(kw.value.body) for kw in nodo.keywords if kw.arg == "exito"]
+            salida["persona"] = exitos[0] if exitos else None
+    if set(salida) != {"portal-persona-editar", "portal-persona-crear", "persona"}:
+        raise SystemExit("no se encontraron los `exito` de la App: %s" % sorted(salida))
     return salida
 
 
@@ -138,7 +200,7 @@ def correr_escenario(copia, pasos, caidas, caidas_una_vez=(), union=False, entor
     }
     entorno.update(entorno_extra or {})
     entrada = "".join(json.dumps({
-        "ruta": p["ruta"], "quien": p["quien"],
+        "ruta": p["ruta"], "quien": p["quien"], "metodo": p.get("metodo", "POST"),
         "datos_b64": base64.b64encode(esc.datos_del_paso(p)).decode("ascii")}, ensure_ascii=False) + "\n" for p in pasos)
     proceso = subprocess.Popen([sys.executable, "-I", "-B", "-c", DRIVER], cwd=str(copia), env=entorno, stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8")
@@ -180,7 +242,8 @@ def main():
                                       union=escenario.get("union", False), entorno_extra=escenario.get("entorno"))
         escenarios_foto.append({"nombre": escenario["nombre"], "caidas": list(escenario.get("caidas", ())),
                                 "caidas_una_vez": list(escenario.get("caidas_una_vez", ())), "pasos": [
-            dict({"ruta": p["ruta"], "quien": p["quien"]}, **({"crudo": p["crudo"]} if "crudo" in p else {"cuerpo": p["cuerpo"]}),
+            dict({"ruta": p["ruta"], "quien": p["quien"], "metodo": p.get("metodo", "POST")},
+                 **({"crudo": p["crudo"]} if "crudo" in p else {"cuerpo": p["cuerpo"]}),
                  **r) for p, r in zip(pasos, resultados)]})
     foto = {
         "version": 1,
@@ -188,6 +251,7 @@ def main():
                   "rutas_de_la_app), con su `portal_personas` (sin la puerta de sesión) y las funciones de personas.py de la App. "
                   "Datos del doble tests/doble_nocodb.py y tests/doble_escrituras.py.",
         "rutas_de_la_app": rutas_post_de_la_app(copia),
+        "rutas_checkin_de_la_app": rutas_checkin_de_la_app(copia),
         "exito_de_la_app": exitos_de_la_app(copia),
         "candado_de_la_app": candado_de_la_app_en_la_foto(copia),
         "escenarios": escenarios_foto,
