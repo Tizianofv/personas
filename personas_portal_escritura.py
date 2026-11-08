@@ -20,6 +20,10 @@ Lo que cada acción hace (las funciones son las de `personas.py`, copia de la Ap
   deshacer  `personas.deshacer_union(ficha, quien, union_visto, sobra_esperada)`, SIN `una_vez`
   borrar    `personas.quitar_ficha(ficha, clave, quien)` (parte 5). La clave del cuerpo; SIN `una_vez`
   devolver  `personas.devolver_ficha(ficha, quien)` (parte 5), SIN `una_vez`. Ninguna de las dos mira `puede_borrar_fichas`: lo mira la App
+  crear_checkin   `personas_escrituras.crear_persona(cuerpo)` con `una_vez` («persona», sin `exito`: como la App, la ficha recordada es la que
+                  nació); la respuesta es la de `do_POST` de la App (parte 7, tipo C). SIN `quien`: la App no lo escribe.
+  editar_checkin  `personas_escrituras.editar_persona(id, cuerpo)`, SIN `una_vez` (la App tampoco): la respuesta es la de `do_PATCH`
+                  (parte 7, tipo C). SIN `quien`.
 
 Las tres de unión, como `Handler.portal_personas_post` de la App: validan el cuerpo (400 con sus textos), leen la clave del aviso
 (`aviso`) y, si la unión o el deshacer salen bien, marcan el aviso (`_con_el_aviso_marcado`, copia de `Handler.con_el_aviso_marcado`).
@@ -36,6 +40,7 @@ import time
 
 import base
 import personas
+import personas_escrituras
 
 ERROR_ILEGIBLE = "El pedido llegó ilegible. No se guardó nada."
 ERROR_SIN_CONFIRMAR = ("Algo falló en el servidor y no se pudo confirmar si quedó guardado. NO lo des por guardado: abre la ficha de "
@@ -153,7 +158,46 @@ def _deshacer(ficha, cuerpo, quien):
     return codigo, _con_el_aviso_marcado(aviso, "deshacer", "deshecha", codigo, datos, quien)
 
 
+# Parte 7: las dos escrituras de SESIÓN (check-in, tipo C). Sus errores no son los del portal: los de `do_POST` y `do_PATCH` de la App.
+ACCIONES_DE_SESION = ("crear_checkin", "editar_checkin")
+
+
+def _leer_o_minimo(ruta, campos, minimo):
+    """Copia de `leer_o_minimo` de la App: si la RELECTURA de la ficha recién escrita falla, devuelve lo que ya se sabe de lo escrito. Una
+    lectura que falla después de escribir no convierte un guardado en un error (el mostrador repetiría y se duplicaría)."""
+    try:
+        return base.nc("GET", ruta, query={"fields": campos})
+    except Exception:  # noqa: BLE001 — como la App: el aviso va al log de la App; aquí no se escribe nada
+        return dict(minimo)
+
+
+def _respuesta_de_crear_checkin(datos, rec, repetido):
+    """Copia del tramo de `POST /api/personas` de `Handler.do_POST` (App `594ec12`, líneas 17043-17060): 502 si la ficha nació y no se
+    confirmó; si no, 201 con la ficha releída (o la mínima) y `ya_guardado` cuando el envío se repitió; `avisos` aparte si los hay."""
+    if rec.get("_sin_confirmar"):
+        return 502, rec["_sin_confirmar"]
+    avisos = rec.get("avisos")
+    persona = rec.get("_releida") or _leer_o_minimo(
+        "/api/v2/tables/%s/records/%s" % (base.T_PERSONAS, rec["Id"]), personas.PERSONA_FIELDS,
+        dict({k: v for k, v in rec.items() if k not in ("avisos", "_releida")},
+             nombre=(datos.get("nombre") or "").strip(), telefono=(datos.get("telefono") or "").strip()))
+    salida = {"persona": persona}                  # `respuesta_una_vez` de la App
+    if repetido:
+        salida["ya_guardado"] = True
+    if avisos:
+        salida = dict(salida, avisos=avisos)
+    return 201, salida
+
+
 def _ejecutar(nombre, ruta, grupos, cuerpo, quien):
+    if nombre == "crear_checkin":
+        rec, repetido = una_vez("persona", ruta, cuerpo, lambda: personas_escrituras.crear_persona(cuerpo))
+        return _respuesta_de_crear_checkin(cuerpo, rec, repetido)
+    if nombre == "editar_checkin":
+        # Copia de `do_PATCH` de la App (línea 17487): sin `una_vez`; `avisos` van aparte de la ficha.
+        persona = personas_escrituras.editar_persona(int(grupos[0]), cuerpo)
+        avisos = persona.pop("avisos", None)
+        return 200, dict({"persona": persona}, **({"avisos": avisos} if avisos else {}))
     if nombre == "unir":
         return _unir(int(grupos[0]), cuerpo, quien)
     if nombre == "continuar":
@@ -192,8 +236,24 @@ def _error_inesperado():
     return 500, {"error": ERROR_ANTES_DE_GUARDAR}
 
 
+def _responder_de_sesion(nombre, ruta, grupos, crudo):
+    """Las escrituras de SESIÓN (check-in, tipo C), con los errores de `do_POST` y `do_PATCH` de la App: un `ValueError` (también el JSON
+    ilegible, que la App lee con `read_json`) da 400 con su texto; `PersonaRechazada` da su código y sus datos; cualquier otro error da 500
+    con `str(e)`, como `do_POST` de la App. Sin `quien`."""
+    try:
+        return _ejecutar(nombre, ruta, grupos, leer_cuerpo(crudo), None)
+    except personas_escrituras.PersonaRechazada as e:
+        return e.codigo, e.datos
+    except ValueError as e:
+        return 400, {"error": str(e)}
+    except Exception as e:  # noqa: BLE001 — como la App: el texto de la excepción llega a la pantalla
+        return 500, {"error": str(e)}
+
+
 def responder(nombre, ruta, grupos, crudo, quien):
     """Corre la escritura `nombre` y devuelve `(código, cuerpo)`, con los mismos errores que la App (ver la docstring del módulo)."""
+    if nombre in ACCIONES_DE_SESION:
+        return _responder_de_sesion(nombre, ruta, grupos, crudo)
     try:
         cuerpo = leer_cuerpo(crudo)
         return _ejecutar(nombre, ruta, grupos, cuerpo, quien)

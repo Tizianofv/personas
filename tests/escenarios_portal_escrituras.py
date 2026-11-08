@@ -57,8 +57,8 @@ ENTORNO_BASE = {
 ENTORNO_MINIMO = {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8"}
 
 
-def _p(ruta, cuerpo=None, crudo=None, llave="portal", quien=QUIEN_DORADO, tipo="A", nombre=None):
-    paso = {"ruta": ruta, "llave": llave, "quien": quien, "tipo": tipo}
+def _p(ruta, cuerpo=None, crudo=None, llave="portal", quien=QUIEN_DORADO, tipo="A", nombre=None, metodo="POST"):
+    paso = {"ruta": ruta, "llave": llave, "quien": quien, "tipo": tipo, "metodo": metodo}
     if crudo is not None:
         paso["crudo"] = crudo
     else:
@@ -346,9 +346,59 @@ ESCENARIOS.extend(ESCENARIOS_BORRAR)
 # Pasos que la App no contesta igual (no tiene identidad): ver `es_dorado`.
 
 
+# Parte 7: los pasos de SESIÓN (check-in) llevan tipo «C». Un paso es dorado si su tipo es el de su ruta (`tipo_de_ruta`, «A» por defecto),
+# así un paso de tipo «A» en una ruta «C» no entra en la foto (es un caso de I1, no de la App).
+def _c(ruta, cuerpo=None, crudo=None, llave="portal", quien=QUIEN_DORADO, metodo="POST", nombre=None):
+    """Un paso de sesión (check-in, tipo «C»): `_p` con el tipo de la ruta y el verbo."""
+    paso = _p(ruta, cuerpo=cuerpo, crudo=crudo, llave=llave, quien=quien, tipo="C", nombre=nombre, metodo=metodo)
+    paso["tipo_de_ruta"] = "C"
+    return paso
+
+
 def es_dorado(paso):
-    """¿Este paso se compara con la App? Solo con llave del portal, identidad (quien no vacío) y tipo «A»."""
-    return paso.get("llave") == "portal" and bool(paso.get("quien")) and paso.get("tipo") == "A"
+    """¿Este paso se compara con la App? Solo con llave del portal, identidad (quien no vacío) y el tipo que pide su ruta («A» en el
+    portal, «C» en el check-in)."""
+    return paso.get("llave") == "portal" and bool(paso.get("quien")) and paso.get("tipo") == paso.get("tipo_de_ruta", "A")
+
+
+# Parte 7 (check-in, tipo «C»): crear (POST /api/personas) y editar (PATCH /api/personas/<id>). Cada código que da crear tiene un par de
+# envíos con la misma clave (la regla de «envío hecho» de la App, `una_vez("persona")`). Editar no lleva `clave_envio`: la App no la usa.
+RUTA_CHECKIN = "/api/personas"
+RUTA_CHECKIN_EDITAR = "/api/personas/2"
+ESCENARIOS_CHECKIN = [
+    {"nombre": "checkin_crear_ok", "pasos": [
+        _c(RUTA_CHECKIN, {"nombre": "Checkin Uno", "telefono": "8095550401", "clave_envio": "envio-ck-1"}),
+        _c(RUTA_CHECKIN, {"nombre": "Checkin Uno", "telefono": "8095550401", "clave_envio": "envio-ck-1"})]},
+    {"nombre": "checkin_crear_cuerpo_distinto", "pasos": [
+        _c(RUTA_CHECKIN, {"nombre": "Checkin Dos", "telefono": "8095550402", "clave_envio": "envio-ck-2"}),
+        _c(RUTA_CHECKIN, {"nombre": "Checkin Tres", "clave_envio": "envio-ck-2"})]},
+    {"nombre": "checkin_crear_fallo", "caidas_una_vez": ["POST"], "pasos": [
+        _c(RUTA_CHECKIN, {"nombre": "Checkin Cuatro", "telefono": "8095550404", "clave_envio": "envio-ck-3"}),
+        _c(RUTA_CHECKIN, {"nombre": "Checkin Cuatro", "telefono": "8095550404", "clave_envio": "envio-ck-3"})]},
+    {"nombre": "checkin_crear_400", "pasos": [
+        _c(RUTA_CHECKIN, {"nombre": "", "clave_envio": "envio-ck-400"}),
+        _c(RUTA_CHECKIN, {"nombre": "", "clave_envio": "envio-ck-400"})]},
+    {"nombre": "checkin_crear_409", "pasos": [
+        _c(RUTA_CHECKIN, {"nombre": "Checkin Repetido", "telefono": "18097770001", "clave_envio": "envio-ck-409"}),
+        _c(RUTA_CHECKIN, {"nombre": "Checkin Repetido", "telefono": "18097770001", "clave_envio": "envio-ck-409"})]},
+    {"nombre": "checkin_crear_lectura_caida", "caidas": ["GET"], "pasos": [
+        _c(RUTA_CHECKIN, {"nombre": "Checkin Caido", "telefono": "8095550405", "clave_envio": "envio-ck-500"}),
+        _c(RUTA_CHECKIN, {"nombre": "Checkin Caido", "telefono": "8095550405", "clave_envio": "envio-ck-500"})]},
+    {"nombre": "checkin_crear_ilegible", "pasos": [_c(RUTA_CHECKIN, crudo="{")]},
+    {"nombre": "checkin_crear_lista", "pasos": [_c(RUTA_CHECKIN, [1, 2])]},
+    {"nombre": "checkin_crear_sin_cuerpo", "pasos": [_c(RUTA_CHECKIN, crudo="")]},
+    {"nombre": "checkin_editar_ok", "pasos": [_c(RUTA_CHECKIN_EDITAR, {"instagram": "checkin_dos"}, metodo="PATCH")]},
+    {"nombre": "checkin_editar_nombre_vacio", "pasos": [_c(RUTA_CHECKIN_EDITAR, {"nombre": ""}, metodo="PATCH")]},
+    {"nombre": "checkin_editar_telefono_repetido", "pasos": [_c(RUTA_CHECKIN_EDITAR, {"telefono": "18097770001"}, metodo="PATCH")]},
+    {"nombre": "checkin_editar_ilegible", "pasos": [_c(RUTA_CHECKIN_EDITAR, crudo="x", metodo="PATCH")]},
+    {"nombre": "checkin_editar_caida", "caidas": ["PATCH"], "pasos": [_c(RUTA_CHECKIN_EDITAR, {"instagram": "checkin_caido"}, metodo="PATCH")]},
+    {"nombre": "checkin_editar_lectura_caida", "caidas": ["GET"], "pasos": [
+        _c(RUTA_CHECKIN_EDITAR, {"instagram": "checkin_lectura"}, metodo="PATCH")]},
+    {"nombre": "checkin_editar_sin_ficha", "pasos": [_c("/api/personas/99", {"instagram": "x"}, metodo="PATCH")]},
+]
+ESCENARIOS.extend(ESCENARIOS_CHECKIN)
+
+
 
 
 AHORA = "<ahora>"
@@ -419,7 +469,7 @@ def datos_del_paso(paso):
 
 def _pedir(puerto, paso):
     datos = datos_del_paso(paso)
-    req = urllib.request.Request("http://127.0.0.1:%d%s" % (puerto, paso["ruta"]), data=datos, method="POST",
+    req = urllib.request.Request("http://127.0.0.1:%d%s" % (puerto, paso["ruta"]), data=datos, method=paso.get("metodo", "POST"),
                                  headers=cabeceras_del_paso(paso))
     try:
         with urllib.request.urlopen(req, timeout=60) as r:

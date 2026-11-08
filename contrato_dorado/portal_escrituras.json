@@ -27,6 +27,7 @@
               "telefono": "8095550201"
             }
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -409,6 +410,7 @@
               "nombre": "Portal Dos"
             }
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -790,6 +792,7 @@
             },
             "clave_envio": "envio-crear-1"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -1172,6 +1175,7 @@
             },
             "clave_envio": "envio-crear-1"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -1472,6 +1476,7 @@
             },
             "clave_envio": "envio-crear-1"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -1859,6 +1864,7 @@
               "nombre": "x"
             }
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -1876,6 +1882,7 @@
               "nombre": 5
             }
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -1890,6 +1897,7 @@
               "telefono": "8095550202"
             }
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -1913,6 +1921,7 @@
               "telefono": "12"
             }
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -1936,6 +1945,7 @@
               "telefono": "18097770001"
             }
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -1970,6 +1980,7 @@
           "cuerpo": {
             "sin_cambios": true
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -1983,6 +1994,7 @@
             1,
             2
           ],
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -1993,6 +2005,7 @@
         },
         {
           "crudo": "{",
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -2003,6 +2016,7 @@
         },
         {
           "crudo": "",
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -2029,6 +2043,7 @@
               "telefono": "8095550201"
             }
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -2062,6 +2077,7 @@
               "telefono": "8095550201"
             }
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -2120,6 +2136,7 @@
             "clave_envio": "envio-editar-1",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -2530,6 +2547,7 @@
             "clave_envio": "envio-editar-1",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -2854,6 +2872,7 @@
             },
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -3231,6 +3250,7 @@
             },
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -3631,6 +3651,7 @@
             "cambios": {},
             "id": 1
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -3653,6 +3674,7 @@
             },
             "id": 3
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -3666,6 +3688,7 @@
             "cambios": "x",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -3681,6 +3704,7 @@
             },
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -3702,6 +3726,7 @@
             },
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -3720,6 +3745,7 @@
             },
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -3776,6 +3802,7 @@
             },
             "id": 99
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -3802,6 +3829,7 @@
         },
         {
           "crudo": "x",
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -3812,6 +3840,7 @@
         },
         {
           "crudo": "",
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -3841,6 +3870,7 @@
             },
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -3877,6 +3907,7 @@
             },
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -3932,6 +3963,7 @@
             "valor": "no",
             "visto": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4026,6 +4058,7 @@
             "valor": "si",
             "visto": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4089,6 +4122,7 @@
             "valor": "si",
             "visto": 3
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4190,6 +4224,7 @@
             "valor": "tal vez",
             "visto": 2
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -4204,6 +4239,7 @@
           "cuerpo": {
             "valor": "no"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -4220,6 +4256,7 @@
             "valor": "no",
             "visto": 2
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -4236,6 +4273,7 @@
             "valor": "no",
             "visto": 2
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -4251,6 +4289,7 @@
             "valor": "no",
             "visto": null
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4274,6 +4313,7 @@
         },
         {
           "crudo": "{",
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -4284,6 +4324,7 @@
         },
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -4308,6 +4349,7 @@
             "valor": "no",
             "visto": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4347,6 +4389,7 @@
             "valor": "no",
             "visto": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4446,6 +4489,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -4459,6 +4503,7 @@
           "cuerpo": {
             "clave": "x"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -4472,6 +4517,7 @@
           "cuerpo": {
             "clave": "resuelto-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4507,6 +4553,7 @@
           "cuerpo": {
             "clave": "aviso-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4532,6 +4579,7 @@
           "cuerpo": {
             "clave": "resuelto-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4567,6 +4615,7 @@
           "cuerpo": {
             "clave": "x"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -4578,6 +4627,7 @@
         },
         {
           "crudo": "{",
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -4599,6 +4649,7 @@
           "cuerpo": {
             "clave": "resuelto-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4622,6 +4673,7 @@
           "cuerpo": {
             "clave": "resuelto-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4663,6 +4715,7 @@
             "clave_envio": "envio-editar-fallo",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -4719,6 +4772,7 @@
             "clave_envio": "envio-editar-fallo",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -5135,6 +5189,7 @@
             },
             "clave_envio": "envio-crear-fallo"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -5183,6 +5238,7 @@
             },
             "clave_envio": "envio-crear-fallo"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -5579,6 +5635,7 @@
             "clave_envio": "envio-r-200",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -5989,6 +6046,7 @@
             "clave_envio": "envio-r-200",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -6319,6 +6377,7 @@
             "clave_envio": "envio-r-sc",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -6696,6 +6755,7 @@
             "clave_envio": "envio-r-sc",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -7080,6 +7140,7 @@
             "clave_envio": "envio-r-400",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -7099,6 +7160,7 @@
             "clave_envio": "envio-r-400",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -7125,6 +7187,7 @@
             "clave_envio": "envio-r-404",
             "id": 99
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -7160,6 +7223,7 @@
             "clave_envio": "envio-r-404",
             "id": 99
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -7202,6 +7266,7 @@
             "clave_envio": "envio-r-409",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -7259,6 +7324,7 @@
             "clave_envio": "envio-r-409",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -7322,6 +7388,7 @@
             },
             "clave_envio": "envio-r-c201"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -7708,6 +7775,7 @@
             },
             "clave_envio": "envio-r-c201"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -8015,6 +8083,7 @@
             },
             "clave_envio": "envio-r-c400"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -8030,6 +8099,7 @@
             },
             "clave_envio": "envio-r-c400"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -8053,6 +8123,7 @@
             },
             "clave_envio": "envio-r-c409"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -8091,6 +8162,7 @@
             },
             "clave_envio": "envio-r-c409"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -8136,6 +8208,7 @@
             },
             "clave_envio": "envio-r-c422"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -8160,6 +8233,7 @@
             },
             "clave_envio": "envio-r-c422"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -8196,6 +8270,7 @@
             "clave_envio": "envio-cd-e",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -8604,6 +8679,7 @@
             "clave_envio": "envio-cd-e",
             "id": 2
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -9015,6 +9091,7 @@
             },
             "clave_envio": "envio-cd-c"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -9399,6 +9476,7 @@
             },
             "clave_envio": "envio-cd-c"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -9787,6 +9865,7 @@
             },
             "quien": "Otra Persona"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -10171,6 +10250,7 @@
             "id": 2,
             "quien": "Otra Persona"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -10555,6 +10635,7 @@
             "clave": "union-prueba-0001",
             "otra": 12
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -10567,6 +10648,7 @@
         },
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -10579,6 +10661,7 @@
         },
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -10598,6 +10681,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -10612,6 +10696,7 @@
             "clave": "union-prueba-0001",
             "otra": "x"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -10627,6 +10712,7 @@
             "otra": 12,
             "resoluciones": "x"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -10642,6 +10728,7 @@
             "otra": 12,
             "queda": "x"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -10657,6 +10744,7 @@
             "clave": "union-prueba-0001",
             "otra": 12
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -10671,6 +10759,7 @@
             "clave": "union-prueba-0001",
             "otra": 11
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -10696,6 +10785,7 @@
             "clave": "union-prueba-0001",
             "otra": 99
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -10742,6 +10832,7 @@
           "cuerpo": {
             "otra": 12
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -10757,6 +10848,7 @@
             "clave": "x",
             "otra": 12
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -10769,6 +10861,7 @@
         },
         {
           "crudo": "{",
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -10791,6 +10884,7 @@
             "clave": "union-prueba-0001",
             "otra": 12
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -10826,6 +10920,7 @@
             "clave": "union-prueba-0001",
             "otra": 12
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -10975,6 +11070,7 @@
             "clave": "union-prueba-0001",
             "otra": 12
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -11334,6 +11430,7 @@
             "clave": "union-prueba-0001",
             "otra": 12
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -11371,6 +11468,7 @@
             "otra": 12,
             "queda": 12
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -11427,6 +11525,7 @@
             "clave": "union-prueba-0001",
             "otra": 12
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -11810,6 +11909,7 @@
             "clave": "union-prueba-0001",
             "otra": 12
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -12034,6 +12134,7 @@
         },
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -12276,6 +12377,7 @@
         },
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -12299,6 +12401,7 @@
         },
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -12471,6 +12574,7 @@
             "sobra": 12,
             "union": 1
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -12504,6 +12608,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -12529,6 +12634,7 @@
           "cuerpo": {
             "aviso": "no-es-clave"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -12540,6 +12646,7 @@
         },
         {
           "crudo": "{",
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -12559,6 +12666,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -12589,6 +12697,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -12614,6 +12723,7 @@
           "cuerpo": {
             "union": "x"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -12627,6 +12737,7 @@
           "cuerpo": {
             "sobra": "x"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -12640,6 +12751,7 @@
           "cuerpo": {
             "aviso": "no-es-clave"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -12651,6 +12763,7 @@
         },
         {
           "crudo": "{",
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -12670,6 +12783,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -12702,6 +12816,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -13083,6 +13198,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -13122,6 +13238,7 @@
         },
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -13222,6 +13339,7 @@
         },
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -13264,6 +13382,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -13433,6 +13552,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0002"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -13602,6 +13722,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0002"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -13776,6 +13897,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -13790,6 +13912,7 @@
           "cuerpo": {
             "clave": "x"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -13804,6 +13927,7 @@
           "cuerpo": {
             "clave": 7
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -13818,6 +13942,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -13858,6 +13983,7 @@
         },
         {
           "crudo": "{",
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -13877,6 +14003,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -13900,6 +14027,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -13934,6 +14062,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -14133,6 +14262,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -14496,6 +14626,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -14850,6 +14981,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -15067,6 +15199,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -15448,6 +15581,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -15482,6 +15616,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0001"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -15836,6 +15971,7 @@
           "cuerpo": {
             "clave": "borrado-prueba-0002"
           },
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -15876,6 +16012,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -15899,6 +16036,7 @@
         },
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -15930,6 +16068,7 @@
         },
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -15953,6 +16092,7 @@
         },
         {
           "crudo": "{",
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -15970,6 +16110,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
@@ -15989,6 +16130,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -16089,6 +16231,7 @@
         },
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -16131,6 +16274,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -16163,6 +16307,7 @@
       "pasos": [
         {
           "cuerpo": {},
+          "metodo": "POST",
           "pedidos": [
             {
               "cuerpo": null,
@@ -16216,13 +16361,817 @@
           "status": 502
         }
       ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_crear_ok",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-1",
+            "nombre": "Checkin Uno",
+            "telefono": "8095550401"
+          },
+          "metodo": "POST",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "nombre": "Checkin Uno",
+                "telefono": "18095550401"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<ahora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 5,
+                "quien": "sistema",
+                "valor": "checkin"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,nombre_whatsapp,telefono_2,instagram,email,email_2,instrumento,genero,Cumpleanos,notas,Posible_proveedor"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/5"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "persona": {
+              "Id": 5,
+              "nombre": "Checkin Uno",
+              "telefono": "18095550401"
+            }
+          },
+          "ruta": "/api/personas",
+          "status": 201
+        },
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-1",
+            "nombre": "Checkin Uno",
+            "telefono": "8095550401"
+          },
+          "metodo": "POST",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "persona": {
+              "Id": 5,
+              "nombre": "Checkin Uno",
+              "telefono": "18095550401"
+            },
+            "ya_guardado": true
+          },
+          "ruta": "/api/personas",
+          "status": 201
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_crear_cuerpo_distinto",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-2",
+            "nombre": "Checkin Dos",
+            "telefono": "8095550402"
+          },
+          "metodo": "POST",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "nombre": "Checkin Dos",
+                "telefono": "18095550402"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<ahora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 5,
+                "quien": "sistema",
+                "valor": "checkin"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,nombre_whatsapp,telefono_2,instagram,email,email_2,instrumento,genero,Cumpleanos,notas,Posible_proveedor"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/5"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "persona": {
+              "Id": 5,
+              "nombre": "Checkin Dos",
+              "telefono": "18095550402"
+            }
+          },
+          "ruta": "/api/personas",
+          "status": 201
+        },
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-2",
+            "nombre": "Checkin Tres"
+          },
+          "metodo": "POST",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "nombre": "Checkin Tres"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<ahora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 6,
+                "quien": "sistema",
+                "valor": "checkin"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,instagram,email,email_2,instrumento,genero,Cumpleanos,notas,Posible_proveedor"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/6"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "persona": {
+              "Id": 6,
+              "nombre": "Checkin Tres"
+            }
+          },
+          "ruta": "/api/personas",
+          "status": 201
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [
+        "POST"
+      ],
+      "nombre": "checkin_crear_fallo",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-3",
+            "nombre": "Checkin Cuatro",
+            "telefono": "8095550404"
+          },
+          "metodo": "POST",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "nombre": "Checkin Cuatro",
+                "telefono": "18095550404"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Algo falló mientras se guardaba, y no se puede confirmar si lo que mandaste quedó guardado. NO lo repitas todavía: abre la cuenta (o el pago, o la caja) y mira si ya aparece. Solo si no aparece, vuelve a hacerlo. Detalle técnico: NocoDB 500 en POST /api/v2/tables/mhh7qqeru2ez8q1/records: {\"msg\": \"doble: la base no contesta (una vez)\"}",
+            "sin_confirmar": true
+          },
+          "ruta": "/api/personas",
+          "status": 500
+        },
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-3",
+            "nombre": "Checkin Cuatro",
+            "telefono": "8095550404"
+          },
+          "metodo": "POST",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "nombre": "Checkin Cuatro",
+                "telefono": "18095550404"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<ahora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 5,
+                "quien": "sistema",
+                "valor": "checkin"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,nombre_whatsapp,telefono_2,instagram,email,email_2,instrumento,genero,Cumpleanos,notas,Posible_proveedor"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/5"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "persona": {
+              "Id": 5,
+              "nombre": "Checkin Cuatro",
+              "telefono": "18095550404"
+            }
+          },
+          "ruta": "/api/personas",
+          "status": 201
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_crear_400",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-400",
+            "nombre": ""
+          },
+          "metodo": "POST",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El nombre es obligatorio"
+          },
+          "ruta": "/api/personas",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-400",
+            "nombre": ""
+          },
+          "metodo": "POST",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El nombre es obligatorio"
+          },
+          "ruta": "/api/personas",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_crear_409",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-409",
+            "nombre": "Checkin Repetido",
+            "telefono": "18097770001"
+          },
+          "metodo": "POST",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "de": {
+              "Id": 1,
+              "nombre": "Persona de prueba 1"
+            },
+            "error": "Ese número ya es de otra persona: «Persona de prueba 1» (ficha n.º 1). No se creó nada. Búscala por ese número y regístrala a ella.",
+            "motivo": "telefono_repetido"
+          },
+          "ruta": "/api/personas",
+          "status": 409
+        },
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-409",
+            "nombre": "Checkin Repetido",
+            "telefono": "18097770001"
+          },
+          "metodo": "POST",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "de": {
+              "Id": 1,
+              "nombre": "Persona de prueba 1"
+            },
+            "error": "Ese número ya es de otra persona: «Persona de prueba 1» (ficha n.º 1). No se creó nada. Búscala por ese número y regístrala a ella.",
+            "motivo": "telefono_repetido"
+          },
+          "ruta": "/api/personas",
+          "status": 409
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "GET"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "checkin_crear_lectura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-500",
+            "nombre": "Checkin Caido",
+            "telefono": "8095550405"
+          },
+          "metodo": "POST",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo comprobar si ese número ya es de otra persona. No se creó nada. Inténtalo otra vez en un momento; si hay gente esperando, créala sin número y se lo pones después.",
+            "motivo": "no_se_pudo_comprobar"
+          },
+          "ruta": "/api/personas",
+          "status": 502
+        },
+        {
+          "cuerpo": {
+            "clave_envio": "envio-ck-500",
+            "nombre": "Checkin Caido",
+            "telefono": "8095550405"
+          },
+          "metodo": "POST",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo comprobar si ese número ya es de otra persona. No se creó nada. Inténtalo otra vez en un momento; si hay gente esperando, créala sin número y se lo pones después.",
+            "motivo": "no_se_pudo_comprobar"
+          },
+          "ruta": "/api/personas",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_crear_ilegible",
+      "pasos": [
+        {
+          "crudo": "{",
+          "metodo": "POST",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"
+          },
+          "ruta": "/api/personas",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_crear_lista",
+      "pasos": [
+        {
+          "cuerpo": [
+            1,
+            2
+          ],
+          "metodo": "POST",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "'list' object has no attribute 'get'"
+          },
+          "ruta": "/api/personas",
+          "status": 500
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_crear_sin_cuerpo",
+      "pasos": [
+        {
+          "crudo": "",
+          "metodo": "POST",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El nombre es obligatorio"
+          },
+          "ruta": "/api/personas",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_editar_ok",
+      "pasos": [
+        {
+          "cuerpo": {
+            "instagram": "checkin_dos"
+          },
+          "metodo": "PATCH",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "instagram": "checkin_dos"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,instagram,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,instrumento,genero,Cumpleanos,notas,Posible_proveedor"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "persona": {
+              "Cumpleanos": null,
+              "Id": 2,
+              "email": "p2@ejemplo.test",
+              "email_2": "",
+              "instagram": "checkin_dos",
+              "nombre": "Persona de prueba 2",
+              "nombre_whatsapp": "",
+              "telefono": "18097770002",
+              "telefono_2": ""
+            }
+          },
+          "ruta": "/api/personas/2",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_editar_nombre_vacio",
+      "pasos": [
+        {
+          "cuerpo": {
+            "nombre": ""
+          },
+          "metodo": "PATCH",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El nombre no puede quedar vacío"
+          },
+          "ruta": "/api/personas/2",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_editar_telefono_repetido",
+      "pasos": [
+        {
+          "cuerpo": {
+            "telefono": "18097770001"
+          },
+          "metodo": "PATCH",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "de": {
+              "Id": 1,
+              "nombre": "Persona de prueba 1"
+            },
+            "error": "Ese número ya es de otra persona: «Persona de prueba 1» (ficha n.º 1). No se guardó nada. Búscala por ese número y regístrala a ella.",
+            "motivo": "telefono_repetido"
+          },
+          "ruta": "/api/personas/2",
+          "status": 409
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_editar_ilegible",
+      "pasos": [
+        {
+          "crudo": "x",
+          "metodo": "PATCH",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Expecting value: line 1 column 1 (char 0)"
+          },
+          "ruta": "/api/personas/2",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "PATCH"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "checkin_editar_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "instagram": "checkin_caido"
+          },
+          "metodo": "PATCH",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "instagram": "checkin_caido"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Algo falló mientras se guardaba, y no se puede confirmar si lo que mandaste quedó guardado. NO lo repitas todavía: abre la cuenta (o el pago, o la caja) y mira si ya aparece. Solo si no aparece, vuelve a hacerlo. Detalle técnico: NocoDB 500 en PATCH /api/v2/tables/mhh7qqeru2ez8q1/records: {\"msg\": \"doble: la base no contesta\"}",
+            "sin_confirmar": true
+          },
+          "ruta": "/api/personas/2",
+          "status": 500
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "GET"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "checkin_editar_lectura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "instagram": "checkin_lectura"
+          },
+          "metodo": "PATCH",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo leer la ficha. No se guardó nada. Inténtalo otra vez en un momento.",
+            "motivo": "no_se_pudo_comprobar"
+          },
+          "ruta": "/api/personas/2",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "checkin_editar_sin_ficha",
+      "pasos": [
+        {
+          "cuerpo": {
+            "instagram": "x"
+          },
+          "metodo": "PATCH",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/99"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo leer la ficha. No se guardó nada. Inténtalo otra vez en un momento.",
+            "motivo": "no_se_pudo_comprobar"
+          },
+          "ruta": "/api/personas/99",
+          "status": 502
+        }
+      ]
     }
   ],
   "exito_de_la_app": {
+    "persona": null,
     "portal-persona-crear": "r[0] == 201 and r[1].get('estado') == 'creada'",
     "portal-persona-editar": "r[0] == 200 and r[1].get('estado') == 'guardado'"
   },
   "fuente": "App de registro, commit 594ec12: server.Handler.portal_personas_post (las rutas POST del portal, leídas con AST: rutas_de_la_app), con su `portal_personas` (sin la puerta de sesión) y las funciones de personas.py de la App. Datos del doble tests/doble_nocodb.py y tests/doble_escrituras.py.",
+  "rutas_checkin_de_la_app": [
+    {
+      "exacta": false,
+      "patron": "/api/personas/(\\d+)",
+      "verbo": "PATCH"
+    },
+    {
+      "exacta": true,
+      "patron": "/api/personas",
+      "verbo": "POST"
+    },
+    {
+      "exacta": false,
+      "patron": "/api/personas/(\\d+)/cara",
+      "verbo": "POST"
+    },
+    {
+      "exacta": true,
+      "patron": "/api/personas/parecidas",
+      "verbo": "POST"
+    }
+  ],
   "rutas_de_la_app": [
     {
       "exacta": true,

@@ -52,6 +52,10 @@ Pruebas:
   (`cambio_quien_queda`), 502 con NocoDB caída en lectura y en escritura, unión sin
   enlaces, unión a medias con `continuar`, deshacer, y los 200 de repetición (`ya_estaba`).
 
+  Parte 7 (check-in, tipo C): `crear_checkin` (POST /api/personas) y `editar_checkin` (PATCH /api/personas/<id>, tabla
+  `PORTAL_ESCRITURA_PATCH`) entran en TODAS las pruebas por `servidor.escrituras_del_portal()`, con el tipo de su fila. Ninguna lleva
+  `quien` (la App no lo escribe). `cara` y `parecidas` quedan FUERA (`PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`, con su motivo).
+
 Lo que NO ve (declarado):
   - La puerta de sesión de la App (`portal_personas`: 401 sin sesión, 403 sin permiso). El programa no la tiene. Tampoco la de
     `puede_borrar_fichas` (parte 5: `borrar` y `devolver` la piden en la App, y aquí no se mira). Quien tenga la llave del portal puede
@@ -99,6 +103,7 @@ sys.path.insert(0, str(RAIZ))
 import escenarios_portal_escrituras as esc  # noqa: E402
 import servidor  # noqa: E402  (la tabla real: K0, H1, H2 y Q1 comparan con ella)
 import personas  # noqa: E402
+import personas_escrituras  # noqa: E402  (parte 7: crear y editar del check-in, tipo C)
 import personas_portal_escritura  # noqa: E402
 import candado  # noqa: E402  (el candado de «envío hecho»: la forma y los usos, sacados del código)
 
@@ -114,7 +119,7 @@ AVISO_DE_PRUEBA = "aviso-" + "d" * 40        # formato válido de aviso (no exis
 
 def muestra(patron):
     """Una ruta concreta que casa con el patrón de la tabla (el número de la ficha, 2). Sin regex: el patrón es el texto."""
-    return patron.replace(r"(\d{1,9})", "2")
+    return patron.replace(r"(\d{1,9})", "2").replace(r"(\d+)", "2")
 
 
 def cuerpo_de(nombre):
@@ -130,16 +135,27 @@ def cuerpo_de(nombre):
         "deshacer": {"union": 1, "sobra": 12, "aviso": AVISO_DE_PRUEBA},
         "borrar": {"clave": "borrado-prueba-0001"},
         "devolver": {},
+        "crear_checkin": {"nombre": "Sesion Hermana", "telefono": "8095550302"},
+        "editar_checkin": {"instagram": "hermana_s"},
     }[nombre]
 
 
-def _pasos_de_la_tabla(llave="portal", quien=QUIEN, tipo="A", cuerpo=None):
-    pasos = []
-    for patron, (nombre, _tipo, _exige) in servidor.PORTAL_ESCRITURA.items():
-        pasos.append({"ruta": muestra(patron), "llave": llave, "quien": quien, "tipo": tipo,
-                      "cuerpo": cuerpo if cuerpo is not None else cuerpo_de(nombre)})
-    return pasos
+def _tipo_pedido(tipo_de_la_fila, tipo):
+    """El tipo que manda el paso: «fila» = el de su ruta; «otro» = el contrario (A con C); cualquier otro valor, tal cual."""
+    if tipo == "fila":
+        return tipo_de_la_fila
+    if tipo == "otro":
+        return "C" if tipo_de_la_fila == "A" else "A"
+    return tipo
 
+
+def _pasos_de_la_tabla(llave="portal", quien=QUIEN, tipo="fila", cuerpo=None):
+    """Un paso por cada escritura que el programa sirve (POST y PATCH), con SU verbo y el tipo de su fila."""
+    pasos = []
+    for verbo, patron, (nombre, tipo_de_la_fila, _exige) in servidor.escrituras_del_portal():
+        pasos.append({"ruta": muestra(patron), "metodo": verbo, "llave": llave, "quien": quien,
+                      "tipo": _tipo_pedido(tipo_de_la_fila, tipo), "cuerpo": cuerpo if cuerpo is not None else cuerpo_de(nombre)})
+    return pasos
 
 def _cuandos_son_iso(x):
     """Cierto si todo valor de una clave de hora (a cualquier nivel) es una fecha ISO con zona, o NULO: una marca que se quita (la
@@ -188,6 +204,18 @@ def _acciones_con_aviso():
     return salida
 
 
+def _accion_de_la_foto(paso):
+    """La acción de `_ejecutar` que contesta un paso de la foto, o None si no es un sitio de `una_vez` (crear, editar o crear_checkin)."""
+    ruta = paso["ruta"]
+    if ruta == esc.RUTA_PORTAL:
+        return "crear"
+    if ruta.endswith("/editar"):
+        return "editar"
+    if ruta == esc.RUTA_CHECKIN:
+        return "crear_checkin"
+    return None
+
+
 class EscriturasDelPortalEnElPrograma(unittest.TestCase):
 
     @classmethod
@@ -212,6 +240,7 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
                 for paso, foto in zip(dorado, guardado):
                     self.assertEqual(foto["ruta"], paso["ruta"])
                     self.assertEqual(foto["quien"], paso["quien"])
+                    self.assertEqual(foto.get("metodo", "POST"), paso.get("metodo", "POST"))
                     if "crudo" in paso:
                         self.assertEqual(foto["crudo"], paso["crudo"])
                     else:
@@ -238,12 +267,16 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
 
     # ---- K: la tabla contra la App ------------------------------------------------------------------------------------
 
-    def test_K0_tabla_mas_fuera_son_las_rutas_post_de_la_app(self):
-        de_la_app = {(r["patron"], r["exacta"]) for r in self.foto["rutas_de_la_app"]}
-        de_la_tabla = {(p, "(" not in p) for p in servidor.PORTAL_ESCRITURA}
-        fuera = set(servidor.PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA)
-        self.assertEqual(set(servidor.PORTAL_ESCRITURA) & fuera, set())
-        self.assertEqual(de_la_tabla | {(p, "(" not in p) for p in fuera}, de_la_app)
+    def test_K0_tabla_mas_fuera_son_las_rutas_de_escritura_de_la_app(self):
+        """Tabla POST + tabla PATCH + fuera = las rutas que la App contesta: las del portal (`rutas_de_la_app`, POST) y las de sesión
+        (`rutas_checkin_de_la_app`, POST y PATCH, leídas con AST de `do_POST` y `do_PATCH`)."""
+        de_la_app = {("POST", r["patron"], r["exacta"]) for r in self.foto["rutas_de_la_app"]}
+        de_la_app |= {(r["verbo"], r["patron"], r["exacta"]) for r in self.foto["rutas_checkin_de_la_app"]}
+        de_la_tabla = {(v, p, "(" not in p) for v, p, _valor in servidor.escrituras_del_portal()}
+        fuera = {("POST", p, "(" not in p) for p in servidor.PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA}
+        patrones_de_la_tabla = {p for _v, p, _valor in servidor.escrituras_del_portal()}
+        self.assertEqual(patrones_de_la_tabla & set(servidor.PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA), set())
+        self.assertEqual(de_la_tabla | fuera, de_la_app)
         for patron, motivo in servidor.PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA.items():
             self.assertTrue(motivo.strip(), "cada salida tiene su motivo: %s" % patron)
 
@@ -260,8 +293,8 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
                 self.assertEqual(r["pedidos"], [])
 
     def test_K1c_sin_llave_un_cuerpo_que_no_es_json_da_401_no_400(self):
-        pasos = [{"ruta": muestra(p), "llave": None, "quien": QUIEN, "tipo": "A", "crudo": "no es json"}
-                 for p in servidor.PORTAL_ESCRITURA]
+        pasos = [{"ruta": muestra(p), "metodo": v, "llave": None, "quien": QUIEN, "tipo": tipo_fila, "crudo": "no es json"}
+                 for v, p, (_nombre, tipo_fila, _exige) in servidor.escrituras_del_portal()]
         real, _ = _correr(pasos)
         for r in real:
             with self.subTest(ruta=r["ruta"]):
@@ -278,11 +311,12 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
 
     def test_K3_sin_llave_y_sin_identidad_da_401_antes_que_400(self):
         pasos = []
-        for patron, (nombre, _tipo, _exige) in servidor.PORTAL_ESCRITURA.items():
-            pasos.append({"ruta": muestra(patron), "llave": None, "quien": None, "tipo": None, "cuerpo": cuerpo_de(nombre)})
+        for verbo, patron, (nombre, _tipo, _exige) in servidor.escrituras_del_portal():
+            pasos.append({"ruta": muestra(patron), "metodo": verbo, "llave": None, "quien": None, "tipo": None,
+                          "cuerpo": cuerpo_de(nombre)})
         real, errores = _correr(pasos)
         self.assertEqual(errores, [])
-        self.assertEqual(len(real), len(servidor.PORTAL_ESCRITURA))
+        self.assertEqual(len(real), len(pasos))
         for r in real:
             with self.subTest(ruta=r["ruta"]):
                 self.assertEqual(r["status"], 401)
@@ -307,13 +341,14 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
                               "el reintento tiene que volver a escribir")
 
     def test_X1_el_exito_del_programa_es_el_de_la_app(self):
+        """Cada `una_vez` del programa (AST de `personas_portal_escritura.py`) tiene el mismo `exito` que la App (la foto): el del portal
+        (crear y editar) y el del check-in («persona»), que no lleva `exito` en la App (`None` en las dos)."""
         arbol = ast.parse((RAIZ / "personas_portal_escritura.py").read_text(encoding="utf-8"))
         de_programa = {}
         for nodo in ast.walk(arbol):
             if isinstance(nodo, ast.Call) and isinstance(nodo.func, ast.Name) and nodo.func.id == "una_vez":
-                for kw in nodo.keywords:
-                    if kw.arg == "exito":
-                        de_programa[nodo.args[0].value] = ast.unparse(kw.value.body)
+                exitos = [ast.unparse(kw.value.body) for kw in nodo.keywords if kw.arg == "exito"]
+                de_programa[nodo.args[0].value] = exitos[0] if exitos else None
         self.assertEqual(de_programa, self.foto["exito_de_la_app"])
 
     def test_R2_la_regla_recorre_los_codigos_de_la_foto(self):
@@ -356,19 +391,15 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
         return {ambito: accion for ambito, accion, _archivo, _linea in sitios}
 
     def _juego_de_escenarios_de_la_foto(self):
-        """Por acción (crear / editar): los escenarios de dos pasos con la misma clave, clasificados (fallo, mismo cuerpo,
-        cuerpo distinto), y los códigos que la foto da a esa acción."""
+        """Por acción (crear / editar / crear_checkin): los escenarios de dos pasos con la misma clave, clasificados (fallo, mismo cuerpo,
+        cuerpo distinto), y los códigos que la foto da a esa acción. La acción de cada paso la da `_accion_de_la_foto`."""
         juego, codigos, primeros = {}, {}, {}
         for e in self.foto["escenarios"]:
             pasos = e["pasos"]
-            ruta = pasos[0]["ruta"]
-            if ruta == esc.RUTA_PORTAL:
-                accion = "crear"
-            elif ruta.endswith("/editar"):
-                accion = "editar"
-            else:
+            accion = _accion_de_la_foto(pasos[0])
+            if accion is None:
                 continue
-            codigos.setdefault(accion, set()).update(p["status"] for p in pasos if p["ruta"] == ruta)
+            codigos.setdefault(accion, set()).update(p["status"] for p in pasos if _accion_de_la_foto(p) == accion)
             if e.get("caidas_una_vez"):
                 clase = "fallo"
             elif len(pasos) == 2 and all(p.get("cuerpo", {}).get("clave_envio") for p in pasos):
@@ -391,9 +422,10 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
                                 "falta un escenario en %s: %s" % (accion, sorted(requeridas - set(juego[accion]))))
                 self.assertTrue(codigos[accion] <= primeros[accion],
                                 "códigos de la foto sin reintento en %s: %s" % (accion, sorted(codigos[accion] - primeros[accion])))
-        self.assertEqual(set(juego["crear"]), set(juego["editar"]), "crear y editar tienen que tener el mismo juego de escenarios")
+        for accion in acciones:
+            self.assertEqual(set(juego[accion]), set(juego["crear"]), "el juego de %s es el mismo que el de crear" % accion)
         # Comportamiento: en cada sitio, el escenario de cuerpo distinto escribe otra vez y el 2.º no trae ya_*.
-        ya_clave = {"crear": "ya_creada", "editar": "ya_guardado"}
+        ya_clave = {"crear": "ya_creada", "editar": "ya_guardado", "crear_checkin": "ya_guardado"}
         for accion in acciones:
             with self.subTest(accion=accion, comportamiento=True):
                 nombre = juego[accion]["cuerpo_distinto"]
@@ -416,7 +448,7 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
         GA pasa esta prueba)."""
         violaciones, sitios = candado.usos_y_sitios(RAIZ)
         self.assertEqual(violaciones, [])
-        self.assertEqual(sorted({ambito for ambito, _a, _f, _l in sitios}), ["portal-persona-crear", "portal-persona-editar"])
+        self.assertEqual(sorted({ambito for ambito, _a, _f, _l in sitios}), ["persona", "portal-persona-crear", "portal-persona-editar"])
 
     def test_K2_la_llave_del_portal_no_abre_las_rutas_de_registro(self):
         pasos = [{"ruta": ruta, "llave": "portal", "quien": QUIEN, "tipo": "A", "cuerpo": {"persona_id": 1, "vec": [0.5] * 128}}
@@ -431,14 +463,16 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
     # ---- I: identidad (las tres puertas, en todas las entradas) ----------------------------------------------------------
 
     def test_I1_con_la_llave_bien_sin_identidad_no_hay_escritura(self):
+        """La identidad de cada fila es la de SU ruta (tipo «fila»); «otro» manda el tipo contrario (A con C) y tiene que dar 400."""
         variantes = [
-            {"quien": None, "tipo": "A"},
-            {"quien": "", "tipo": "A"},
-            {"quien": "   ", "tipo": "A"},
+            {"quien": None, "tipo": "fila"},
+            {"quien": "", "tipo": "fila"},
+            {"quien": "   ", "tipo": "fila"},
             {"quien": QUIEN, "tipo": None},
             {"quien": QUIEN, "tipo": "B"},
             {"quien": QUIEN, "tipo": "a"},
             {"quien": QUIEN, "tipo": ""},
+            {"quien": QUIEN, "tipo": "otro"},
         ]
         pasos = []
         for v in variantes:
@@ -454,7 +488,7 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
 
     def test_H1_hermanos_con_llave_e_identidad_bien_llegan_a_la_logica(self):
         real, _ = _correr(_pasos_de_la_tabla())
-        self.assertEqual(len(real), len(servidor.PORTAL_ESCRITURA))
+        self.assertEqual(len(real), len(servidor.escrituras_del_portal()))
         for r in real:
             with self.subTest(ruta=r["ruta"]):
                 self.assertNotEqual(r["status"], 401)
@@ -477,9 +511,10 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
     # ---- Q: el quien de la cabecera -----------------------------------------------------------------------------------
 
     def test_Q1_cada_funcion_recibe_el_quien_de_la_cabecera_y_no_el_del_cuerpo(self):
-        """Espías que solo miran los argumentos (no escriben) y guardan CADA llamada. Por cada ruta de la tabla se corre el pedido y se
-        mira lo que llegó en ese pedido. Crear, editar, permiso, resolver y reabrir reciben `quien` como último argumento; unir y deshacer
-        lo reciben (unir como 5.º, deshacer como 2.º); continuar NO recibe `quien` (como la App). El aviso de «Por resolver»
+        """Espías que solo miran los argumentos (no escriben) y guardan CADA llamada. Por cada escritura de la tabla (POST y PATCH) se corre
+        el pedido y se mira lo que llegó en ese pedido. Crear, editar, permiso, resolver y reabrir reciben `quien` como último argumento;
+        unir y deshacer lo reciben (unir como 5.º, deshacer como 2.º); continuar NO recibe `quien` (como la App). Las del check-in
+        (crear_checkin y editar_checkin) NO reciben `quien`: la App no lo escribe en esas rutas. El aviso de «Por resolver»
         (`_con_el_aviso_marcado`) recibe el `quien` de la cabecera en CADA acción que lo llama: las acciones y sus argumentos (modo,
         estado) salen de `_acciones_con_aviso()`, que lee el AST de `personas_portal_escritura.py`, no de una lista tecleada.
         El `quien` del cuerpo no cuenta."""
@@ -500,6 +535,8 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
             mock.patch.object(personas, "deshacer_union", espia("deshacer", (200, {"estado": "deshecha"}))),
             mock.patch.object(personas, "quitar_ficha", espia("borrar", (200, {"estado": "quitada"}))),
             mock.patch.object(personas, "devolver_ficha", espia("devolver", (200, {"estado": "devuelta"}))),
+            mock.patch.object(personas_escrituras, "crear_persona", espia("crear_checkin", {"Id": 9, "_releida": {"Id": 9, "nombre": "x"}})),
+            mock.patch.object(personas_escrituras, "editar_persona", espia("editar_checkin", {"Id": 2, "nombre": "x"})),
             mock.patch.object(personas_portal_escritura, "_con_el_aviso_marcado",
                               espia("aviso", {"clave": AVISO_DE_PRUEBA, "marcado": True})),
         ]
@@ -507,12 +544,12 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
         for p in parches:
             p.start()
         try:
-            for patron, (nombre, _tipo, _exige) in servidor.PORTAL_ESCRITURA.items():
+            for _verbo, patron, (nombre, _tipo, _exige) in servidor.escrituras_del_portal():
                 recibidos.clear()
                 cuerpo = dict(cuerpo_de(nombre), quien="Otra Persona")
                 ruta = muestra(patron)
                 crudo = json.dumps(cuerpo).encode("utf-8")
-                grupos = () if nombre in ("crear", "resolver", "reabrir") else ("2",)
+                grupos = () if nombre in ("crear", "resolver", "reabrir", "crear_checkin") else ("2",)
                 personas_portal_escritura.responder(nombre, ruta, grupos, crudo, QUIEN)
                 por_ruta[nombre] = {k: list(v) for k, v in recibidos.items()}
         finally:
@@ -527,6 +564,8 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
         self.assertEqual(por_ruta["continuar"]["continuar"], [((2,), {})], "continuar_union(ficha): la App no le pasa quien")
         self.assertEqual(por_ruta["borrar"]["borrar"][0][0][-1], QUIEN, "quitar_ficha(ficha, clave, quien): el quien de la cabecera")
         self.assertEqual(por_ruta["devolver"]["devolver"][0][0][-1], QUIEN, "devolver_ficha(ficha, quien): el quien de la cabecera")
+        self.assertFalse(any(a == QUIEN for a in por_ruta["crear_checkin"]["crear_checkin"][0][0]), "crear_checkin: la App no escribe quien")
+        self.assertFalse(any(a == QUIEN for a in por_ruta["editar_checkin"]["editar_checkin"][0][0]), "editar_checkin: la App no escribe quien")
         acciones = _acciones_con_aviso()
         self.assertEqual(set(acciones), {"unir", "continuar", "deshacer"}, "las acciones que marcan aviso, sacadas del AST de _ejecutar")
         for accion, (_funcion, modo, estado) in sorted(acciones.items()):

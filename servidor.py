@@ -37,8 +37,13 @@ respuestas: `personas_portal_escritura.py` (copia de `Handler.portal_personas_po
 lo mira antes de reenviar. Quien tenga la llave del portal puede borrar y devolver sin ese permiso, igual que puede escribir con
 cualquier `quien`. Esa frontera está declarada aquí y en `el-programa-personas.md`. La App no se toca.
 
-NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): las escrituras de tipo C del check-in (crear, parecidas, cara,
-editar), Google, la puerta de Natalia, las GET de proveedores y `entrada/cuadro`.
+ESCRITURAS DE SESIÓN DEL CHECK-IN (paso 5c, parte 7, tipo «C»): `POST /api/personas` (crear, fila de `PORTAL_ESCRITURA`) y
+`PATCH /api/personas/<id>` (editar, fila de `PORTAL_ESCRITURA_PATCH`). Misma llave e identidad que el portal, con `X-Personas-Portal-Tipo`
+= `C`. Ninguna de las dos escribe `quien` (la App tampoco). Las respuestas: `personas_portal_escritura.py`, con los errores de la App para
+estas rutas (`do_POST` y `do_PATCH`: 400 con el texto de la excepción, 500 con `str(e)`). FUERA, con su motivo en
+`PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`: `POST /api/personas/parecidas` y `POST /api/personas/<id>/cara` (dependen de la memoria de caras de la App).
+
+NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): Google, la puerta de Natalia, las GET de proveedores y `entrada/cuadro`.
 
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN,
 PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, NOCODB_T_*.
@@ -137,9 +142,34 @@ PORTAL_ESCRITURA = {
     # Parte 5: borrar (guardar aparte, con su registro) y devolver. La App pide `puede_borrar_fichas` antes de reenviar: aquí no se mira.
     r"/api/portal-personas/(\d{1,9})/borrar": ("borrar", PORTAL_TIPO_A, True),
     r"/api/portal-personas/(\d{1,9})/devolver": ("devolver", PORTAL_TIPO_A, True),
+    # Parte 7, tipo C (check-in): crear desde el check-in. La App la contesta en `do_POST` bajo `autorizado()`, con `una_vez("persona")`.
+    "/api/personas": ("crear_checkin", PORTAL_TIPO_C, True),
 }
-# Vacía desde la parte 5: no hay ninguna POST de la App que el programa deje fuera. Se mantiene el nombre para que K0 compare igual.
-PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA = {}
+# Parte 7: las escrituras PATCH tienen su tabla hermana, con el mismo formato (el verbo no cabe en las claves de `PORTAL_ESCRITURA`,
+# que son POST). `escrituras_del_portal()` las junta para las pruebas. `(\d+)` como en la App (`re.fullmatch(r"/api/personas/(\d+)", path)`).
+PORTAL_ESCRITURA_PATCH = {
+    r"/api/personas/(\d+)": ("editar_checkin", PORTAL_TIPO_C, True),
+}
+# Rutas de escritura que la App contesta y que el programa NO sirve, con el motivo. K0 exige tabla + esto = las rutas de la App.
+PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA = {
+    "/api/personas/parecidas": (
+        "check-in, tipo C, «solo lee y propone» (`do_POST` de la App, línea 17087 en 594ec12). La respuesta sale de `parecidas_a`, que mira la "
+        "MEMORIA DE CARAS de la App (`get_caras()`, su caché en `server.py`). El programa no tiene esa memoria ni `parecidas_a`: sin ella no hay "
+        "propuestas que contestar. No escribe nada."),
+    r"/api/personas/(\d+)/cara": (
+        "check-in, tipo C, guardar la cara (📷; `do_POST` de la App, línea 17114 en 594ec12). Depende de la MEMORIA DE CARAS de la App en dos "
+        "sitios: la línea `[CAMARA]` (`_constancia_de_camara`) recibe las propuestas que salen de `parecidas_a` sobre `get_caras()`, y "
+        "`guardar_cara` de la App pone la cara también en esa memoria (`_caras_cache`). El programa no tiene ninguna de las dos. La escritura de la "
+        "columna sí existe en el programa (`personas.escribir_cara`, la usa la ruta de Registro), pero la respuesta de la App no se puede dar sin "
+        "la memoria."),
+}
+
+
+def escrituras_del_portal():
+    """Todas las escrituras que el programa sirve, como `(verbo, patron, (nombre, tipo, exige_identidad))`: primero las POST de
+    `PORTAL_ESCRITURA` y después las PATCH de `PORTAL_ESCRITURA_PATCH`. Las pruebas recorren ESTA lista, no una tecleada."""
+    return ([("POST", patron, valor) for patron, valor in PORTAL_ESCRITURA.items()]
+            + [("PATCH", patron, valor) for patron, valor in PORTAL_ESCRITURA_PATCH.items()])
 
 
 def _portal_entrada(ruta, tabla=None):
@@ -221,6 +251,15 @@ class Manejador(BaseHTTPRequestHandler):
             return self._enviar(401, ERROR_LLAVE)
         codigo, cuerpo = FUNCIONES[nombre](base, self._pedido())
         return self._enviar(codigo, cuerpo)
+
+    def do_PATCH(self):
+        base.estrenar_la_cuenta_de_escrituras()
+        ruta = urllib.parse.urlsplit(self.path).path
+        entrada = _portal_entrada(ruta, PORTAL_ESCRITURA_PATCH)
+        if entrada is None:
+            return self._enviar(404, {"error": "ruta no existe"})
+        patron, (nombre, tipo, exige_identidad), grupos = entrada
+        return self._portal_escritura(ruta, nombre, tipo, exige_identidad, grupos)
 
     def _portal_escritura(self, ruta, nombre, tipo, exige_identidad, grupos):
         """Una escritura del portal. Mismo orden que las lecturas: la llave se mira ANTES de leer el cuerpo y antes de NocoDB; con la
