@@ -1,8 +1,9 @@
 {
   "escrituras_a_nocodb": 0,
-  "fuente": "App de registro, commit 594ec12: server.Handler.parse y portal_personas_get (las rutas GET del portal, leídas con AST: rutas_de_la_app), con las funciones de personas.py de la App. Sin la puerta de sesión de portal_personas. Datos del doble tests/doble_nocodb.py.",
+  "fuente": "App de registro, commit 594ec12: server.Handler.parse y portal_personas_get (las rutas GET del portal, leídas con AST: rutas_de_la_app), con las funciones de personas.py de la App. Sin la puerta de sesión de portal_personas ni la de permiso (`puede_borrar_fichas`). Datos del doble tests/doble_nocodb.py.",
   "pedidos": [
     {
+      "caidas": [],
       "consulta": "",
       "lecturas_a_nocodb": 1,
       "nombre": "portal_nueva",
@@ -135,6 +136,7 @@
       "status": 200
     },
     {
+      "caidas": [],
       "consulta": "",
       "lecturas_a_nocodb": 1,
       "nombre": "portal_borradas",
@@ -153,6 +155,7 @@
       "status": 200
     },
     {
+      "caidas": [],
       "consulta": "orden=asc&col=nombre&desde=0&limite=10",
       "lecturas_a_nocodb": 3,
       "nombre": "portal_lista",
@@ -202,8 +205,9 @@
       "status": 200
     },
     {
+      "caidas": [],
       "consulta": "",
-      "lecturas_a_nocodb": 5,
+      "lecturas_a_nocodb": 6,
       "nombre": "portal_ficha",
       "respuesta": {
         "edicion": {
@@ -496,12 +500,14 @@
           "sabido": true
         },
         "nombre": "Persona de prueba 1",
-        "ok": true
+        "ok": true,
+        "union": null
       },
       "ruta": "/api/portal-personas/1",
       "status": 200
     },
     {
+      "caidas": [],
       "consulta": "",
       "lecturas_a_nocodb": 5,
       "nombre": "portal_por_resolver",
@@ -520,6 +526,7 @@
       "status": 200
     },
     {
+      "caidas": [],
       "consulta": "otra=2",
       "lecturas_a_nocodb": 1,
       "nombre": "portal_unir_revisar",
@@ -578,6 +585,138 @@
       },
       "ruta": "/api/portal-personas/1/unir/revisar",
       "status": 200
+    },
+    {
+      "caidas": [],
+      "consulta": "",
+      "lecturas_a_nocodb": 12,
+      "nombre": "portal_borrar_revisar",
+      "respuesta": {
+        "cuelga": {
+          "envios_por_salir": 0,
+          "mensajes": 0,
+          "pagos": 0,
+          "proyectos": 0,
+          "reservas": 0,
+          "reservas_por_venir": 0,
+          "visitas": 1
+        },
+        "ok": true,
+        "paradas": [
+          {
+            "motivo": "credito_a_favor",
+            "numero": 1,
+            "texto": "Tiene RD$ 250.00 a su favor."
+          }
+        ],
+        "puede": false
+      },
+      "ruta": "/api/portal-personas/2/borrar/revisar",
+      "status": 200
+    },
+    {
+      "caidas": [],
+      "consulta": "",
+      "lecturas_a_nocodb": 12,
+      "nombre": "portal_borrar_revisar_ficha_unida",
+      "respuesta": {
+        "cuelga": {
+          "envios_por_salir": 0,
+          "mensajes": 0,
+          "pagos": 0,
+          "proyectos": 0,
+          "reservas": 0,
+          "reservas_por_venir": 0,
+          "visitas": 0
+        },
+        "ok": true,
+        "paradas": [
+          {
+            "motivo": "ficha_ya_fuera",
+            "numero": 5,
+            "texto": "Esta ficha ya se unió a otra: no se borra desde aquí."
+          }
+        ],
+        "puede": false
+      },
+      "ruta": "/api/portal-personas/4/borrar/revisar",
+      "status": 200
+    },
+    {
+      "caidas": [],
+      "consulta": "",
+      "lecturas_a_nocodb": 12,
+      "nombre": "portal_borrar_revisar_quitada",
+      "respuesta": {
+        "cuelga": {
+          "envios_por_salir": 0,
+          "mensajes": 0,
+          "pagos": 0,
+          "proyectos": 0,
+          "reservas": 0,
+          "reservas_por_venir": 0,
+          "visitas": 0
+        },
+        "ok": true,
+        "paradas": [
+          {
+            "motivo": "ficha_ya_fuera",
+            "numero": 5,
+            "texto": "Esta ficha ya fue borrada: no se vuelve a borrar."
+          }
+        ],
+        "puede": false
+      },
+      "ruta": "/api/portal-personas/3/borrar/revisar",
+      "status": 200
+    },
+    {
+      "caidas": [],
+      "consulta": "",
+      "lecturas_a_nocodb": 13,
+      "nombre": "portal_borrar_revisar_sin_permiso",
+      "respuesta": {
+        "cuelga": {
+          "envios_por_salir": 0,
+          "mensajes": 0,
+          "pagos": 0,
+          "proyectos": 0,
+          "reservas": 0,
+          "reservas_por_venir": 0,
+          "visitas": 1
+        },
+        "ok": true,
+        "paradas": [],
+        "puede": true
+      },
+      "ruta": "/api/portal-personas/1/borrar/revisar",
+      "status": 200
+    },
+    {
+      "caidas": [],
+      "consulta": "",
+      "lecturas_a_nocodb": 1,
+      "nombre": "portal_borrar_revisar_no_existe",
+      "respuesta": {
+        "error": "Esa persona ya no está en la base.",
+        "ok": false
+      },
+      "ruta": "/api/portal-personas/99/borrar/revisar",
+      "status": 404
+    },
+    {
+      "caidas": [
+        "GET"
+      ],
+      "consulta": "",
+      "lecturas_a_nocodb": 0,
+      "nombre": "portal_borrar_revisar_caida",
+      "respuesta": {
+        "error": "No se pudo leer la base de personas. Inténtalo en un momento.",
+        "ok": false
+      },
+      "ruta": "/api/portal-personas/2/borrar/revisar",
+      "status": 502
     }
   ],
   "rutas_de_la_app": [
@@ -614,5 +753,5 @@
       "patron": "/api/portal-personas/por-resolver"
     }
   ],
-  "version": 2
+  "version": 3
 }

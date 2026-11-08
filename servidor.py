@@ -16,25 +16,26 @@ ESCRITURAS PARA REGISTRO (paso 5b, `personas_escritura_rutas.py`), con las misma
 🔴 Su llave se mira ANTES de leer el cuerpo y no abre ninguna lectura, ni la de Mercadeo ni la de Registro. Sin ella, con otra o con
 la variable vacía: 401, y no se escribe nada.
 
-LECTURAS DEL PORTAL (paso 5c, partes 1 y 2): seis rutas GET, en la tabla `PORTAL_LECTURA` de abajo (lista, ficha, nueva, borradas,
-por-resolver y unir/revisar). Cabecera X-Personas-Portal-Llave (PERSONAS_PORTAL_LLAVE), más la identidad que pone la App:
+LECTURAS DEL PORTAL (paso 5c, partes 1, 2 y 5): siete rutas GET, en la tabla `PORTAL_LECTURA` de abajo (lista, ficha, nueva, borradas,
+por-resolver, unir/revisar y borrar/revisar). Cabecera X-Personas-Portal-Llave (PERSONAS_PORTAL_LLAVE), más la identidad que pone la App:
 X-Personas-Portal-Quien (quien pide, no vacío) y X-Personas-Portal-Tipo (= «A»).
 🔴 La llave del portal se mira PRIMERO: sin ella, con otra (la de Mercadeo y la de Registro incluidas) o con la variable vacía: 401,
 y no se lee NocoDB. Con la llave bien pero sin identidad, o con un tipo que no es el de la ruta: 400, y no se lee NocoDB. La cabecera
 de identidad que venga del navegador no decide nada si la llave no es la del portal. La App mira la puerta de sesión antes de
 reenviar; este programa no la ve. Las respuestas: `personas_portal_lectura.py` (copia de la App, `594ec12`), con la foto de
-`contrato/portal_lectura.json`. Las dos rutas de la App que NO se portan están en `PORTAL_FUERA_DEL_PROGRAMA`, con su motivo.
+`contrato/portal_lectura.json`. La única ruta de la App que NO se porta es `entrada/cuadro`, en `PORTAL_FUERA_DEL_PROGRAMA`, con su motivo.
 
-ESCRITURAS DEL PORTAL (paso 5c, partes 3 y 4): ocho POST en la tabla `PORTAL_ESCRITURA` (crear, editar, permiso, resolver, reabrir y las
-tres de unir: unir, unir/continuar y unir/deshacer).
+ESCRITURAS DEL PORTAL (paso 5c, partes 3, 4 y 5): diez POST en la tabla `PORTAL_ESCRITURA` (crear, editar, permiso, resolver, reabrir, las
+tres de unir: unir, unir/continuar y unir/deshacer, y la parte 5: borrar y devolver).
 Misma cabecera de llave (X-Personas-Portal-Llave) y la misma identidad que las lecturas, más el `quien` que pone la App en
 X-Personas-Portal-Quien: es el que queda escrito, y el `quien` del cuerpo no se lee. La llave se mira antes que el cuerpo. Las
 respuestas: `personas_portal_escritura.py` (copia de `Handler.portal_personas_post` de la App, `594ec12`, sin su puerta de sesión).
-Lo que la App atiende por POST y el programa NO porta (borrar, devolver) está en
-`PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`, con su motivo; el programa lo contesta 404 sin tocar NocoDB.
+🔴 Borrar y devolver piden en la App el permiso `puede_borrar_fichas` (`Handler.puede_borrar_fichas`), y el programa NO lo mira: la App
+lo mira antes de reenviar. Quien tenga la llave del portal puede borrar y devolver sin ese permiso, igual que puede escribir con
+cualquier `quien`. Esa frontera está declarada aquí y en `el-programa-personas.md`. La App no se toca.
 
 NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): la búsqueda GET, las instrumentos, Google, la puerta de Natalia
-y las rutas POST de borrado y devolución de arriba.
+y las rutas de sesión del check-in.
 
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN,
 PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, NOCODB_T_*.
@@ -101,6 +102,8 @@ PORTAL_LECTURA = {
     "/api/portal-personas/borradas": ("borradas", PORTAL_TIPO_A, True),
     "/api/portal-personas/por-resolver": ("por_resolver", PORTAL_TIPO_A, True),
     r"/api/portal-personas/(\d{1,9})/unir/revisar": ("unir_revisar", PORTAL_TIPO_A, True),
+    # Parte 5: revisar un borrado (no escribe). La App pide el permiso `puede_borrar_fichas` antes de reenviar; el programa no lo mira.
+    r"/api/portal-personas/(\d{1,9})/borrar/revisar": ("borrar_revisar", PORTAL_TIPO_A, True),
 }
 # Rutas que la App contesta y que el programa NO sirve, con el motivo. CP3 exige que tabla + esto = las rutas de la App.
 PORTAL_FUERA_DEL_PROGRAMA = {
@@ -108,15 +111,12 @@ PORTAL_FUERA_DEL_PROGRAMA = {
         "cuadro de la entrada: lee la bandeja de la entrada y cuenta con el cliente de Personas de la App (`personas_cliente`, que "
         "llama al programa por red) y con funciones de `server.py` de la App (`cuadro_de_la_entrada`). El programa no tiene ni lo "
         "uno ni lo otro (grep: 0 coincidencias en `personas.py`, `base.py` y `servidor.py`)."),
-    r"/api/portal-personas/(\d{1,9})/borrar/revisar": (
-        "pide el permiso de borrar fichas de la sesión («puede_borrar_fichas», `server.py` de la App, `Handler.puede_borrar_fichas`): "
-        "el programa no ve sesiones ni permisos por persona."),
 }
 
 
-# ESCRITURAS del portal (paso 5c, parte 3): TABLA ÚNICA de las cinco POST. Mismo formato que `PORTAL_LECTURA`. Lo que la App
-# atiende por POST y NO se porta está en `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`, con su motivo. K0 de `tests/test_portal_escrituras.py` las
-# compara con las rutas POST de `Handler.portal_personas_post` de la App (AST).
+# ESCRITURAS del portal (paso 5c, partes 3, 4 y 5): TABLA ÚNICA de las diez POST. Mismo formato que `PORTAL_LECTURA`. K0 de
+# `tests/test_portal_escrituras.py` las compara con las rutas POST de `Handler.portal_personas_post` de la App (AST), con
+# `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA` (vacía desde la parte 5: no queda ninguna POST sin portar).
 PORTAL_ESCRITURA = {
     "/api/portal-personas": ("crear", PORTAL_TIPO_A, True),
     r"/api/portal-personas/(\d{1,9})/editar": ("editar", PORTAL_TIPO_A, True),
@@ -126,14 +126,12 @@ PORTAL_ESCRITURA = {
     r"/api/portal-personas/(\d{1,9})/unir": ("unir", PORTAL_TIPO_A, True),
     r"/api/portal-personas/(\d{1,9})/unir/continuar": ("continuar", PORTAL_TIPO_A, True),
     r"/api/portal-personas/(\d{1,9})/unir/deshacer": ("deshacer", PORTAL_TIPO_A, True),
+    # Parte 5: borrar (guardar aparte, con su registro) y devolver. La App pide `puede_borrar_fichas` antes de reenviar: aquí no se mira.
+    r"/api/portal-personas/(\d{1,9})/borrar": ("borrar", PORTAL_TIPO_A, True),
+    r"/api/portal-personas/(\d{1,9})/devolver": ("devolver", PORTAL_TIPO_A, True),
 }
-PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA = {
-    r"/api/portal-personas/(\d{1,9})/borrar": (
-        "borrar una ficha: pide el permiso de borrar fichas de la sesión («puede_borrar_fichas», `server.py` de la App): el programa "
-        "no ve sesiones ni permisos por persona."),
-    r"/api/portal-personas/(\d{1,9})/devolver": (
-        "devolver una ficha guardada aparte: pide el mismo permiso que `borrar` (`puede_borrar_fichas`): el programa no lo ve."),
-}
+# Vacía desde la parte 5: no hay ninguna POST de la App que el programa deje fuera. Se mantiene el nombre para que K0 compare igual.
+PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA = {}
 
 
 def _portal_entrada(ruta, tabla=None):

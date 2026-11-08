@@ -272,6 +272,77 @@ ESCENARIOS_UNION = [
 
 ESCENARIOS.extend(ESCENARIOS_UNION)
 
+# BORRAR y DEVOLVER una ficha (paso 5c, parte 5). La App pide el permiso `puede_borrar_fichas` antes de reenviar; el programa no lo mira,
+# y el generador de la foto lo da por bueno (su driver). Ficha 1: sin paradas (`puede: true`), sin crédito, sin permiso anotado. Ficha 2:
+# con crédito (parada 1). Ficha 3: ya guardada aparte (registro `quitada`). Ficha 4: unida a la 1 (parada 5). Ficha 99: no existe.
+# Las tablas de envíos y de uniones van en el entorno de estos escenarios (sin ellas, «revisar» cuenta esas cifras como no medidas).
+CLAVE_BORRAR = "borrado-prueba-0001"     # formato válido (`[A-Za-z0-9_-]{8,64}`)
+CLAVE_BORRAR_2 = "borrado-prueba-0002"
+ENTORNO_BORRAR = {"NOCODB_T_MERCADEO_ENVIOS": doble_nocodb.T_MERCADEO_ENVIOS, "NOCODB_T_UNIONES_PERSONAS": doble_nocodb.T_UNIONES}
+
+ESCENARIOS_BORRAR = [
+    {"nombre": "borrar_ok", "entorno": ENTORNO_BORRAR, "pasos": [
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": CLAVE_BORRAR}),
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": CLAVE_BORRAR}),
+        _p(RUTA_PORTAL + "/1/devolver", {}),
+        _p(RUTA_PORTAL + "/1/devolver", {}),
+    ]},
+    {"nombre": "borrar_paradas", "entorno": ENTORNO_BORRAR, "pasos": [
+        _p(RUTA_PORTAL + "/2/borrar", {"clave": CLAVE_BORRAR}),
+        _p(RUTA_PORTAL + "/3/borrar", {"clave": CLAVE_BORRAR_2}),
+        _p(RUTA_PORTAL + "/4/borrar", {"clave": CLAVE_BORRAR_2}),
+    ]},
+    {"nombre": "borrar_errores", "entorno": ENTORNO_BORRAR, "pasos": [
+        _p(RUTA_PORTAL + "/1/borrar", {}),
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": "x"}),
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": 7}),
+        _p(RUTA_PORTAL + "/99/borrar", {"clave": CLAVE_BORRAR}),
+        _p(RUTA_PORTAL + "/1/borrar", crudo="{"),
+    ]},
+    {"nombre": "borrar_sin_registro", "entorno": dict(ENTORNO_BORRAR, NOCODB_T_PERSONAS_QUITADAS=""), "pasos": [
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": CLAVE_BORRAR}),
+    ]},
+    {"nombre": "borrar_lectura_caida", "entorno": ENTORNO_BORRAR, "caidas": ["GET"], "pasos": [
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": CLAVE_BORRAR})]},
+    {"nombre": "borrar_escritura_caida", "entorno": ENTORNO_BORRAR, "caidas": ["POST"], "pasos": [
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": CLAVE_BORRAR})]},
+    {"nombre": "borrar_patch_caida", "entorno": ENTORNO_BORRAR, "caidas": ["PATCH"], "pasos": [
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": CLAVE_BORRAR})]},
+    # Un fallo a mitad (la primera escritura PATCH cae una vez): el mismo borrado, con la misma clave, termina el borrado.
+    {"nombre": "borrar_repite_tras_fallo", "entorno": ENTORNO_BORRAR, "caidas_una_vez": ["PATCH"], "pasos": [
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": CLAVE_BORRAR}),
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": CLAVE_BORRAR}),
+    ]},
+    # Una clave ya usada para OTRA ficha: 409 `clave_repetida` (el registro de la 1.ª ficha tiene esa clave).
+    {"nombre": "borrar_clave_repetida", "entorno": ENTORNO_BORRAR, "pasos": [
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": CLAVE_BORRAR}),
+        _p(RUTA_PORTAL + "/2/borrar", {"clave": CLAVE_BORRAR}),
+    ]},
+    # Un borrado a medias (su PATCH cae una vez: queda `quitando`) y otro intento con OTRA clave sobre la misma ficha: 409 `otra_operacion`.
+    {"nombre": "borrar_otra_operacion", "entorno": ENTORNO_BORRAR, "caidas_una_vez": ["PATCH"], "pasos": [
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": CLAVE_BORRAR}),
+        _p(RUTA_PORTAL + "/1/borrar", {"clave": CLAVE_BORRAR_2}),
+    ]},
+    {"nombre": "devolver_errores", "entorno": ENTORNO_BORRAR, "pasos": [
+        _p(RUTA_PORTAL + "/1/devolver", {}),
+        _p(RUTA_PORTAL + "/4/devolver", {}),
+        _p(RUTA_PORTAL + "/99/devolver", {}),
+        _p(RUTA_PORTAL + "/3/devolver", crudo="{"),
+    ]},
+    {"nombre": "devolver_sin_registro", "entorno": dict(ENTORNO_BORRAR, NOCODB_T_PERSONAS_QUITADAS=""), "pasos": [
+        _p(RUTA_PORTAL + "/3/devolver", {}),
+    ]},
+    {"nombre": "devolver_ok", "entorno": ENTORNO_BORRAR, "pasos": [
+        _p(RUTA_PORTAL + "/3/devolver", {}),
+        _p(RUTA_PORTAL + "/3/devolver", {}),
+    ]},
+    {"nombre": "devolver_lectura_caida", "entorno": ENTORNO_BORRAR, "caidas": ["GET"], "pasos": [
+        _p(RUTA_PORTAL + "/3/devolver", {})]},
+    {"nombre": "devolver_escritura_caida", "entorno": ENTORNO_BORRAR, "caidas": ["PATCH"], "pasos": [
+        _p(RUTA_PORTAL + "/3/devolver", {})]},
+]
+ESCENARIOS.extend(ESCENARIOS_BORRAR)
+
 # Pasos que la App no contesta igual (no tiene identidad): ver `es_dorado`.
 
 
@@ -284,9 +355,10 @@ AHORA = "<ahora>"
 
 
 def es_clave_de_hora(clave):
-    """Las claves donde se guarda la hora de la corrida: `cuando` (anotaciones) y las que acaban en `_en` (`creada_en`,
-    `terminada_en`, `deshecha_en`, `resuelto_en`, `devuelta_en`: el registro de uniones y de «Por resolver»)."""
-    return clave == "cuando" or clave.endswith("_en")
+    """Las claves donde se guarda la hora de la corrida: `cuando` (anotaciones), `quitada_el` (la marca de una ficha borrada, parte 5) y
+    las que acaban en `_en` (`creada_en`, `terminada_en`, `deshecha_en`, `resuelto_en`, `devuelta_en`: el registro de uniones, de
+    «Por resolver» y de borrados)."""
+    return clave == "cuando" or clave == "quitada_el" or clave.endswith("_en")
 
 
 def normalizar(valor):

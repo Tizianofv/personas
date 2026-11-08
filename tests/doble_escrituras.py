@@ -31,7 +31,7 @@ import urllib.parse
 
 import doble_nocodb
 
-T_UNIONES = "tabla-uniones-prueba"
+T_UNIONES = doble_nocodb.T_UNIONES
 # Dos fichas para la unión (datos ficticios, solo para el modo `union=True`). Sus columnas son las que el programa clasifica
 # (`personas.UNION_CLASES`, leídas al armar el doble): sin columna inventada, sin enlaces, sin crédito, sin nada que chocar.
 UNION_FICHAS = [
@@ -128,8 +128,9 @@ class DobleEscrituras:
                         self.errores.append("metadatos de tabla desconocida: %s" % ruta)
                         return 404, {"msg": "doble: tabla desconocida"}
                     return 200, {"id": meta.group(1), "columns": self.meta.get(meta.group(1), [])}
-            if self.union and metodo == "GET" and re.fullmatch(r"/api/v2/tables/([^/]+)/links/([^/]+)/records/(\d+)", ruta):
-                # El modo de unión no tiene enlaces: cada lista sale vacía (ver la docstring).
+            if metodo == "GET" and re.fullmatch(r"/api/v2/tables/([^/]+)/links/([^/]+)/records/(\d+)", ruta):
+                # Enlaces VACÍOS en TODOS los modos (parte 5: `revisar_borrado` los lee y la ficha del doble no tiene nada enlazado).
+                # En el modo de unión, cada lista sale vacía (ver la docstring).
                 return 200, {"list": [], "pageInfo": {"totalRows": 0, "page": 1, "pageSize": 200, "isLastPage": True}}
             m = re.fullmatch(r"/api/v2/tables/([^/]+)/records(?:/(\d+))?", ruta)
             if not m or m.group(1) not in self.tablas:

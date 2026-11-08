@@ -3,12 +3,17 @@
 
 La foto de referencia es `contrato/portal_lectura.json`, sacada de la App de registro en `594ec12` por
 `tools/generar_portal_de_la_app.py`: `rutas_de_la_app` (las rutas GET del portal que la App contesta, leídas con AST) y `pedidos`
-(una respuesta de la App por ruta de la tabla, con su consulta, todas 200).
+(una respuesta de la App por ruta de la tabla, con su consulta). Casi todas son 200; los escenarios de error y de caída de
+«borrar/revisar» (parte 5) son 404 y 502, con su caída en un doble propio (`caidas`).
 
 Pruebas (las de llave e identidad recorren TODA la tabla `servidor.PORTAL_LECTURA`, no una lista tecleada):
   CP1  los bytes de `contrato/portal_lectura.json` tienen el SHA256 de `contrato/SHA256_portal`.
   CP2  la tabla y la foto cubren lo mismo: cada entrada de la tabla tiene un pedido de la foto que casa con ella, y cada pedido
-       casa con una entrada. C2: cada pedido de la foto es un 200.
+       casa con una entrada. C2: cada pedido de la foto es un 200, salvo los de caída (502) y el de «no_existe» (404).
+  CP5  la foto tiene un pedido por cada escenario de `tools/generar_portal_de_la_app.RUTAS` (el generador es la fuente): quitar uno
+       de la foto da rojo aunque se recalcule el SHA (CP1 no lo ve).
+  P4   los pedidos con caída corren en su propio servidor y doble (`caidas=GET`): el mismo código y cuerpo que la App, y el doble
+       contó la caída.
   CP3  tabla + `PORTAL_FUERA_DEL_PROGRAMA` = las rutas que la App contesta (`rutas_de_la_app`). Ninguna en las dos listas. Cada
        salida tiene su motivo escrito. Si la App añade una ruta y no está en ninguna, esta prueba falla.
   P2   cada pedido de la foto, con la llave y la identidad bien, da el mismo código y el mismo cuerpo que la App; el doble no
@@ -57,6 +62,8 @@ sys.path.insert(0, str(RAIZ))
 
 import doble_nocodb as doble_mod  # noqa: E402
 import test_contrato_rutas as ctr  # noqa: E402  (su `_arrancar` y `_parar`: el mismo arranque que las pruebas de lectura)
+sys.path.insert(0, str(RAIZ / "tools"))
+import generar_portal_de_la_app as generador  # noqa: E402  (la fuente de los escenarios de la foto y de su entorno, `ENTORNO_FOTO`)
 
 CARPETA = RAIZ / "contrato"
 LLAVE_PORTAL = "llave-de-prueba-portal-personas"
@@ -100,13 +107,13 @@ def _url(pedido):
 
 
 def _entorno_comun():
-    return {
+    return dict({
         "PERSONAS_LECTURA_LLAVE": doble_mod.LLAVE_LECTURA,
         "PERSONAS_REGISTRO_LLAVE": ctr.LLAVE_REGISTRO,
         "PERSONAS_REGISTRO_ESCRITURA_LLAVE": LLAVE_ESCRITURA,
         "NOCODB_T_PERSONAS_QUITADAS": doble_mod.T_QUITADAS,
         "NOCODB_T_BANDEJA_PERSONAS": doble_mod.T_BANDEJA,
-    }
+    }, **generador.ENTORNO_FOTO)     # las tablas de envíos y de uniones de «borrar/revisar»: las mismas que en la foto
 
 
 def _tabla():
@@ -161,7 +168,21 @@ class ElPortalDeLectura(unittest.TestCase):
             self.assertIsNotNone(self.ejemplos[patron], "entrada de la tabla sin pedido de la foto: %s" % patron)
         for pedido in self.foto["pedidos"]:
             self.assertTrue(any(re.fullmatch(p, pedido["ruta"]) for p in tabla), "pedido de la foto sin entrada: %s" % pedido["ruta"])
-        self.assertEqual([p["status"] for p in self.foto["pedidos"] if p["status"] != 200], [], "C2: la foto tiene un caso que no es 200")
+        # C2: 200, salvo la caída (502, con su doble propio) y el pedido de «no existe» (404). Los códigos los fija el generador.
+        for pedido in self.foto["pedidos"]:
+            with self.subTest(nombre=pedido["nombre"]):
+                if pedido["caidas"]:
+                    self.assertEqual(pedido["status"], 502, "C2: una caída de NocoDB es un 502")
+                elif pedido["nombre"].endswith("_no_existe"):
+                    self.assertEqual(pedido["status"], 404, "C2: una ficha que no existe es un 404")
+                else:
+                    self.assertEqual(pedido["status"], 200, "C2: la foto tiene un caso que no es 200")
+
+    def test_CP5_la_foto_tiene_un_pedido_por_cada_escenario_del_generador(self):
+        """El generador (`generador.RUTAS`) es la fuente de los escenarios. Si la foto pierde uno, esto da rojo aunque se recalcule el
+        SHA (CP1 no lo ve)."""
+        esperados = sorted(nombre for nombre, *_resto in generador.RUTAS)
+        self.assertEqual(sorted(p["nombre"] for p in self.foto["pedidos"]), esperados)
 
     def test_CP3_tabla_mas_fuera_son_las_rutas_que_la_app_contesta(self):
         tabla = set(_tabla().PORTAL_LECTURA)
@@ -173,13 +194,33 @@ class ElPortalDeLectura(unittest.TestCase):
         self.assertEqual(tabla | set(fuera), app)
 
     def test_P2_cada_pedido_de_la_foto_es_igual_a_la_app(self):
+        # Los pedidos con caída van en P4 (su propio doble). Aquí, todos los demás, contra este servidor.
         for pedido in self.foto["pedidos"]:
+            if pedido["caidas"]:
+                continue
             with self.subTest(ruta=_url(pedido)):
                 codigo, cuerpo = _pedir(self.puerto, _url(pedido), _cabeceras())
                 self.assertEqual(codigo, pedido["status"])
                 self.assertEqual(cuerpo, pedido["respuesta"])
         self.assertEqual(self.doble.no_get, [], "el doble recibió algo que no es GET")
         self.assertEqual(self.doble.errores, [], "el doble recibió una lectura que no conoce")
+
+    def test_P4_las_caidas_de_nocodb_dan_lo_que_dio_la_app(self):
+        """Cada pedido con `caidas` corre en SU servidor y doble, con esas caídas (la base no contesta a GET): el mismo código y el mismo
+        cuerpo que la App, el doble contó la caída, y no recibió una lectura que no conoce."""
+        con_caida = [p for p in self.foto["pedidos"] if p["caidas"]]
+        self.assertTrue(con_caida, "la foto no tiene ningún pedido con caída")
+        for pedido in con_caida:
+            with self.subTest(nombre=pedido["nombre"]):
+                proceso, puerto, doble = ctr._arrancar(dict(_entorno_comun(), PERSONAS_PORTAL_LLAVE=LLAVE_PORTAL),
+                                                       caidas=tuple(pedido["caidas"]))
+                try:
+                    codigo, cuerpo = _pedir(puerto, _url(pedido), _cabeceras())
+                finally:
+                    ctr._parar(proceso, doble)
+                self.assertEqual((codigo, cuerpo), (pedido["status"], pedido["respuesta"]))
+                self.assertGreater(doble.caidas_servidas, 0, "la caída no se usó: la App no leyó NocoDB")
+                self.assertEqual(doble.errores, [], "el doble recibió una lectura que no conoce")
 
     def test_K1_sin_cabecera_de_llave_401_sin_leer(self):
         for patron, pedido in self._entradas():

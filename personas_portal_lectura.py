@@ -13,7 +13,8 @@ Los errores siguen el mismo orden que la App: primero los 400 de validación; de
   - cualquier otra excepción: 502 con el texto genérico.
 No se escriben logs (la App imprime el tipo de error; aquí no, para no sacar datos de clientes).
 
-Lo que NO está aquí (declarado en `servidor.PORTAL_FUERA_DEL_PROGRAMA`): `entrada/cuadro` y `borrar/revisar`.
+Lo que NO está aquí (declarado en `servidor.PORTAL_FUERA_DEL_PROGRAMA`): `entrada/cuadro`. `borrar/revisar` sí está (parte 5): la App
+lo contesta con 502 si NocoDB falla al leer la ficha (el 404 de «ficha» es solo para `ficha`, como en la App: su `m` es la ficha).
 """
 import re
 
@@ -74,9 +75,15 @@ def _unir_revisar(grupos, consulta):
     return personas.revisar_union(int(grupos[0]), int(otra))
 
 
+def _borrar_revisar(grupos, consulta):
+    """`GET /api/portal-personas/<id>/borrar/revisar`: qué pasaría al borrar la ficha, sin escribir (parte 5). La App pide el permiso
+    `puede_borrar_fichas` antes; aquí no se mira. 404 de la función si la ficha no está (cuerpo de `revisar_borrado`)."""
+    return personas.revisar_borrado(int(grupos[0]))
+
+
 FUNCIONES = {
     "lista": _lista, "ficha": _ficha, "nueva": _nueva, "borradas": _borradas,
-    "por_resolver": _por_resolver, "unir_revisar": _unir_revisar,
+    "por_resolver": _por_resolver, "unir_revisar": _unir_revisar, "borrar_revisar": _borrar_revisar,
 }
 
 

@@ -12692,6 +12692,3530 @@
           "status": 502
         }
       ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "borrar_ok",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": {
+                "antes": "{\"bsuid\":\"DO.0000000000000001\",\"caras\":null,\"email\":\"p1@ejemplo.test\",\"email_2\":\"\",\"nombre\":\"Persona de prueba 1\",\"nombre_whatsapp\":\"\",\"quitada_el\":null,\"telefono\":\"18097770001\",\"telefono_2\":\"\"}",
+                "clave": "borrado-prueba-0001",
+                "creada_en": "<ahora>",
+                "creada_por": "Ana Pérez",
+                "estado": "quitando",
+                "ficha_id": 1,
+                "medido": "{\"cuelga\":{\"envios_por_salir\":0,\"mensajes\":0,\"pagos\":0,\"proyectos\":0,\"reservas\":0,\"reservas_por_venir\":0,\"visitas\":1},\"paradas_revisadas\":[1,2,3,4,5,6,7]}"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "bsuid": null,
+                "caras": null,
+                "email": null,
+                "email_2": null,
+                "nombre": null,
+                "nombre_whatsapp": null,
+                "quitada_el": "<ahora>",
+                "telefono": null,
+                "telefono_2": null
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records/3"
+            },
+            {
+              "cuerpo": {
+                "Id": 3,
+                "estado": "quitada"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records/3"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "estado": "quitada",
+            "ficha": 1,
+            "ok": true,
+            "quitada_id": 3,
+            "ya_estaba": false
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 200
+        },
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records/3"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "estado": "quitada",
+            "ficha": 1,
+            "ok": true,
+            "quitada_id": 3,
+            "ya_estaba": true
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 200
+        },
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 3,
+                "estado": "devolviendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records/3"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "bsuid": "DO.0000000000000001",
+                "caras": null,
+                "email": "p1@ejemplo.test",
+                "email_2": "",
+                "nombre": "Persona de prueba 1",
+                "nombre_whatsapp": "",
+                "quitada_el": null,
+                "telefono": "18097770001",
+                "telefono_2": ""
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 3,
+                "devuelta_en": "<ahora>",
+                "devuelta_por": "Ana Pérez",
+                "estado": "devuelta"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records/3"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "devuelta_id": 3,
+            "estado": "devuelta",
+            "ficha": 1,
+            "ok": true,
+            "ya_estaba": false
+          },
+          "ruta": "/api/portal-personas/1/devolver",
+          "status": 200
+        },
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "devuelta_id": 3,
+            "estado": "devuelta",
+            "ficha": 1,
+            "ok": true,
+            "ya_estaba": true
+          },
+          "ruta": "/api/portal-personas/1/devolver",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "borrar_paradas",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,2)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,2)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%2%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/2"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/2"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "cuelga": {
+              "envios_por_salir": 0,
+              "mensajes": 0,
+              "pagos": 0,
+              "proyectos": 0,
+              "reservas": 0,
+              "reservas_por_venir": 0,
+              "visitas": 1
+            },
+            "error": "Esta ficha no se puede borrar ahora. No se hizo nada.",
+            "motivo": "paradas",
+            "ok": false,
+            "paradas": [
+              {
+                "motivo": "credito_a_favor",
+                "numero": 1,
+                "texto": "Tiene RD$ 250.00 a su favor."
+              }
+            ]
+          },
+          "ruta": "/api/portal-personas/2/borrar",
+          "status": 409
+        },
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0002"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0002)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,3)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/3"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770003)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,3)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770003)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770003)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%3%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/3"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/3"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "cuelga": {
+              "envios_por_salir": 0,
+              "mensajes": 0,
+              "pagos": 0,
+              "proyectos": 0,
+              "reservas": 0,
+              "reservas_por_venir": 0,
+              "visitas": 0
+            },
+            "error": "Esta ficha no se puede borrar ahora. No se hizo nada.",
+            "motivo": "paradas",
+            "ok": false,
+            "paradas": [
+              {
+                "motivo": "ficha_ya_fuera",
+                "numero": 5,
+                "texto": "Esta ficha ya fue borrada: no se vuelve a borrar."
+              }
+            ]
+          },
+          "ruta": "/api/portal-personas/3/borrar",
+          "status": 409
+        },
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0002"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0002)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,4)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/4"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,4)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%4%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/4"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/4"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "cuelga": {
+              "envios_por_salir": 0,
+              "mensajes": 0,
+              "pagos": 0,
+              "proyectos": 0,
+              "reservas": 0,
+              "reservas_por_venir": 0,
+              "visitas": 0
+            },
+            "error": "Esta ficha no se puede borrar ahora. No se hizo nada.",
+            "motivo": "paradas",
+            "ok": false,
+            "paradas": [
+              {
+                "motivo": "ficha_ya_fuera",
+                "numero": 5,
+                "texto": "Esta ficha ya se unió a otra: no se borra desde aquí."
+              }
+            ]
+          },
+          "ruta": "/api/portal-personas/4/borrar",
+          "status": 409
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "borrar_errores",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Falta la clave del intento.",
+            "motivo": "clave",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "x"
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Falta la clave del intento.",
+            "motivo": "clave",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": 7
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Falta la clave del intento.",
+            "motivo": "clave",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,99)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/99"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Esa persona ya no está en la base.",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/99/borrar",
+          "status": 404
+        },
+        {
+          "crudo": "{",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido llegó ilegible. No se guardó nada."
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "borrar_sin_registro",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se puede borrar ahora: falta conectar el registro de borrados. No se hizo nada.",
+            "motivo": "sin_registro",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 503
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "GET"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "borrar_lectura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo leer la base para borrar. No se hizo nada. Inténtalo en un momento.",
+            "motivo": "no_se_pudo_comprobar",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "POST"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "borrar_escritura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": {
+                "antes": "{\"bsuid\":\"DO.0000000000000001\",\"caras\":null,\"email\":\"p1@ejemplo.test\",\"email_2\":\"\",\"nombre\":\"Persona de prueba 1\",\"nombre_whatsapp\":\"\",\"quitada_el\":null,\"telefono\":\"18097770001\",\"telefono_2\":\"\"}",
+                "clave": "borrado-prueba-0001",
+                "creada_en": "<ahora>",
+                "creada_por": "Ana Pérez",
+                "estado": "quitando",
+                "ficha_id": 1,
+                "medido": "{\"cuelga\":{\"envios_por_salir\":0,\"mensajes\":0,\"pagos\":0,\"proyectos\":0,\"reservas\":0,\"reservas_por_venir\":0,\"visitas\":1},\"paradas_revisadas\":[1,2,3,4,5,6,7]}"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo confirmar el borrado. La ficha puede haber quedado a medias: ábrela y mira antes de darla por borrada. Repite el mismo borrado para terminarlo; no la des por borrada todavía.",
+            "estado": "sin_confirmar",
+            "motivo": "no_termino",
+            "ok": false,
+            "puede_repetir": true,
+            "quitada_id": null,
+            "sin_confirmar": true
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "PATCH"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "borrar_patch_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": {
+                "antes": "{\"bsuid\":\"DO.0000000000000001\",\"caras\":null,\"email\":\"p1@ejemplo.test\",\"email_2\":\"\",\"nombre\":\"Persona de prueba 1\",\"nombre_whatsapp\":\"\",\"quitada_el\":null,\"telefono\":\"18097770001\",\"telefono_2\":\"\"}",
+                "clave": "borrado-prueba-0001",
+                "creada_en": "<ahora>",
+                "creada_por": "Ana Pérez",
+                "estado": "quitando",
+                "ficha_id": 1,
+                "medido": "{\"cuelga\":{\"envios_por_salir\":0,\"mensajes\":0,\"pagos\":0,\"proyectos\":0,\"reservas\":0,\"reservas_por_venir\":0,\"visitas\":1},\"paradas_revisadas\":[1,2,3,4,5,6,7]}"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "bsuid": null,
+                "caras": null,
+                "email": null,
+                "email_2": null,
+                "nombre": null,
+                "nombre_whatsapp": null,
+                "quitada_el": "<ahora>",
+                "telefono": null,
+                "telefono_2": null
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo confirmar el borrado. La ficha puede haber quedado a medias: ábrela y mira antes de darla por borrada. Repite el mismo borrado para terminarlo; no la des por borrada todavía.",
+            "estado": "sin_confirmar",
+            "motivo": "no_termino",
+            "ok": false,
+            "puede_repetir": true,
+            "quitada_id": 3,
+            "sin_confirmar": true
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [
+        "PATCH"
+      ],
+      "nombre": "borrar_repite_tras_fallo",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": {
+                "antes": "{\"bsuid\":\"DO.0000000000000001\",\"caras\":null,\"email\":\"p1@ejemplo.test\",\"email_2\":\"\",\"nombre\":\"Persona de prueba 1\",\"nombre_whatsapp\":\"\",\"quitada_el\":null,\"telefono\":\"18097770001\",\"telefono_2\":\"\"}",
+                "clave": "borrado-prueba-0001",
+                "creada_en": "<ahora>",
+                "creada_por": "Ana Pérez",
+                "estado": "quitando",
+                "ficha_id": 1,
+                "medido": "{\"cuelga\":{\"envios_por_salir\":0,\"mensajes\":0,\"pagos\":0,\"proyectos\":0,\"reservas\":0,\"reservas_por_venir\":0,\"visitas\":1},\"paradas_revisadas\":[1,2,3,4,5,6,7]}"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "bsuid": null,
+                "caras": null,
+                "email": null,
+                "email_2": null,
+                "nombre": null,
+                "nombre_whatsapp": null,
+                "quitada_el": "<ahora>",
+                "telefono": null,
+                "telefono_2": null
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo confirmar el borrado. La ficha puede haber quedado a medias: ábrela y mira antes de darla por borrada. Repite el mismo borrado para terminarlo; no la des por borrada todavía.",
+            "estado": "sin_confirmar",
+            "motivo": "no_termino",
+            "ok": false,
+            "puede_repetir": true,
+            "quitada_id": 3,
+            "sin_confirmar": true
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 502
+        },
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "bsuid": null,
+                "caras": null,
+                "email": null,
+                "email_2": null,
+                "nombre": null,
+                "nombre_whatsapp": null,
+                "quitada_el": "<ahora>",
+                "telefono": null,
+                "telefono_2": null
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records/3"
+            },
+            {
+              "cuerpo": {
+                "Id": 3,
+                "estado": "quitada"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records/3"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "estado": "quitada",
+            "ficha": 1,
+            "ok": true,
+            "quitada_id": 3,
+            "ya_estaba": false
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "borrar_clave_repetida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": {
+                "antes": "{\"bsuid\":\"DO.0000000000000001\",\"caras\":null,\"email\":\"p1@ejemplo.test\",\"email_2\":\"\",\"nombre\":\"Persona de prueba 1\",\"nombre_whatsapp\":\"\",\"quitada_el\":null,\"telefono\":\"18097770001\",\"telefono_2\":\"\"}",
+                "clave": "borrado-prueba-0001",
+                "creada_en": "<ahora>",
+                "creada_por": "Ana Pérez",
+                "estado": "quitando",
+                "ficha_id": 1,
+                "medido": "{\"cuelga\":{\"envios_por_salir\":0,\"mensajes\":0,\"pagos\":0,\"proyectos\":0,\"reservas\":0,\"reservas_por_venir\":0,\"visitas\":1},\"paradas_revisadas\":[1,2,3,4,5,6,7]}"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "bsuid": null,
+                "caras": null,
+                "email": null,
+                "email_2": null,
+                "nombre": null,
+                "nombre_whatsapp": null,
+                "quitada_el": "<ahora>",
+                "telefono": null,
+                "telefono_2": null
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records/3"
+            },
+            {
+              "cuerpo": {
+                "Id": 3,
+                "estado": "quitada"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records/3"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "estado": "quitada",
+            "ficha": 1,
+            "ok": true,
+            "quitada_id": 3,
+            "ya_estaba": false
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 200
+        },
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Esa clave ya se usó para otra ficha. No se hizo nada.",
+            "motivo": "clave_repetida",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/2/borrar",
+          "status": 409
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [
+        "PATCH"
+      ],
+      "nombre": "borrar_otra_operacion",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": {
+                "antes": "{\"bsuid\":\"DO.0000000000000001\",\"caras\":null,\"email\":\"p1@ejemplo.test\",\"email_2\":\"\",\"nombre\":\"Persona de prueba 1\",\"nombre_whatsapp\":\"\",\"quitada_el\":null,\"telefono\":\"18097770001\",\"telefono_2\":\"\"}",
+                "clave": "borrado-prueba-0001",
+                "creada_en": "<ahora>",
+                "creada_por": "Ana Pérez",
+                "estado": "quitando",
+                "ficha_id": 1,
+                "medido": "{\"cuelga\":{\"envios_por_salir\":0,\"mensajes\":0,\"pagos\":0,\"proyectos\":0,\"reservas\":0,\"reservas_por_venir\":0,\"visitas\":1},\"paradas_revisadas\":[1,2,3,4,5,6,7]}"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0001)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,bsuid,credito,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,fecha,sala,servicio,estado,nombre,hora_inicio,hora_fin,duracion_horas,cantidad_personas,personas_real,horas_alquiler,monto_total,total_real,descuento,descuento_motivo,proyecto,adicionales,instrumentacion,equipamiento_extra,atendio,asignado_a,codigo,event_id,telefono_cliente,paquetes,paquetes_id,cuenta_cerrada_en,cuenta_cerrada_por,cuenta_nota,alquiler_desde,alquiler_hasta,alquiler_deposito,visita_feedback",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(persona_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id",
+                "limit": "1",
+                "where": "(telefono_cliente,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mja78x7qcagta8z/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "id",
+                "limit": "1",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mtfpik394m8r7ih/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,bsuid",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,DO.0000000000000001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_ids,estado",
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_ids,like,%1%)"
+              },
+              "ruta": "/api/v2/tables/tabla-envios-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,en_curso)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(estado,eq,deshaciendo)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cknlb4k94rqjqhq/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/links/cz8lk59aw92xg9p/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "bsuid": null,
+                "caras": null,
+                "email": null,
+                "email_2": null,
+                "nombre": null,
+                "nombre_whatsapp": null,
+                "quitada_el": "<ahora>",
+                "telefono": null,
+                "telefono_2": null
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo confirmar el borrado. La ficha puede haber quedado a medias: ábrela y mira antes de darla por borrada. Repite el mismo borrado para terminarlo; no la des por borrada todavía.",
+            "estado": "sin_confirmar",
+            "motivo": "no_termino",
+            "ok": false,
+            "puede_repetir": true,
+            "quitada_id": 3,
+            "sin_confirmar": true
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 502
+        },
+        {
+          "cuerpo": {
+            "clave": "borrado-prueba-0002"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,borrado-prueba-0002)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Esta ficha tiene otro borrado o una devolución sin terminar. No se hizo nada.",
+            "motivo": "otra_operacion",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/1/borrar",
+          "status": 409
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "devolver_errores",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,1)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Esa ficha no está guardada aparte. No se hizo nada.",
+            "motivo": "no_borrada",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/1/devolver",
+          "status": 409
+        },
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,4)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/4"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Esa ficha no está guardada aparte. No se hizo nada.",
+            "motivo": "no_borrada",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/4/devolver",
+          "status": 409
+        },
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,99)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "Esa ficha no está guardada aparte. No se hizo nada.",
+            "motivo": "no_borrada",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/99/devolver",
+          "status": 409
+        },
+        {
+          "crudo": "{",
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "El pedido llegó ilegible. No se guardó nada."
+          },
+          "ruta": "/api/portal-personas/3/devolver",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "devolver_sin_registro",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se puede devolver ahora: falta conectar el registro de borrados. No se hizo nada.",
+            "motivo": "sin_registro",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/3/devolver",
+          "status": 503
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "devolver_ok",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,3)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/3"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "devolviendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 3,
+                "bsuid": null,
+                "caras": null,
+                "email": "",
+                "email_2": "",
+                "nombre": "Persona de prueba 3",
+                "nombre_whatsapp": "",
+                "quitada_el": null,
+                "telefono": "18097770003",
+                "telefono_2": ""
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/3"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "devuelta_en": "<ahora>",
+                "devuelta_por": "Ana Pérez",
+                "estado": "devuelta"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records/1"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "devuelta_id": 1,
+            "estado": "devuelta",
+            "ficha": 3,
+            "ok": true,
+            "ya_estaba": false
+          },
+          "ruta": "/api/portal-personas/3/devolver",
+          "status": 200
+        },
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,3)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/3"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "devuelta_id": 1,
+            "estado": "devuelta",
+            "ficha": 3,
+            "ok": true,
+            "ya_estaba": true
+          },
+          "ruta": "/api/portal-personas/3/devolver",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "GET"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "devolver_lectura_caida",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,3)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "error": "No se pudo leer la base para devolver. No se hizo nada. Inténtalo en un momento.",
+            "motivo": "no_se_pudo_comprobar",
+            "ok": false
+          },
+          "ruta": "/api/portal-personas/3/devolver",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "caidas": [
+        "PATCH"
+      ],
+      "caidas_una_vez": [],
+      "nombre": "devolver_escritura_caida",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(ficha_id,eq,3)"
+              },
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,telefono_2,email,email_2,bsuid,caras,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/3"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "devolviendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-quitadas-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "devuelta_id": 1,
+            "error": "No se pudo confirmar la devolución. La ficha puede haber quedado a medias: ábrela y mira antes de darla por devuelta. Repite la misma devolución para terminarla; no la des por devuelta todavía.",
+            "estado": "sin_confirmar",
+            "motivo": "no_termino",
+            "ok": false,
+            "puede_repetir": true,
+            "sin_confirmar": true
+          },
+          "ruta": "/api/portal-personas/3/devolver",
+          "status": 502
+        }
+      ]
     }
   ],
   "exito_de_la_app": {

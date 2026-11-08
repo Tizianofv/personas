@@ -59,7 +59,16 @@ BANDEJA = [
     {"Id": 1, "origen": "por-resolver", "clave": "resuelto-" + "0" * 40, "estado": "resuelto",
      "resuelto_por": "Persona de prueba quien", "resuelto_en": "2026-10-07T12:00:00Z"},
 ]
-TABLAS = {T_PERSONAS: PERSONAS, TABLA_ANOTACIONES: ANOTACIONES, T_ASISTENCIAS: ASISTENCIAS, T_QUITADAS: QUITADAS, T_BANDEJA: BANDEJA}
+# Tablas que LEE «revisar un borrado» (parte 5: `personas.revisar_borrado`) y que el doble no tenía. Van VACÍAS a propósito: ninguna
+# ficha del doble tiene sesiones, conversaciones, envíos de Mercadeo ni uniones abiertas. Así la lectura de cada una contesta sin error
+# (una tabla que no se conoce da error en el doble, y el dorado lo rechaza). Sus ids son los de la App (`base.T_SESIONES`,
+# `base.T_CONVERSACIONES`) y los de prueba para las que van por variable de entorno (envíos y uniones).
+T_SESIONES = "mja78x7qcagta8z"       # constante de base.py (la App la usa tal cual)
+T_CONVERSACIONES = "mtfpik394m8r7ih"  # constante de base.py
+T_MERCADEO_ENVIOS = "tabla-envios-prueba"  # va por NOCODB_T_MERCADEO_ENVIOS en el entorno de la foto y de la prueba
+T_UNIONES = "tabla-uniones-prueba"         # va por NOCODB_T_UNIONES_PERSONAS en el entorno de la foto y de la prueba
+TABLAS = {T_PERSONAS: PERSONAS, TABLA_ANOTACIONES: ANOTACIONES, T_ASISTENCIAS: ASISTENCIAS, T_QUITADAS: QUITADAS, T_BANDEJA: BANDEJA,
+          T_SESIONES: [], T_CONVERSACIONES: [], T_MERCADEO_ENVIOS: [], T_UNIONES: []}
 
 # Columnas que el doble declara para la tabla de Personas. Son las claves de las filas de prueba más UNA columna inventada
 # («columna_de_prueba_sin_clasificar») que la App no conoce: así la lista de «sin clasificar» tiene contenido real que el contrato guarda.
@@ -77,11 +86,14 @@ _QUERY_PERMITIDA = {"fields", "where", "limit", "offset", "sort"}
 class Doble:
     """Doble de NocoDB, solo GET. Lo que pide fuera de lo conocido se registra como error y responde 500 (la prueba lo ve)."""
 
-    def __init__(self):
+    def __init__(self, caidas=()):
         self.errores = []
         self.no_get = []
         self.lecturas = 0
         self.servidor = None
+        # `caidas`: métodos que responden 500 SIEMPRE (la base no contesta). Solo GET aquí. Un pedido caído no es un error del doble.
+        self.caidas = set(caidas)
+        self.caidas_servidas = 0
 
     def _filas(self, tabla, where):
         filas = list(TABLAS[tabla])
@@ -120,6 +132,14 @@ class Doble:
         if metodo != "GET":
             self.no_get.append(metodo)
             return 405, {"msg": "doble: solo GET"}
+        if "GET" in self.caidas:
+            self.caidas_servidas += 1
+            return 500, {"msg": "doble: la base no contesta"}
+        # Enlaces (`/links/<enlace>/records/<Id>`): VACÍOS, como en el modo de unión de `doble_escrituras`. La ficha del doble no tiene
+        # nada enlazado (proyectos, pagos). Una lectura de enlace cuenta como lectura, igual que las demás.
+        if re.fullmatch(r"/api/v2/tables/([^/]+)/links/([^/]+)/records/(\d+)", ruta):
+            self.lecturas += 1
+            return 200, {"list": [], "pageInfo": {"totalRows": 0, "page": 1, "pageSize": 200, "isLastPage": True}}
         # La ruta de metadatos de una tabla (la que lee la App para saber sus columnas): se reconoce por su forma, y solo se lee.
         meta = re.fullmatch(r"/api/v2/[a-z]+/tables/([^/]+)", ruta)
         if meta:

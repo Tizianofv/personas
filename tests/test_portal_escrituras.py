@@ -42,7 +42,8 @@ Pruebas:
   I1  con la llave bien: sin `quien`, con `quien` en blanco, sin tipo, con otro tipo («B», «a», vacío): 400 con el texto de
       identidad, cero pedidos. En CADA entrada de la tabla (las tres puertas, en todas las rutas).
   H1  hermanos: con llave e identidad bien, cada entrada de la tabla llega a la lógica (no es 401 ni 400 de identidad).
-  H2  una ruta que la tabla no conoce (inventada, o una que la App contesta y el programa no porta) da 404 y cero pedidos.
+  H2  una ruta que la tabla no conoce (inventada) da 404 y cero pedidos. Desde la parte 5 no hay ninguna POST de la App fuera de la tabla
+      (`PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA` está vacía): la lista de fuera se recorre igual, pero no añade nada.
   Q1  el `quien` que se pasa a cada función es el de la cabecera (espía que solo mira el argumento); el del cuerpo no cuenta.
   Q2  la cabecera con el nombre en UTF-8 llega entera («Pérez»), no como «PÃ©rez».
   Las tres de UNIÓN (unir, unir/continuar, unir/deshacer, paso 5c parte 4) entran en TODAS las pruebas de arriba por la tabla
@@ -52,7 +53,20 @@ Pruebas:
   enlaces, unión a medias con `continuar`, deshacer, y los 200 de repetición (`ya_estaba`).
 
 Lo que NO ve (declarado):
-  - La puerta de sesión de la App (`portal_personas`: 401 sin sesión, 403 sin permiso). El programa no la tiene.
+  - La puerta de sesión de la App (`portal_personas`: 401 sin sesión, 403 sin permiso). El programa no la tiene. Tampoco la de
+    `puede_borrar_fichas` (parte 5: `borrar` y `devolver` la piden en la App, y aquí no se mira). Quien tenga la llave del portal puede
+    borrar y devolver sin ese permiso: es la frontera de la decisión de la sala, y la App la mira antes de reenviar. Las pruebas no la
+    cubren, y no tiene que cubrirla el programa.
+  - `borrar` y `devolver` (parte 5) entran en K0, K1, K3, I1, H1 y Q1 por la tabla. Sus escenarios van en `ENTORNO_BORRAR` (tablas de
+    envíos y de uniones). La foto tiene: el éxito de `borrar` (200 `quitada`) y de `devolver` (200 `devuelta`), la repetición de los dos
+    (`ya_estaba`), el 400 de clave (vacía, corta, no texto) y de cuerpo ilegible, el 404 de ficha que no existe, el 409 de paradas (crédito,
+    ya guardada, unida), el 409 `clave_repetida`, el 409 `otra_operacion`, el 409 `no_borrada` de devolver, el 502 de lectura caída, el 502
+    `sin_confirmar` con la escritura caída (POST) y con el PATCH caído, el reintento con la misma clave tras un fallo, y el 503 sin registro.
+    NO tiene (el doble no tiene los datos o el camino no se puede provocar sin tocar NocoDB real): de `borrar`, los 502 `registro_ilegible`
+    y `no_se_pudo_apuntar`, los 409 `borrado_en_otro_estado` y `cambio_mientras_la_borrabas`, el 404 y el 409 `ficha_desaparecio`, y las
+    paradas 2 (reserva por venir), 3 (envío por salir), 4 (no escribir o permiso no sabido), 6 (proyecto) y 7 (no se pudo medir); de
+    `devolver`, los 409 `otra_operacion`, `viva`, `ocupado` y `cambio_mientras_la_devolvias`. Todo eso es HUECO DE PRUEBA declarado, no
+    «no puede pasar»: en producción sí puede pasar.
   - La unión CON enlaces (asistencias, sesiones, proyectos, pagos, inscripciones que hay que mover): el doble del modo de unión
     declara que las listas de enlace salen vacías; una unión que tendría que mover algo da 500 y la prueba lo ve. Tampoco la marca
     VÁLIDA de un aviso de «Por resolver» (`unir_con_aviso` da `marcado: false`: el doble no tiene aviso real), ni `deshacer` con
@@ -114,6 +128,8 @@ def cuerpo_de(nombre):
         "unir": {"otra": 12, "clave": "union-prueba-0001", "aviso": AVISO_DE_PRUEBA},
         "continuar": {"aviso": AVISO_DE_PRUEBA},
         "deshacer": {"union": 1, "sobra": 12, "aviso": AVISO_DE_PRUEBA},
+        "borrar": {"clave": "borrado-prueba-0001"},
+        "devolver": {},
     }[nombre]
 
 
@@ -126,10 +142,11 @@ def _pasos_de_la_tabla(llave="portal", quien=QUIEN, tipo="A", cuerpo=None):
 
 
 def _cuandos_son_iso(x):
-    """Cierto si todo valor de una clave `cuando` (a cualquier nivel) es una fecha ISO con zona. Lo que no lo es queda sin cambiar
-    al normalizar y no iguala la foto, así que esta comprobación solo le pone el motivo al fallo."""
+    """Cierto si todo valor de una clave de hora (a cualquier nivel) es una fecha ISO con zona, o NULO: una marca que se quita (la
+    `quitada_el` de una ficha devuelta, parte 5) se escribe como null y no es una hora. Lo que no lo es queda sin cambiar al normalizar y
+    no iguala la foto, así que esta comprobación solo le pone el motivo al fallo."""
     if isinstance(x, dict):
-        return all((not esc.es_clave_de_hora(k) or esc._es_iso(v)) and _cuandos_son_iso(v) for k, v in x.items())
+        return all((not esc.es_clave_de_hora(k) or v is None or esc._es_iso(v)) and _cuandos_son_iso(v) for k, v in x.items())
     if isinstance(x, list):
         return all(_cuandos_son_iso(v) for v in x)
     return True
@@ -481,6 +498,8 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
             mock.patch.object(personas, "unir_fichas", espia("unir", (200, {"estado": "unida"}))),
             mock.patch.object(personas, "continuar_union", espia("continuar", (200, {"estado": "unida"}))),
             mock.patch.object(personas, "deshacer_union", espia("deshacer", (200, {"estado": "deshecha"}))),
+            mock.patch.object(personas, "quitar_ficha", espia("borrar", (200, {"estado": "quitada"}))),
+            mock.patch.object(personas, "devolver_ficha", espia("devolver", (200, {"estado": "devuelta"}))),
             mock.patch.object(personas_portal_escritura, "_con_el_aviso_marcado",
                               espia("aviso", {"clave": AVISO_DE_PRUEBA, "marcado": True})),
         ]
@@ -506,6 +525,8 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
         self.assertEqual(por_ruta["unir"]["unir"][0][0][4], QUIEN, "unir_fichas(ficha, otra, resoluciones, clave, quien, ...)")
         self.assertEqual(por_ruta["deshacer"]["deshacer"][0][0][1], QUIEN, "deshacer_union(ficha, quien, ...)")
         self.assertEqual(por_ruta["continuar"]["continuar"], [((2,), {})], "continuar_union(ficha): la App no le pasa quien")
+        self.assertEqual(por_ruta["borrar"]["borrar"][0][0][-1], QUIEN, "quitar_ficha(ficha, clave, quien): el quien de la cabecera")
+        self.assertEqual(por_ruta["devolver"]["devolver"][0][0][-1], QUIEN, "devolver_ficha(ficha, quien): el quien de la cabecera")
         acciones = _acciones_con_aviso()
         self.assertEqual(set(acciones), {"unir", "continuar", "deshacer"}, "las acciones que marcan aviso, sacadas del AST de _ejecutar")
         for accion, (_funcion, modo, estado) in sorted(acciones.items()):
