@@ -13,6 +13,12 @@ Cualquier otro pedido se apunta en `errores` y responde 500 (la prueba lo ve).
 llave y `xc-token`, y ninguna de las dos debe quedar en un registro. `caidas`: métodos que responden 500 SIEMPRE (la base no
 contesta para esa operación); el pedido se apunta igual, para que la prueba vea que salió y no se escribió.
 
+MODO DE UNIÓN (`union=True`, paso 5c parte 4): las fichas son `UNION_PERSONAS` (dos fichas que se pueden unir: sin
+columna inventada, sin crédito, sin unir ni borrar), hay una tabla vacía de uniones (`T_UNIONES`) y los enlaces de NocoDB
+(`/api/v2/tables/<t>/links/<enlace>/records/<Id>`) contestan una lista VACÍA. Es decir: el doble declara que ninguna ficha
+tiene nada enlazado (sesiones, proyectos, pagos, inscripciones). Una unión que tuviera que mover algo (un enlace o una
+asistencia) da 500 y queda en `errores`: la prueba lo ve. Fuera del modo de unión, el doble es el de siempre.
+
 Lo que NO ve (declarado): no imita los errores de NocoDB real (ni sus códigos ni sus textos); solo que una operación cae o
 no cae. Solo 127.0.0.1. No toca NocoDB real.
 """
@@ -25,14 +31,41 @@ import urllib.parse
 
 import doble_nocodb
 
+T_UNIONES = "tabla-uniones-prueba"
+# Dos fichas para la unión (datos ficticios, solo para el modo `union=True`). Sus columnas son las que el programa clasifica
+# (`personas.UNION_CLASES`, leídas al armar el doble): sin columna inventada, sin enlaces, sin crédito, sin nada que chocar.
+UNION_FICHAS = [
+    {"Id": 11, "nombre": "Union Uno", "telefono": "18090001101", "CreatedAt": "2026-10-11T10:00:00Z"},
+    {"Id": 12, "nombre": "Union Uno", "telefono": "18090001102", "CreatedAt": "2026-10-12T10:00:00Z"},
+]
+_VACIO_POR_CLASE = {"visitas": 0, "credito": 0, "numero": None, "caras": None, "id_whatsapp": None}
+
+
+def union_personas():
+    """Las filas de la unión: cada columna que el programa clasifica (`personas.UNION_CLASES`) con su valor vacío, más `unida_a` y
+    `quitada_el` (nulas), y las dos fichas por encima. Se importa `personas` aquí y no al cargar el módulo."""
+    import personas  # noqa: E402  (la lista de columnas de la unión es la del programa; la App tiene la suya, y la foto la compara)
+    vacia = {c: _VACIO_POR_CLASE.get(clase, "") for c, clase in personas.UNION_CLASES.items()}
+    vacia.update({"unida_a": None, "quitada_el": None, "CreatedAt": None})
+    return [dict(vacia, **f) for f in UNION_FICHAS]
 _CONDICION = re.compile(r"\((\w+),(eq|neq|gt|gte|lt|lte|like),([^)]*)\)")
 _QUERY_PERMITIDA = {"fields", "where", "limit", "offset", "sort"}
 _METODOS_CON_CUERPO = ("POST", "PATCH", "PUT", "DELETE")
 
 
 class DobleEscrituras:
-    def __init__(self, caidas=(), caidas_una_vez=()):
+    def __init__(self, caidas=(), caidas_una_vez=(), union=False):
         self.tablas = {t: copy.deepcopy(filas) for t, filas in doble_nocodb.TABLAS.items()}
+        self.meta = dict(doble_nocodb.COLUMNAS_META)
+        self.union = union
+        if union:
+            import personas  # noqa: E402
+            self.tablas[doble_nocodb.T_PERSONAS] = union_personas()
+            self.tablas[T_UNIONES] = []
+            self.meta[doble_nocodb.T_PERSONAS] = ([{"title": c, "uidt": "SingleLineText", "system": False} for c in personas.UNION_CLASES]
+                                                  + [{"title": "Id", "uidt": "Number", "system": True},
+                                                     {"title": "CreatedAt", "uidt": "DateTime", "system": True},
+                                                     {"title": "UpdatedAt", "uidt": "DateTime", "system": True}])
         self.caidas_una_vez = set(caidas_una_vez)     # métodos que fallan UNA sola vez (la siguiente vez contestan bien)
         self.pedidos = []
         self.errores = []
@@ -46,8 +79,8 @@ class DobleEscrituras:
             return filas
         partes = _CONDICION.findall(where)
         separadores = set(re.findall(r"~(and|or)", where))
-        residuo = _CONDICION.sub("", where)
-        if residuo.strip("~") or len(separadores) > 1:
+        residuo = re.sub(r"~(and|or)", "", _CONDICION.sub("", where))
+        if residuo.strip() or len(separadores) > 1:
             raise ValueError("where con forma no soportada")
         modo = separadores.pop() if separadores else "and"
 
@@ -94,7 +127,10 @@ class DobleEscrituras:
                     if meta.group(1) not in self.tablas:
                         self.errores.append("metadatos de tabla desconocida: %s" % ruta)
                         return 404, {"msg": "doble: tabla desconocida"}
-                    return 200, {"id": meta.group(1), "columns": doble_nocodb.COLUMNAS_META.get(meta.group(1), [])}
+                    return 200, {"id": meta.group(1), "columns": self.meta.get(meta.group(1), [])}
+            if self.union and metodo == "GET" and re.fullmatch(r"/api/v2/tables/([^/]+)/links/([^/]+)/records/(\d+)", ruta):
+                # El modo de unión no tiene enlaces: cada lista sale vacía (ver la docstring).
+                return 200, {"list": [], "pageInfo": {"totalRows": 0, "page": 1, "pageSize": 200, "isLastPage": True}}
             m = re.fullmatch(r"/api/v2/tables/([^/]+)/records(?:/(\d+))?", ruta)
             if not m or m.group(1) not in self.tablas:
                 self.errores.append("tabla o ruta desconocida: %s %s" % (metodo, ruta))

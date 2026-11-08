@@ -25,15 +25,16 @@ de identidad que venga del navegador no decide nada si la llave no es la del por
 reenviar; este programa no la ve. Las respuestas: `personas_portal_lectura.py` (copia de la App, `594ec12`), con la foto de
 `contrato/portal_lectura.json`. Las dos rutas de la App que NO se portan están en `PORTAL_FUERA_DEL_PROGRAMA`, con su motivo.
 
-ESCRITURAS DEL PORTAL (paso 5c, parte 3): cinco POST en la tabla `PORTAL_ESCRITURA` (crear, editar, permiso, resolver y reabrir).
+ESCRITURAS DEL PORTAL (paso 5c, partes 3 y 4): ocho POST en la tabla `PORTAL_ESCRITURA` (crear, editar, permiso, resolver, reabrir y las
+tres de unir: unir, unir/continuar y unir/deshacer).
 Misma cabecera de llave (X-Personas-Portal-Llave) y la misma identidad que las lecturas, más el `quien` que pone la App en
 X-Personas-Portal-Quien: es el que queda escrito, y el `quien` del cuerpo no se lee. La llave se mira antes que el cuerpo. Las
 respuestas: `personas_portal_escritura.py` (copia de `Handler.portal_personas_post` de la App, `594ec12`, sin su puerta de sesión).
-Lo que la App atiende por POST y el programa NO porta (unir, unir/continuar, unir/deshacer, borrar, devolver) está en
+Lo que la App atiende por POST y el programa NO porta (borrar, devolver) está en
 `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`, con su motivo; el programa lo contesta 404 sin tocar NocoDB.
 
 NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): la búsqueda GET, las instrumentos, Google, la puerta de Natalia
-y las rutas POST de unión y borrado de arriba.
+y las rutas POST de borrado y devolución de arriba.
 
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN,
 PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, NOCODB_T_*.
@@ -122,14 +123,11 @@ PORTAL_ESCRITURA = {
     r"/api/portal-personas/(\d{1,9})/permiso": ("permiso", PORTAL_TIPO_A, True),
     "/api/portal-personas/por-resolver/resolver": ("resolver", PORTAL_TIPO_A, True),
     "/api/portal-personas/por-resolver/reabrir": ("reabrir", PORTAL_TIPO_A, True),
+    r"/api/portal-personas/(\d{1,9})/unir": ("unir", PORTAL_TIPO_A, True),
+    r"/api/portal-personas/(\d{1,9})/unir/continuar": ("continuar", PORTAL_TIPO_A, True),
+    r"/api/portal-personas/(\d{1,9})/unir/deshacer": ("deshacer", PORTAL_TIPO_A, True),
 }
 PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA = {
-    r"/api/portal-personas/(\d{1,9})/unir": (
-        "unir fichas: la App la contesta por POST, pero esta parte del paso 5c no la porta (encargo de la sala, sesion-3). Pendiente."),
-    r"/api/portal-personas/(\d{1,9})/unir/continuar": (
-        "continuar una unión: igual que `unir`, pendiente en el paso 5c (no es de esta parte)."),
-    r"/api/portal-personas/(\d{1,9})/unir/deshacer": (
-        "deshacer una unión: igual que `unir`, pendiente en el paso 5c (no es de esta parte)."),
     r"/api/portal-personas/(\d{1,9})/borrar": (
         "borrar una ficha: pide el permiso de borrar fichas de la sesión («puede_borrar_fichas», `server.py` de la App): el programa "
         "no ve sesiones ni permisos por persona."),
