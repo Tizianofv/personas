@@ -6,8 +6,9 @@ Uso:  python3 -B tools/generar_portal_escrituras_de_la_app.py <carpeta de una co
 
 Dos cosas salen de la App:
   1. `rutas_de_la_app`: las rutas POST del portal que atiende `Handler.portal_personas_post` (AST del `server.py` de la App:
-     `path == X`, `path in (X, Y)`, `re.fullmatch(X, path)`). Son las rutas que la App CONTESTA; la prueba CP3 las compara con
-     `servidor.PORTAL_ESCRITURA` más `servidor.PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`.
+     `path == X`, `path in (X, Y)`, `re.fullmatch(X, path)`). Son las rutas que la App CONTESTA; la prueba K0 las compara con
+     `servidor.escrituras_del_portal()` más `servidor.PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`. Desde la parte 7, `rutas_checkin_de_la_app`
+     trae las rutas POST y PATCH de `/api/personas` que leen `do_POST` y `do_PATCH` de la App (AST, solo literales).
   2. `escenarios`: las respuestas de la App a los pasos de `tests/escenarios_portal_escrituras.py` (solo los de dorado). La App se
      corre en UN proceso por escenario, con su `Handler.portal_personas` (el mismo despacho que usa `do_POST`, que incluye el
      `una_vez`, el 400 por cuerpo ilegible y los 500 con sus textos) y un objeto de prueba que hace de handler: se le ponen las

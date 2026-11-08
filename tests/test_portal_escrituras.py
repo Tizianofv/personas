@@ -11,8 +11,9 @@ Pruebas:
   E2  los pasos de la foto son los de `tests/escenarios_portal_escrituras.py` (dorado), y el servidor del repo, corrido sobre el
       doble que escribe (`tests/doble_escrituras.py`), contesta a cada paso con el MISMO código, la MISMA respuesta y los MISMOS
       pedidos que la App. Y el doble no recibió ningún pedido que no conociera.
-  K0  tabla (`servidor.PORTAL_ESCRITURA`) + `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA` = las rutas POST que la App contesta
-      (`rutas_de_la_app`). Ninguna en las dos listas. Cada salida tiene su motivo escrito.
+  K0  tablas de escritura (`servidor.escrituras_del_portal()`: POST y PATCH) + `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA` = las rutas de
+      escritura que la App contesta (`rutas_de_la_app` del portal y `rutas_checkin_de_la_app` de sesión). Ningún patrón está en la
+      tabla y en la lista de fuera a la vez. Cada salida tiene su motivo escrito.
   K1  sin llave, con llave vacía, con la de otro grupo (Mercadeo, Registro, escritura de Registro) o una llave mala: 401 en CADA
       entrada de la tabla, y cero pedidos a NocoDB. Y sin llave con un cuerpo que no es JSON: 401 (la llave va antes que el cuerpo).
   K1b con `PERSONAS_PORTAL_LLAVE` vacía, la cabecera vacía no abre nada: 401 en cada entrada, cero pedidos.
@@ -42,8 +43,8 @@ Pruebas:
   I1  con la llave bien: sin `quien`, con `quien` en blanco, sin tipo, con otro tipo («B», «a», vacío): 400 con el texto de
       identidad, cero pedidos. En CADA entrada de la tabla (las tres puertas, en todas las rutas).
   H1  hermanos: con llave e identidad bien, cada entrada de la tabla llega a la lógica (no es 401 ni 400 de identidad).
-  H2  una ruta que la tabla no conoce (inventada) da 404 y cero pedidos. Desde la parte 5 no hay ninguna POST de la App fuera de la tabla
-      (`PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA` está vacía): la lista de fuera se recorre igual, pero no añade nada.
+  H2  una ruta que la tabla no conoce (inventada) da 404 y cero pedidos. Las rutas de `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`
+      (hoy `cara` y `parecidas`, de sesión) dan 404 y no escriben: la lista de fuera se recorre igual.
   Q1  el `quien` que se pasa a cada función es el de la cabecera (espía que solo mira el argumento); el del cuerpo no cuenta.
   Q2  la cabecera con el nombre en UTF-8 llega entera («Pérez»), no como «PÃ©rez».
   Las tres de UNIÓN (unir, unir/continuar, unir/deshacer, paso 5c parte 4) entran en TODAS las pruebas de arriba por la tabla

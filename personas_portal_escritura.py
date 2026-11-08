@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Las ESCRITURAS del portal que sirve el programa (paso 5c, parte 3): crear una persona, editarla, anotar su permiso, y marcar o
-reabrir un renglón de «Por resolver». Son las cinco rutas de `servidor.PORTAL_ESCRITURA`, con la misma lógica que
+reabrir un renglón de «Por resolver». Son las rutas del portal de `servidor.PORTAL_ESCRITURA` (y, desde la parte 7, las dos de sesión del check-in, `crear_checkin` y
+`editar_checkin`, de `PORTAL_ESCRITURA` y `PORTAL_ESCRITURA_PATCH`), con la misma lógica que
 `Handler.portal_personas_post` de la App de registro (`594ec12`), SIN su puerta de sesión (esa la mira la App antes de reenviar).
 
 `responder(nombre, ruta, grupos, crudo, quien)` devuelve `(código, cuerpo)`: lo que la App mandaría con `send_json`. `quien` es el

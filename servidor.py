@@ -28,8 +28,8 @@ reenviar; este programa no la ve. Las respuestas: `personas_portal_lectura.py` (
 `contrato/portal_lectura.json`. De las GET del portal y de sesión que la App contesta, la única que NO se porta es `entrada/cuadro`, en
 `PORTAL_FUERA_DEL_PROGRAMA`, con su motivo (las GET de proveedores y de Google no están en esta tabla: son de otro tipo, fuera de este encargo).
 
-ESCRITURAS DEL PORTAL (paso 5c, partes 3, 4 y 5): diez POST en la tabla `PORTAL_ESCRITURA` (crear, editar, permiso, resolver, reabrir, las
-tres de unir: unir, unir/continuar y unir/deshacer, y la parte 5: borrar y devolver).
+ESCRITURAS DEL PORTAL (paso 5c, partes 3 a 5): las POST del portal en la tabla `PORTAL_ESCRITURA` (crear, editar, permiso, resolver,
+reabrir, las de unir: unir, unir/continuar y unir/deshacer, y borrar y devolver).
 Misma cabecera de llave (X-Personas-Portal-Llave) y la misma identidad que las lecturas, más el `quien` que pone la App en
 X-Personas-Portal-Quien: es el que queda escrito, y el `quien` del cuerpo no se lee. La llave se mira antes que el cuerpo. Las
 respuestas: `personas_portal_escritura.py` (copia de `Handler.portal_personas_post` de la App, `594ec12`, sin su puerta de sesión).
@@ -42,6 +42,8 @@ ESCRITURAS DE SESIÓN DEL CHECK-IN (paso 5c, parte 7, tipo «C»): `POST /api/pe
 = `C`. Ninguna de las dos escribe `quien` (la App tampoco). Las respuestas: `personas_portal_escritura.py`, con los errores de la App para
 estas rutas (`do_POST` y `do_PATCH`: 400 con el texto de la excepción, 500 con `str(e)`). FUERA, con su motivo en
 `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA`: `POST /api/personas/parecidas` y `POST /api/personas/<id>/cara` (dependen de la memoria de caras de la App).
+La paridad con la App (la foto) vale con `PROGRAMA_REGISTRO_ESCRITURAS_PERSONAS` APAGADA, que es su valor por defecto: con ella encendida,
+la App manda crear, editar y cara al servicio de Personas por red, y este programa no replica ese camino.
 
 NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): Google, la puerta de Natalia, las GET de proveedores y `entrada/cuadro`.
 
@@ -127,9 +129,9 @@ PORTAL_FUERA_DEL_PROGRAMA = {
 }
 
 
-# ESCRITURAS del portal (paso 5c, partes 3, 4 y 5): TABLA ÚNICA de las diez POST. Mismo formato que `PORTAL_LECTURA`. K0 de
-# `tests/test_portal_escrituras.py` las compara con las rutas POST de `Handler.portal_personas_post` de la App (AST), con
-# `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA` (vacía desde la parte 5: no queda ninguna POST sin portar).
+# ESCRITURAS POST del portal y de sesión (partes 3 a 5 y 7): la tabla de las POST, mismo formato que `PORTAL_LECTURA`. K0 de
+# `tests/test_portal_escrituras.py` las compara con las rutas que la App contesta (AST de `portal_personas_post`, de `do_POST` y de
+# `do_PATCH`), con `PORTAL_ESCRITURA_PATCH` y con `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA` (las que el programa deja fuera, con su motivo).
 PORTAL_ESCRITURA = {
     "/api/portal-personas": ("crear", PORTAL_TIPO_A, True),
     r"/api/portal-personas/(\d{1,9})/editar": ("editar", PORTAL_TIPO_A, True),
