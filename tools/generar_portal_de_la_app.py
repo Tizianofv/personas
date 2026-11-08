@@ -14,7 +14,11 @@ Dos cosas salen de la App:
      Lo que NO ejercita: la puerta de sesión de `portal_personas` (401 y 403). Esa no se copia, y el programa no la tiene.
 
 Los datos de NocoDB salen del doble de `tests/doble_nocodb.py`, el mismo que usan las pruebas. Si el doble recibe un pedido que no
-conoce, o un pedido que no es GET, la foto NO se guarda. Si algún pedido no es 200, tampoco (la foto es la referencia de 200).
+conoce, o un pedido que no es GET, la foto NO se guarda. Si la App contesta otro código que el ESPERADO de ese pedido, tampoco: el
+esperado va en `RUTAS` (200 para casi todo; 404 y 502 para los escenarios de error y de caída de «borrar/revisar», parte 5).
+
+Parte 5: `borrar/revisar` pide en la App el permiso `puede_borrar_fichas`. La puerta de permiso no se copia (igual que la de sesión):
+el objeto que contesta tiene `puede_borrar_fichas` = verdadero, y eso va escrito en el DRIVER.
 """
 import ast
 import hashlib
@@ -27,15 +31,30 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "tests"))
 import doble_nocodb as doble_mod  # noqa: E402
 
-# (nombre, ruta, consulta). La consulta va cruda, como en la URL; la App la lee con su `parse`.
+# (nombre, ruta, consulta, caidas, código esperado). La consulta va cruda, como en la URL; la App la lee con su `parse`. `caidas` son
+# los métodos que el doble de ESE pedido contesta con 500 (la base no contesta). Un pedido con caídas va en su propio doble (lo lee la
+# prueba P4); los demás comparten la forma del doble de siempre.
+# Parte 5 (`borrar/revisar`): el primer pedido de cada ruta es el de ÉXITO (la prueba toma el primero de la foto para cada entrada).
 RUTAS = [
-    ("portal_nueva", "/api/portal-personas/nueva", ""),
-    ("portal_borradas", "/api/portal-personas/borradas", ""),
-    ("portal_lista", "/api/portal-personas", "orden=asc&col=nombre&desde=0&limite=10"),
-    ("portal_ficha", "/api/portal-personas/1", ""),
-    ("portal_por_resolver", "/api/portal-personas/por-resolver", ""),
-    ("portal_unir_revisar", "/api/portal-personas/1/unir/revisar", "otra=2"),
+    ("portal_nueva", "/api/portal-personas/nueva", "", (), 200),
+    ("portal_borradas", "/api/portal-personas/borradas", "", (), 200),
+    ("portal_lista", "/api/portal-personas", "orden=asc&col=nombre&desde=0&limite=10", (), 200),
+    ("portal_ficha", "/api/portal-personas/1", "", (), 200),
+    ("portal_por_resolver", "/api/portal-personas/por-resolver", "", (), 200),
+    ("portal_unir_revisar", "/api/portal-personas/1/unir/revisar", "otra=2", (), 200),
+    ("portal_borrar_revisar", "/api/portal-personas/2/borrar/revisar", "", (), 200),
+    ("portal_borrar_revisar_ficha_unida", "/api/portal-personas/4/borrar/revisar", "", (), 200),
+    ("portal_borrar_revisar_quitada", "/api/portal-personas/3/borrar/revisar", "", (), 200),
+    ("portal_borrar_revisar_sin_permiso", "/api/portal-personas/1/borrar/revisar", "", (), 200),
+    ("portal_borrar_revisar_no_existe", "/api/portal-personas/99/borrar/revisar", "", (), 404),
+    ("portal_borrar_revisar_caida", "/api/portal-personas/2/borrar/revisar", "", ("GET",), 502),
 ]
+# Las variables de entorno que el programa necesita para «revisar un borrado» (tablas de envíos y de uniones). Van en el entorno de
+# AMBOS lados (la App y el programa), igual que las demás tablas de la foto: la foto y la prueba tienen la misma configuración.
+ENTORNO_FOTO = {
+    "NOCODB_T_MERCADEO_ENVIOS": doble_mod.T_MERCADEO_ENVIOS,
+    "NOCODB_T_UNIONES_PERSONAS": doble_mod.T_UNIONES,
+}
 
 # La App, sin `main()`: importa su `server` (que no arranca hilos), pasa la URL por su `parse` y contesta a un objeto de prueba.
 DRIVER = (
@@ -48,6 +67,8 @@ DRIVER = (
     "        pass\n"   # `parse` la llama para borrar el estado del pedido anterior; este proceso nace con el estado vacío.
     "class Recogida:\n"
     "    enviado = None\n"
+    "    def puede_borrar_fichas(self):\n"
+    "        return True\n"   # la puerta de permiso (`puede_borrar_fichas`) no se copia: se da por buena, como la de sesión
     "    def send_json(self, obj, status=200):\n"
     "        self.enviado = (status, obj)\n"
     "ruta, q = server.Handler.parse(Pedido())\n"
@@ -103,6 +124,7 @@ def pedir_a_la_app(copia, ruta, consulta, url_doble):
         "NOCODB_T_PERSONAS_QUITADAS": doble_mod.T_QUITADAS,
         "NOCODB_T_BANDEJA_PERSONAS": doble_mod.T_BANDEJA,
         "NOCODB_T_PERSONAS_ANOTACIONES": doble_mod.TABLA_ANOTACIONES,
+        **ENTORNO_FOTO,
     }
     url = ruta + ("?" + consulta if consulta else "")
     salida = subprocess.run([sys.executable, "-I", "-B", "-c", DRIVER, url], cwd=str(copia), env=entorno,
@@ -120,8 +142,8 @@ def main():
         raise SystemExit("esa carpeta no es una copia de la App con server.py y personas.py")
     rutas = rutas_de_la_app(copia)
     pedidos = []
-    for nombre, ruta, consulta in RUTAS:
-        doble = doble_mod.Doble()
+    for nombre, ruta, consulta, caidas, esperado in RUTAS:
+        doble = doble_mod.Doble(caidas=caidas)
         url = doble.arrancar()
         try:
             resultado = pedir_a_la_app(copia, ruta, consulta, url)
@@ -129,15 +151,17 @@ def main():
             doble.parar()
         if doble.errores or doble.no_get:
             raise SystemExit("el doble recibió algo que no conoce en «%s»: %s %s" % (ruta, doble.errores, doble.no_get))
-        if resultado["status"] != 200:
-            raise SystemExit("la App no contestó 200 a «%s»: %s" % (ruta, resultado["status"]))
+        if resultado["status"] != esperado:
+            raise SystemExit("la App no contestó %s a «%s» (%s): %s" % (esperado, ruta, nombre, resultado["status"]))
+        if caidas and not doble.caidas_servidas:
+            raise SystemExit("la caída de «%s» no se usó: la App no leyó NocoDB" % nombre)
         pedidos.append({"nombre": nombre, "ruta": ruta, "consulta": consulta, "status": resultado["status"],
-                        "lecturas_a_nocodb": doble.lecturas, "respuesta": resultado["respuesta"]})
+                        "caidas": list(caidas), "lecturas_a_nocodb": doble.lecturas, "respuesta": resultado["respuesta"]})
     foto = {
-        "version": 2,
+        "version": 3,
         "fuente": "App de registro, commit 594ec12: server.Handler.parse y portal_personas_get (las rutas GET del portal, leídas "
-                  "con AST: rutas_de_la_app), con las funciones de personas.py de la App. Sin la puerta de sesión de portal_personas. "
-                  "Datos del doble tests/doble_nocodb.py.",
+                  "con AST: rutas_de_la_app), con las funciones de personas.py de la App. Sin la puerta de sesión de portal_personas "
+                  "ni la de permiso (`puede_borrar_fichas`). Datos del doble tests/doble_nocodb.py.",
         "escrituras_a_nocodb": 0,
         "rutas_de_la_app": rutas,
         "pedidos": pedidos,

@@ -12,7 +12,8 @@ Dos cosas salen de la App:
      corre en UN proceso por escenario, con su `Handler.portal_personas` (el mismo despacho que usa `do_POST`, que incluye el
      `una_vez`, el 400 por cuerpo ilegible y los 500 con sus textos) y un objeto de prueba que hace de handler: se le ponen las
      cabeceras y el cuerpo, y se le da la identidad que la App pondría (`firma_escrita` y `quien_del_cambio` devuelven el `quien`
-     del paso). Lo que NO ejercita: la puerta de sesión (`veredicto().entra` y `entra_personas`, que se dan por buenos).
+     del paso). Lo que NO ejercita: la puerta de sesión (`veredicto().entra` y `entra_personas`, que se dan por buenos) y la de
+     permiso de borrar (`puede_borrar_fichas`, parte 5: el DRIVER la da por buena, como la de sesión).
 Los pasos van uno a uno: el driver avisa tras cada uno (`PASO …`) y este script anota los pedidos que llegaron al doble en ese
 paso, así cada paso lleva lo suyo.
 
@@ -57,6 +58,8 @@ DRIVER = (
     "        pass\n"
     "    def veredicto(self):\n"
     "        return types.SimpleNamespace(entra=True, es_admin=True)\n"
+    "    def puede_borrar_fichas(self):\n"
+    "        return True\n"   # parte 5: la puerta de permiso (`puede_borrar_fichas`) no se copia: se da por buena, como la de sesión
     "    def firma_escrita(self, tecleado=''):\n"
     "        return self._quien\n"
     "    def quien_del_cambio(self):\n"

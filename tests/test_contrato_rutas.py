@@ -50,9 +50,10 @@ def _puerto_libre():
         return s.getsockname()[1]
 
 
-def _arrancar(extra_entorno=None):
-    """Arranca `servidor.py` como proceso aparte contra un doble nuevo. Devuelve (proceso, puerto, doble)."""
-    doble = doble_mod.Doble()
+def _arrancar(extra_entorno=None, caidas=()):
+    """Arranca `servidor.py` como proceso aparte contra un doble nuevo. Devuelve (proceso, puerto, doble). `caidas`: métodos del doble
+    que contestan 500 (la base no contesta); por defecto ninguno."""
+    doble = doble_mod.Doble(caidas=caidas)
     url_doble = doble.arrancar()
     puerto = _puerto_libre()
     entorno = {

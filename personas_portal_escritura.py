@@ -18,6 +18,8 @@ Lo que cada acción hace (las funciones son las de `personas.py`, copia de la Ap
   unir      `personas.unir_fichas(ficha, otra, resoluciones, clave, quien, queda_visto)`, SIN `una_vez` (la App no lo usa aquí)
   continuar `personas.continuar_union(ficha)` (la App NO le pasa `quien`); el aviso de «Por resolver» sí lleva `quien`
   deshacer  `personas.deshacer_union(ficha, quien, union_visto, sobra_esperada)`, SIN `una_vez`
+  borrar    `personas.quitar_ficha(ficha, clave, quien)` (parte 5). La clave del cuerpo; SIN `una_vez`
+  devolver  `personas.devolver_ficha(ficha, quien)` (parte 5), SIN `una_vez`. Ninguna de las dos mira `puede_borrar_fichas`: lo mira la App
 
 Las tres de unión, como `Handler.portal_personas_post` de la App: validan el cuerpo (400 con sus textos), leen la clave del aviso
 (`aviso`) y, si la unión o el deshacer salen bien, marcan el aviso (`_con_el_aviso_marcado`, copia de `Handler.con_el_aviso_marcado`).
@@ -174,6 +176,13 @@ def _ejecutar(nombre, ruta, grupos, cuerpo, quien):
     if nombre in ("resolver", "reabrir"):
         clave = cuerpo.get("clave") if isinstance(cuerpo, dict) else None
         return personas.portal_por_resolver_marcar(clave, quien, reabrir=(nombre == "reabrir"))
+    # Parte 5: la App pide `puede_borrar_fichas` ANTES de llegar aquí (no se copia). Sin `una_vez`: la clave del borrado es lo que
+    # impide borrar dos veces, y devolver lo impide el registro y su relectura. Como `Handler.portal_personas_post` de la App.
+    if nombre == "borrar":
+        clave = cuerpo.get("clave") if isinstance(cuerpo, dict) else None
+        return personas.quitar_ficha(int(grupos[0]), clave, quien)
+    if nombre == "devolver":
+        return personas.devolver_ficha(int(grupos[0]), quien)
     raise ValueError("acción de escritura del portal desconocida: %r" % (nombre,))
 
 
