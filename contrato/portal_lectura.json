@@ -1,0 +1,155 @@
+{
+  "escrituras_a_nocodb": 0,
+  "fuente": "App de registro, commit 594ec12: server.Handler.portal_personas_get (las dos rutas), con portal_persona_nueva y listar_borradas de personas.py. Sin la puerta de sesión de portal_personas. Datos del doble tests/doble_nocodb.py.",
+  "pedidos": [
+    {
+      "lecturas_a_nocodb": 1,
+      "nombre": "portal_nueva",
+      "respuesta": {
+        "edicion": {
+          "base": {
+            "Cumpleanos": "",
+            "email": "",
+            "email_2": "",
+            "instagram": "",
+            "nombre": "",
+            "telefono": "",
+            "telefono_2": ""
+          },
+          "campos": {
+            "Cumpleanos": {
+              "tipo": "texto"
+            },
+            "email": {
+              "tipo": "texto"
+            },
+            "email_2": {
+              "tipo": "texto"
+            },
+            "instagram": {
+              "tipo": "texto"
+            },
+            "nombre": {
+              "tipo": "texto"
+            },
+            "telefono": {
+              "tipo": "telefono"
+            },
+            "telefono_2": {
+              "tipo": "telefono"
+            }
+          },
+          "disponible": true,
+          "no_disponibles": {
+            "Clave": "la columna no existe en NocoDB",
+            "Comportamiento_reserva": "la columna no existe en NocoDB",
+            "Posible_proveedor": "la columna no existe en NocoDB",
+            "Precio_referencia": "la columna no existe en NocoDB",
+            "Preferencias_operativas": "la columna no existe en NocoDB",
+            "Resumen": "la columna no existe en NocoDB",
+            "Riesgo_noshow": "la columna no existe en NocoDB",
+            "Sensibilidad_precio": "la columna no existe en NocoDB",
+            "Tono": "la columna no existe en NocoDB",
+            "genero": "la columna no existe en NocoDB",
+            "instrumento": "la columna no existe en NocoDB",
+            "notas": "la columna no existe en NocoDB"
+          }
+        },
+        "grupos": [
+          {
+            "campos": [
+              {
+                "etiqueta": "Nombre",
+                "forma": {
+                  "tipo": "texto"
+                },
+                "llave": "nombre",
+                "tipo": "texto",
+                "valor": null
+              },
+              {
+                "etiqueta": "Teléfono",
+                "forma": {
+                  "tipo": "telefono"
+                },
+                "llave": "telefono",
+                "tipo": "texto",
+                "valor": null
+              },
+              {
+                "etiqueta": "Teléfono 2",
+                "forma": {
+                  "tipo": "telefono"
+                },
+                "llave": "telefono_2",
+                "tipo": "texto",
+                "valor": null
+              },
+              {
+                "etiqueta": "Email",
+                "forma": {
+                  "tipo": "texto"
+                },
+                "llave": "email",
+                "tipo": "texto",
+                "valor": null
+              },
+              {
+                "etiqueta": "Email 2",
+                "forma": {
+                  "tipo": "texto"
+                },
+                "llave": "email_2",
+                "tipo": "texto",
+                "valor": null
+              },
+              {
+                "etiqueta": "Instagram",
+                "forma": {
+                  "tipo": "texto"
+                },
+                "llave": "instagram",
+                "tipo": "texto",
+                "valor": null
+              },
+              {
+                "etiqueta": "Cumpleaños",
+                "forma": {
+                  "tipo": "texto"
+                },
+                "llave": "Cumpleanos",
+                "tipo": "texto",
+                "valor": null
+              }
+            ],
+            "titulo": "Contacto"
+          }
+        ],
+        "id": 0,
+        "nombre": "",
+        "nueva": true,
+        "ok": true
+      },
+      "ruta": "/api/portal-personas/nueva",
+      "status": 200
+    },
+    {
+      "lecturas_a_nocodb": 1,
+      "nombre": "portal_borradas",
+      "respuesta": {
+        "filas": [
+          {
+            "cuando": "2026-10-05T12:00:00Z",
+            "ficha": 3,
+            "nombre": "Persona de prueba 3",
+            "quien": "Persona de prueba quien"
+          }
+        ],
+        "ok": true
+      },
+      "ruta": "/api/portal-personas/borradas",
+      "status": 200
+    }
+  ],
+  "version": 1
+}

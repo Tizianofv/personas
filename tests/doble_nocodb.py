@@ -40,7 +40,19 @@ ASISTENCIAS = [
     {"Id": 1, "persona_id": 1, "checkin_at": "2026-10-20T12:00:00Z"},
     {"Id": 2, "persona_id": 2, "checkin_at": "2026-10-21T12:00:00Z"},
 ]
-TABLAS = {T_PERSONAS: PERSONAS, TABLA_ANOTACIONES: ANOTACIONES, T_ASISTENCIAS: ASISTENCIAS}
+# El registro de fichas quitadas (`personas_quitadas`, paso 5c). Su id va en `NOCODB_T_PERSONAS_QUITADAS` tanto en las pruebas del repo
+# como en la copia de la App que saca el dorado de `servidor.py` (ruta «borradas»). Dos filas: una «quitada» (sale en la lista) y una
+# «devuelta» (no sale: la prueba mira que el filtro por estado funcione). Datos ficticios.
+T_QUITADAS = "tabla-quitadas-prueba"
+_ANTES_DE_PRUEBA = {"nombre": "Persona de prueba 3", "nombre_whatsapp": "", "telefono": "18097770003", "telefono_2": "",
+                    "email": "", "email_2": "", "bsuid": None, "caras": None, "quitada_el": "2026-10-05T00:00:00Z"}
+QUITADAS = [
+    {"Id": 1, "ficha_id": 3, "estado": "quitada", "antes": json.dumps(_ANTES_DE_PRUEBA, ensure_ascii=False),
+     "creada_por": "Persona de prueba quien", "creada_en": "2026-10-05T12:00:00Z"},
+    {"Id": 2, "ficha_id": 4, "estado": "devuelta", "antes": json.dumps(dict(_ANTES_DE_PRUEBA, nombre="Persona de prueba 4"), ensure_ascii=False),
+     "creada_por": "Persona de prueba quien", "creada_en": "2026-10-06T12:00:00Z"},
+]
+TABLAS = {T_PERSONAS: PERSONAS, TABLA_ANOTACIONES: ANOTACIONES, T_ASISTENCIAS: ASISTENCIAS, T_QUITADAS: QUITADAS}
 
 # Columnas que el doble declara para la tabla de Personas. Son las claves de las filas de prueba más UNA columna inventada
 # («columna_de_prueba_sin_clasificar») que la App no conoce: así la lista de «sin clasificar» tiene contenido real que el contrato guarda.
