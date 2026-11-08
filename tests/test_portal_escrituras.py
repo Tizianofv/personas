@@ -48,7 +48,7 @@ Pruebas:
   Las tres de UNIÓN (unir, unir/continuar, unir/deshacer, paso 5c parte 4) entran en TODAS las pruebas de arriba por la tabla
   (K0, K1, K1b, K3, I1, H1, H2, Q1, E2). Sus escenarios van en el modo de unión del doble (`union=True`), con su llave en el entorno;
   sin esa llave, 503 «sin_registro» (`unir_sin_registro`). Lo que la foto cubre de unión: 400 de validación, 404, 409
-  (`cambio_quien_queda`, `no_unible` no se da con estas fichas), 502 con NocoDB caída en lectura y en escritura, unión sin
+  (`cambio_quien_queda`), 502 con NocoDB caída en lectura y en escritura, unión sin
   enlaces, unión a medias con `continuar`, deshacer, y los 200 de repetición (`ya_estaba`).
 
 Lo que NO ve (declarado):
