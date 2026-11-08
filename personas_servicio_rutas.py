@@ -44,7 +44,7 @@ CREDITO_CAMPOS = "Id,credito"
 PERSONA_CAMPOS_BUSCAR = personas.PERSONA_FIELDS + ",unida_a,quitada_el"
 BUSCAR_LIMITE_MAX = 12
 BUSCAR_TEXTO_MINIMO = 2
-# Frontera declarada: los estados que lee el cuadro de la entrada (`server._cuadro_leer`). Una prueba exige que sean los mismos.
+# Los estados que lee el cuadro de la entrada de la App (`_cuadro_leer`, `server.py`, en 594ec12). El programa no tiene ninguna prueba que los compare con ese cuadro: el cuadro queda fuera (`PORTAL_FUERA_DEL_PROGRAMA`).
 BANDEJA_ESTADOS = ("contado", "descartado")
 BANDEJA_PAGINA_MAX = 1000
 BANDEJA_TOPE_MAX = 1000
