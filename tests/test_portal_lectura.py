@@ -4,12 +4,17 @@
 La foto de referencia es `contrato/portal_lectura.json` (sacada de la App de registro en `594ec12` por
 `tools/generar_portal_de_la_app.py`). Pruebas:
   CP1  los bytes de `contrato/portal_lectura.json` tienen el SHA256 de `contrato/SHA256_portal` (la foto no se movió).
-  CP2  las rutas que el programa contesta (`servidor.PORTAL_LECTURA`) son EXACTAMENTE las de la foto de la App.
+  CP2  las rutas que el programa contesta (`servidor.PORTAL_LECTURA`) son EXACTAMENTE las de la foto de la App, y cada caso
+       de la foto es un 200 (C2).
   P2   con la llave y la identidad bien, cada ruta contesta el mismo código y el mismo cuerpo que la foto; el doble no recibió
        más que GET ni una lectura que no conociera.
   K1   sin cabecera de llave: 401 en cada ruta, y cero lecturas a NocoDB.
   K2   con la llave vacía (cabecera vacía): 401, cero lecturas.
-  K4   con la llave de otro grupo (Mercadeo, Registro o escritura de Registro), con identidad o sin ella: 401, cero lecturas.
+  K4   cada llave de otro grupo (Mercadeo, Registro o escritura de Registro) en SU cabecera, sin la del portal: 401, cero lecturas.
+       Es el caso de la mutación M09 (la llave de Mercadeo en su propia cabecera abre el portal).
+  K4b  las llaves de otros grupos en la cabecera del portal: 401, cero lecturas.
+  K6   la llave del portal en la cabecera de config (GET) y de una ruta de Registro (POST): 401, cero lecturas. Es el caso de la
+       mutación M11 (la llave del portal abre config).
   K5   con la llave casi igual (un carácter de más, o uno de menos): 401, cero lecturas.
   K3   con `PERSONAS_PORTAL_LLAVE` VACÍA (servidor aparte): 401 con cabecera vacía, sin cabecera, con la llave de Mercadeo y con
        una cualquiera; cero lecturas.
@@ -73,6 +78,18 @@ def _pedir(puerto, ruta, cabeceras):
         return e.code, json.loads(e.read().decode("utf-8") or "{}")
 
 
+def _pedir_con_metodo(puerto, ruta, cabeceras, metodo):
+    """GET o POST sin cuerpo (las rutas de Registro miran la llave antes de leer el cuerpo: `{}` basta)."""
+    datos = b"{}" if metodo == "POST" else None
+    cabeceras = dict(cabeceras, **({"Content-Type": "application/json"} if datos is not None else {}))
+    req = urllib.request.Request("http://127.0.0.1:%d%s" % (puerto, ruta), data=datos, method=metodo, headers=cabeceras)
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return r.status, json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        return e.code, json.loads(e.read().decode("utf-8") or "{}")
+
+
 def _entorno_comun():
     return {
         "PERSONAS_LECTURA_LLAVE": doble_mod.LLAVE_LECTURA,
@@ -112,6 +129,8 @@ class ElPortalDeLectura(unittest.TestCase):
 
     def test_CP2_las_rutas_del_programa_son_las_de_la_app(self):
         self.assertEqual(_rutas_del_programa(), sorted(p["ruta"] for p in self.foto["pedidos"]))
+        # C2: cada caso del dorado es un 200. Un 401 o un 400 guardado no serviría de referencia para P2.
+        self.assertEqual([p["status"] for p in self.foto["pedidos"] if p["status"] != 200], [])
 
     def test_P2_con_llave_e_identidad_cada_ruta_es_igual_al_dorado(self):
         for pedido in self.foto["pedidos"]:
@@ -134,13 +153,36 @@ class ElPortalDeLectura(unittest.TestCase):
                 codigo, cuerpo = self._sin_leer_nocodb(lambda: _pedir(self.puerto, ruta, _cabeceras(llave="")))
                 self.assertEqual((codigo, cuerpo), (401, ERROR_LLAVE))
 
-    def test_K4_llaves_de_otros_grupos_401_sin_leer(self):
+    def test_K4_llaves_de_otros_grupos_en_su_propia_cabecera_401_sin_leer(self):
+        # Cada llave ajena va en SU cabecera (la de su grupo), sin la del portal: el portal no la acepta.
+        ajenas = [("X-Personas-Lectura-Llave", doble_mod.LLAVE_LECTURA),
+                  ("X-Personas-Registro-Llave", ctr.LLAVE_REGISTRO),
+                  ("X-Personas-Registro-Escritura-Llave", LLAVE_ESCRITURA)]
+        for ruta in _rutas_del_programa():
+            for cabecera, valor in ajenas:
+                with self.subTest(ruta=ruta, cabecera=cabecera):
+                    cabeceras = {cabecera: valor, "X-Personas-Portal-Quien": QUIEN, "X-Personas-Portal-Tipo": "A"}
+                    codigo, cuerpo = self._sin_leer_nocodb(lambda: _pedir(self.puerto, ruta, cabeceras))
+                    self.assertEqual((codigo, cuerpo), (401, ERROR_LLAVE))
+
+    def test_K4b_llaves_de_otros_grupos_en_la_cabecera_del_portal_401_sin_leer(self):
         otras = [doble_mod.LLAVE_LECTURA, ctr.LLAVE_REGISTRO, LLAVE_ESCRITURA]
         for ruta in _rutas_del_programa():
             for otra in otras:
                 with self.subTest(ruta=ruta, otra=otra[:6]):
                     codigo, cuerpo = self._sin_leer_nocodb(lambda: _pedir(self.puerto, ruta, _cabeceras(llave=otra)))
                     self.assertEqual((codigo, cuerpo), (401, ERROR_LLAVE))
+
+    def test_K6_la_llave_del_portal_en_las_cabeceras_de_otras_rutas_401_sin_leer(self):
+        # La llave del portal, en la cabecera que esas rutas miran, no abre: ni config ni una de Registro.
+        ajenas = [("GET", "/api/servicio/personas/config", "X-Personas-Lectura-Llave"),
+                  ("POST", "/api/servicio/personas/credito", "X-Personas-Registro-Llave")]
+        for metodo, ruta, cabecera in ajenas:
+            with self.subTest(ruta=ruta, cabecera=cabecera):
+                antes = self.doble.lecturas
+                codigo, cuerpo = _pedir_con_metodo(self.puerto, ruta, {cabecera: LLAVE_PORTAL}, metodo)
+                self.assertEqual((codigo, cuerpo), (401, ERROR_LLAVE))
+                self.assertEqual(self.doble.lecturas, antes, "el servidor leyó NocoDB en un pedido que debía frenar")
 
     def test_K5_llaves_casi_iguales_401_sin_leer(self):
         # Los espacios de los bordes no van: HTTP los quita de la cabecera antes de llegar al programa (medido: `" llave"` llega
