@@ -8168,6 +8168,1603 @@
     {
       "caidas": [],
       "caidas_una_vez": [],
+      "nombre": "editar_cuerpo_distinto",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "instagram": "",
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "instagram": "persona_dos",
+              "nombre": "Persona Dos Editada"
+            },
+            "clave_envio": "envio-cd-e",
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,instagram,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "instagram": "persona_dos",
+                "nombre": "Persona Dos Editada"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,instagram"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,nombre_whatsapp,email,email_2,instagram,Cumpleanos,instrumento,genero,Tono,Clave,Preferencias_operativas,Comportamiento_reserva,Resumen,notas,Sensibilidad_precio,Riesgo_noshow,Consumo,Visitas,Ultima_visita,credito,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Agendo,Maestro_id,Posible_proveedor,Precio_referencia,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "persona_id,checkin_at",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,2)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "base": {
+              "instagram": "persona_dos",
+              "nombre": "Persona Dos Editada"
+            },
+            "campos": [
+              "instagram",
+              "nombre"
+            ],
+            "en_lista": null,
+            "estado": "guardado",
+            "ficha": {
+              "edicion": {
+                "base": {
+                  "Cumpleanos": "",
+                  "email": "p2@ejemplo.test",
+                  "email_2": "",
+                  "instagram": "persona_dos",
+                  "nombre": "Persona Dos Editada",
+                  "telefono": "18097770002",
+                  "telefono_2": ""
+                },
+                "campos": {
+                  "Cumpleanos": {
+                    "tipo": "texto"
+                  },
+                  "email": {
+                    "tipo": "texto"
+                  },
+                  "email_2": {
+                    "tipo": "texto"
+                  },
+                  "instagram": {
+                    "tipo": "texto"
+                  },
+                  "nombre": {
+                    "tipo": "texto"
+                  },
+                  "telefono": {
+                    "tipo": "telefono"
+                  },
+                  "telefono_2": {
+                    "tipo": "telefono"
+                  }
+                },
+                "disponible": true,
+                "no_disponibles": {
+                  "Clave": "la columna no existe en NocoDB",
+                  "Comportamiento_reserva": "la columna no existe en NocoDB",
+                  "Posible_proveedor": "la columna no existe en NocoDB",
+                  "Precio_referencia": "la columna no existe en NocoDB",
+                  "Preferencias_operativas": "la columna no existe en NocoDB",
+                  "Resumen": "la columna no existe en NocoDB",
+                  "Riesgo_noshow": "la columna no existe en NocoDB",
+                  "Sensibilidad_precio": "la columna no existe en NocoDB",
+                  "Tono": "la columna no existe en NocoDB",
+                  "genero": "la columna no existe en NocoDB",
+                  "instrumento": "la columna no existe en NocoDB",
+                  "notas": "la columna no existe en NocoDB"
+                }
+              },
+              "grupos": [
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Nombre",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "nombre",
+                      "tipo": "texto",
+                      "valor": "Persona Dos Editada"
+                    },
+                    {
+                      "etiqueta": "Teléfono",
+                      "forma": {
+                        "tipo": "telefono"
+                      },
+                      "llave": "telefono",
+                      "tipo": "texto",
+                      "valor": "18097770002"
+                    },
+                    {
+                      "etiqueta": "Teléfono 2",
+                      "forma": {
+                        "tipo": "telefono"
+                      },
+                      "llave": "telefono_2",
+                      "tipo": "texto",
+                      "valor": ""
+                    },
+                    {
+                      "etiqueta": "Nombre en WhatsApp",
+                      "llave": "nombre_whatsapp",
+                      "tipo": "texto",
+                      "valor": ""
+                    },
+                    {
+                      "etiqueta": "Email",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "email",
+                      "tipo": "texto",
+                      "valor": "p2@ejemplo.test"
+                    },
+                    {
+                      "etiqueta": "Email 2",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "email_2",
+                      "tipo": "texto",
+                      "valor": ""
+                    },
+                    {
+                      "etiqueta": "Instagram",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "instagram",
+                      "tipo": "texto",
+                      "valor": "persona_dos"
+                    },
+                    {
+                      "etiqueta": "Cumpleaños",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "Cumpleanos",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Instrumento",
+                      "llave": "instrumento",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Género",
+                      "llave": "genero",
+                      "tipo": "texto",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Contacto"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Tono",
+                      "llave": "Tono",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Clave",
+                      "llave": "Clave",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Preferencias operativas",
+                      "llave": "Preferencias_operativas",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Comportamiento de reserva",
+                      "llave": "Comportamiento_reserva",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Resumen",
+                      "llave": "Resumen",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Notas",
+                      "llave": "notas",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Sensibilidad al precio",
+                      "llave": "Sensibilidad_precio",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Riesgo de no-show",
+                      "llave": "Riesgo_noshow",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Consumo",
+                      "llave": "Consumo",
+                      "tipo": "largo",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Perfil"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Visitas",
+                      "llave": "Visitas",
+                      "tipo": "numero",
+                      "valor": 1
+                    },
+                    {
+                      "etiqueta": "Última visita",
+                      "llave": "Ultima_visita",
+                      "tipo": "fecha",
+                      "valor": "2026-10-21"
+                    },
+                    {
+                      "etiqueta": "Crédito a favor",
+                      "llave": "credito",
+                      "tipo": "dinero",
+                      "valor": 250
+                    },
+                    {
+                      "etiqueta": "Monto típico",
+                      "llave": "Monto_tipico",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Forma de pago",
+                      "llave": "Forma_pago",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Sala preferida",
+                      "llave": "Sala_preferida",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Fuentes",
+                      "llave": "Fuentes",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Agendó",
+                      "llave": "Agendo",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Id en Maestro Clientes",
+                      "llave": "Maestro_id",
+                      "tipo": "numero",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Actividad (lo llena el sistema)"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Posible proveedor",
+                      "llave": "Posible_proveedor",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Precio de referencia (RD$)",
+                      "llave": "Precio_referencia",
+                      "tipo": "dinero",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Proveedor"
+                }
+              ],
+              "id": 2,
+              "mercadeo": {
+                "canal": null,
+                "desde": null,
+                "foto": {
+                  "cuando": null,
+                  "quien": null,
+                  "renglon": null,
+                  "valor": null
+                },
+                "origen": null,
+                "origen_etiqueta": null,
+                "permiso": "si",
+                "quien": null,
+                "renglon_visto": 2,
+                "sabido": true
+              },
+              "nombre": "Persona Dos Editada",
+              "ok": true
+            },
+            "ok": true
+          },
+          "ruta": "/api/portal-personas/2/editar",
+          "status": 200
+        },
+        {
+          "cuerpo": {
+            "base": {
+              "instagram": "persona_dos"
+            },
+            "cambios": {
+              "instagram": "otra_cuenta"
+            },
+            "clave_envio": "envio-cd-e",
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,instagram,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "instagram": "otra_cuenta"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,instagram"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,nombre_whatsapp,email,email_2,instagram,Cumpleanos,instrumento,genero,Tono,Clave,Preferencias_operativas,Comportamiento_reserva,Resumen,notas,Sensibilidad_precio,Riesgo_noshow,Consumo,Visitas,Ultima_visita,credito,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Agendo,Maestro_id,Posible_proveedor,Precio_referencia,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "persona_id,checkin_at",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,2)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "base": {
+              "instagram": "otra_cuenta"
+            },
+            "campos": [
+              "instagram"
+            ],
+            "en_lista": null,
+            "estado": "guardado",
+            "ficha": {
+              "edicion": {
+                "base": {
+                  "Cumpleanos": "",
+                  "email": "p2@ejemplo.test",
+                  "email_2": "",
+                  "instagram": "otra_cuenta",
+                  "nombre": "Persona Dos Editada",
+                  "telefono": "18097770002",
+                  "telefono_2": ""
+                },
+                "campos": {
+                  "Cumpleanos": {
+                    "tipo": "texto"
+                  },
+                  "email": {
+                    "tipo": "texto"
+                  },
+                  "email_2": {
+                    "tipo": "texto"
+                  },
+                  "instagram": {
+                    "tipo": "texto"
+                  },
+                  "nombre": {
+                    "tipo": "texto"
+                  },
+                  "telefono": {
+                    "tipo": "telefono"
+                  },
+                  "telefono_2": {
+                    "tipo": "telefono"
+                  }
+                },
+                "disponible": true,
+                "no_disponibles": {
+                  "Clave": "la columna no existe en NocoDB",
+                  "Comportamiento_reserva": "la columna no existe en NocoDB",
+                  "Posible_proveedor": "la columna no existe en NocoDB",
+                  "Precio_referencia": "la columna no existe en NocoDB",
+                  "Preferencias_operativas": "la columna no existe en NocoDB",
+                  "Resumen": "la columna no existe en NocoDB",
+                  "Riesgo_noshow": "la columna no existe en NocoDB",
+                  "Sensibilidad_precio": "la columna no existe en NocoDB",
+                  "Tono": "la columna no existe en NocoDB",
+                  "genero": "la columna no existe en NocoDB",
+                  "instrumento": "la columna no existe en NocoDB",
+                  "notas": "la columna no existe en NocoDB"
+                }
+              },
+              "grupos": [
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Nombre",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "nombre",
+                      "tipo": "texto",
+                      "valor": "Persona Dos Editada"
+                    },
+                    {
+                      "etiqueta": "Teléfono",
+                      "forma": {
+                        "tipo": "telefono"
+                      },
+                      "llave": "telefono",
+                      "tipo": "texto",
+                      "valor": "18097770002"
+                    },
+                    {
+                      "etiqueta": "Teléfono 2",
+                      "forma": {
+                        "tipo": "telefono"
+                      },
+                      "llave": "telefono_2",
+                      "tipo": "texto",
+                      "valor": ""
+                    },
+                    {
+                      "etiqueta": "Nombre en WhatsApp",
+                      "llave": "nombre_whatsapp",
+                      "tipo": "texto",
+                      "valor": ""
+                    },
+                    {
+                      "etiqueta": "Email",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "email",
+                      "tipo": "texto",
+                      "valor": "p2@ejemplo.test"
+                    },
+                    {
+                      "etiqueta": "Email 2",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "email_2",
+                      "tipo": "texto",
+                      "valor": ""
+                    },
+                    {
+                      "etiqueta": "Instagram",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "instagram",
+                      "tipo": "texto",
+                      "valor": "otra_cuenta"
+                    },
+                    {
+                      "etiqueta": "Cumpleaños",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "Cumpleanos",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Instrumento",
+                      "llave": "instrumento",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Género",
+                      "llave": "genero",
+                      "tipo": "texto",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Contacto"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Tono",
+                      "llave": "Tono",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Clave",
+                      "llave": "Clave",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Preferencias operativas",
+                      "llave": "Preferencias_operativas",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Comportamiento de reserva",
+                      "llave": "Comportamiento_reserva",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Resumen",
+                      "llave": "Resumen",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Notas",
+                      "llave": "notas",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Sensibilidad al precio",
+                      "llave": "Sensibilidad_precio",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Riesgo de no-show",
+                      "llave": "Riesgo_noshow",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Consumo",
+                      "llave": "Consumo",
+                      "tipo": "largo",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Perfil"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Visitas",
+                      "llave": "Visitas",
+                      "tipo": "numero",
+                      "valor": 1
+                    },
+                    {
+                      "etiqueta": "Última visita",
+                      "llave": "Ultima_visita",
+                      "tipo": "fecha",
+                      "valor": "2026-10-21"
+                    },
+                    {
+                      "etiqueta": "Crédito a favor",
+                      "llave": "credito",
+                      "tipo": "dinero",
+                      "valor": 250
+                    },
+                    {
+                      "etiqueta": "Monto típico",
+                      "llave": "Monto_tipico",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Forma de pago",
+                      "llave": "Forma_pago",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Sala preferida",
+                      "llave": "Sala_preferida",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Fuentes",
+                      "llave": "Fuentes",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Agendó",
+                      "llave": "Agendo",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Id en Maestro Clientes",
+                      "llave": "Maestro_id",
+                      "tipo": "numero",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Actividad (lo llena el sistema)"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Posible proveedor",
+                      "llave": "Posible_proveedor",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Precio de referencia (RD$)",
+                      "llave": "Precio_referencia",
+                      "tipo": "dinero",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Proveedor"
+                }
+              ],
+              "id": 2,
+              "mercadeo": {
+                "canal": null,
+                "desde": null,
+                "foto": {
+                  "cuando": null,
+                  "quien": null,
+                  "renglon": null,
+                  "valor": null
+                },
+                "origen": null,
+                "origen_etiqueta": null,
+                "permiso": "si",
+                "quien": null,
+                "renglon_visto": 2,
+                "sabido": true
+              },
+              "nombre": "Persona Dos Editada",
+              "ok": true
+            },
+            "ok": true
+          },
+          "ruta": "/api/portal-personas/2/editar",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
+      "nombre": "crear_cuerpo_distinto",
+      "pasos": [
+        {
+          "cuerpo": {
+            "cambios": {
+              "email": "portal.uno@ejemplo.test",
+              "instagram": "portal_uno",
+              "nombre": "Portal Uno",
+              "telefono": "8095550201"
+            },
+            "clave_envio": "envio-cd-c"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "email": "portal.uno@ejemplo.test",
+                "instagram": "portal_uno",
+                "nombre": "Portal Uno",
+                "telefono": "18095550201"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<ahora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 5,
+                "quien": "sistema",
+                "valor": "portal"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,email,instagram"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/5"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,nombre_whatsapp,email,email_2,instagram,Cumpleanos,instrumento,genero,Tono,Clave,Preferencias_operativas,Comportamiento_reserva,Resumen,notas,Sensibilidad_precio,Riesgo_noshow,Consumo,Visitas,Ultima_visita,credito,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Agendo,Maestro_id,Posible_proveedor,Precio_referencia,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/5"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "persona_id,checkin_at",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,5)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "en_lista": null,
+            "estado": "creada",
+            "ficha": {
+              "edicion": {
+                "base": {
+                  "Cumpleanos": "",
+                  "email": "portal.uno@ejemplo.test",
+                  "email_2": "",
+                  "instagram": "portal_uno",
+                  "nombre": "Portal Uno",
+                  "telefono": "18095550201",
+                  "telefono_2": ""
+                },
+                "campos": {
+                  "Cumpleanos": {
+                    "tipo": "texto"
+                  },
+                  "email": {
+                    "tipo": "texto"
+                  },
+                  "email_2": {
+                    "tipo": "texto"
+                  },
+                  "instagram": {
+                    "tipo": "texto"
+                  },
+                  "nombre": {
+                    "tipo": "texto"
+                  },
+                  "telefono": {
+                    "tipo": "telefono"
+                  },
+                  "telefono_2": {
+                    "tipo": "telefono"
+                  }
+                },
+                "disponible": true,
+                "no_disponibles": {
+                  "Clave": "la columna no existe en NocoDB",
+                  "Comportamiento_reserva": "la columna no existe en NocoDB",
+                  "Posible_proveedor": "la columna no existe en NocoDB",
+                  "Precio_referencia": "la columna no existe en NocoDB",
+                  "Preferencias_operativas": "la columna no existe en NocoDB",
+                  "Resumen": "la columna no existe en NocoDB",
+                  "Riesgo_noshow": "la columna no existe en NocoDB",
+                  "Sensibilidad_precio": "la columna no existe en NocoDB",
+                  "Tono": "la columna no existe en NocoDB",
+                  "genero": "la columna no existe en NocoDB",
+                  "instrumento": "la columna no existe en NocoDB",
+                  "notas": "la columna no existe en NocoDB"
+                }
+              },
+              "grupos": [
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Nombre",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "nombre",
+                      "tipo": "texto",
+                      "valor": "Portal Uno"
+                    },
+                    {
+                      "etiqueta": "Teléfono",
+                      "forma": {
+                        "tipo": "telefono"
+                      },
+                      "llave": "telefono",
+                      "tipo": "texto",
+                      "valor": "18095550201"
+                    },
+                    {
+                      "etiqueta": "Teléfono 2",
+                      "forma": {
+                        "tipo": "telefono"
+                      },
+                      "llave": "telefono_2",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Nombre en WhatsApp",
+                      "llave": "nombre_whatsapp",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Email",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "email",
+                      "tipo": "texto",
+                      "valor": "portal.uno@ejemplo.test"
+                    },
+                    {
+                      "etiqueta": "Email 2",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "email_2",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Instagram",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "instagram",
+                      "tipo": "texto",
+                      "valor": "portal_uno"
+                    },
+                    {
+                      "etiqueta": "Cumpleaños",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "Cumpleanos",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Instrumento",
+                      "llave": "instrumento",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Género",
+                      "llave": "genero",
+                      "tipo": "texto",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Contacto"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Tono",
+                      "llave": "Tono",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Clave",
+                      "llave": "Clave",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Preferencias operativas",
+                      "llave": "Preferencias_operativas",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Comportamiento de reserva",
+                      "llave": "Comportamiento_reserva",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Resumen",
+                      "llave": "Resumen",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Notas",
+                      "llave": "notas",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Sensibilidad al precio",
+                      "llave": "Sensibilidad_precio",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Riesgo de no-show",
+                      "llave": "Riesgo_noshow",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Consumo",
+                      "llave": "Consumo",
+                      "tipo": "largo",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Perfil"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Visitas",
+                      "llave": "Visitas",
+                      "tipo": "numero",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Última visita",
+                      "llave": "Ultima_visita",
+                      "tipo": "fecha",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Crédito a favor",
+                      "llave": "credito",
+                      "tipo": "dinero",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Monto típico",
+                      "llave": "Monto_tipico",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Forma de pago",
+                      "llave": "Forma_pago",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Sala preferida",
+                      "llave": "Sala_preferida",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Fuentes",
+                      "llave": "Fuentes",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Agendó",
+                      "llave": "Agendo",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Id en Maestro Clientes",
+                      "llave": "Maestro_id",
+                      "tipo": "numero",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Actividad (lo llena el sistema)"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Posible proveedor",
+                      "llave": "Posible_proveedor",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Precio de referencia (RD$)",
+                      "llave": "Precio_referencia",
+                      "tipo": "dinero",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Proveedor"
+                }
+              ],
+              "id": 5,
+              "mercadeo": {
+                "motivo": "ficha_ilegible",
+                "sabido": false
+              },
+              "nombre": "Portal Uno",
+              "ok": true
+            },
+            "id": 5,
+            "ok": true
+          },
+          "ruta": "/api/portal-personas",
+          "status": 201
+        },
+        {
+          "cuerpo": {
+            "cambios": {
+              "nombre": "Portal Cuatro",
+              "telefono": "8095550204"
+            },
+            "clave_envio": "envio-cd-c"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "nombre": "Portal Cuatro",
+                "telefono": "18095550204"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<ahora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 6,
+                "quien": "sistema",
+                "valor": "portal"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/6"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,nombre_whatsapp,email,email_2,instagram,Cumpleanos,instrumento,genero,Tono,Clave,Preferencias_operativas,Comportamiento_reserva,Resumen,notas,Sensibilidad_precio,Riesgo_noshow,Consumo,Visitas,Ultima_visita,credito,Monto_tipico,Forma_pago,Sala_preferida,Fuentes,Agendo,Maestro_id,Posible_proveedor,Precio_referencia,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/6"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "persona_id,checkin_at",
+                "limit": "200",
+                "offset": "0",
+                "where": "(persona_id,eq,6)"
+              },
+              "ruta": "/api/v2/tables/mt5snh0plx7z0ga/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "quien": "Ana Pérez",
+          "respuesta": {
+            "en_lista": null,
+            "estado": "creada",
+            "ficha": {
+              "edicion": {
+                "base": {
+                  "Cumpleanos": "",
+                  "email": "",
+                  "email_2": "",
+                  "instagram": "",
+                  "nombre": "Portal Cuatro",
+                  "telefono": "18095550204",
+                  "telefono_2": ""
+                },
+                "campos": {
+                  "Cumpleanos": {
+                    "tipo": "texto"
+                  },
+                  "email": {
+                    "tipo": "texto"
+                  },
+                  "email_2": {
+                    "tipo": "texto"
+                  },
+                  "instagram": {
+                    "tipo": "texto"
+                  },
+                  "nombre": {
+                    "tipo": "texto"
+                  },
+                  "telefono": {
+                    "tipo": "telefono"
+                  },
+                  "telefono_2": {
+                    "tipo": "telefono"
+                  }
+                },
+                "disponible": true,
+                "no_disponibles": {
+                  "Clave": "la columna no existe en NocoDB",
+                  "Comportamiento_reserva": "la columna no existe en NocoDB",
+                  "Posible_proveedor": "la columna no existe en NocoDB",
+                  "Precio_referencia": "la columna no existe en NocoDB",
+                  "Preferencias_operativas": "la columna no existe en NocoDB",
+                  "Resumen": "la columna no existe en NocoDB",
+                  "Riesgo_noshow": "la columna no existe en NocoDB",
+                  "Sensibilidad_precio": "la columna no existe en NocoDB",
+                  "Tono": "la columna no existe en NocoDB",
+                  "genero": "la columna no existe en NocoDB",
+                  "instrumento": "la columna no existe en NocoDB",
+                  "notas": "la columna no existe en NocoDB"
+                }
+              },
+              "grupos": [
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Nombre",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "nombre",
+                      "tipo": "texto",
+                      "valor": "Portal Cuatro"
+                    },
+                    {
+                      "etiqueta": "Teléfono",
+                      "forma": {
+                        "tipo": "telefono"
+                      },
+                      "llave": "telefono",
+                      "tipo": "texto",
+                      "valor": "18095550204"
+                    },
+                    {
+                      "etiqueta": "Teléfono 2",
+                      "forma": {
+                        "tipo": "telefono"
+                      },
+                      "llave": "telefono_2",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Nombre en WhatsApp",
+                      "llave": "nombre_whatsapp",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Email",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "email",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Email 2",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "email_2",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Instagram",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "instagram",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Cumpleaños",
+                      "forma": {
+                        "tipo": "texto"
+                      },
+                      "llave": "Cumpleanos",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Instrumento",
+                      "llave": "instrumento",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Género",
+                      "llave": "genero",
+                      "tipo": "texto",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Contacto"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Tono",
+                      "llave": "Tono",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Clave",
+                      "llave": "Clave",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Preferencias operativas",
+                      "llave": "Preferencias_operativas",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Comportamiento de reserva",
+                      "llave": "Comportamiento_reserva",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Resumen",
+                      "llave": "Resumen",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Notas",
+                      "llave": "notas",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Sensibilidad al precio",
+                      "llave": "Sensibilidad_precio",
+                      "tipo": "largo",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Riesgo de no-show",
+                      "llave": "Riesgo_noshow",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Consumo",
+                      "llave": "Consumo",
+                      "tipo": "largo",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Perfil"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Visitas",
+                      "llave": "Visitas",
+                      "tipo": "numero",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Última visita",
+                      "llave": "Ultima_visita",
+                      "tipo": "fecha",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Crédito a favor",
+                      "llave": "credito",
+                      "tipo": "dinero",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Monto típico",
+                      "llave": "Monto_tipico",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Forma de pago",
+                      "llave": "Forma_pago",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Sala preferida",
+                      "llave": "Sala_preferida",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Fuentes",
+                      "llave": "Fuentes",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Agendó",
+                      "llave": "Agendo",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Id en Maestro Clientes",
+                      "llave": "Maestro_id",
+                      "tipo": "numero",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Actividad (lo llena el sistema)"
+                },
+                {
+                  "campos": [
+                    {
+                      "etiqueta": "Posible proveedor",
+                      "llave": "Posible_proveedor",
+                      "tipo": "texto",
+                      "valor": null
+                    },
+                    {
+                      "etiqueta": "Precio de referencia (RD$)",
+                      "llave": "Precio_referencia",
+                      "tipo": "dinero",
+                      "valor": null
+                    }
+                  ],
+                  "titulo": "Proveedor"
+                }
+              ],
+              "id": 6,
+              "mercadeo": {
+                "motivo": "ficha_ilegible",
+                "sabido": false
+              },
+              "nombre": "Portal Cuatro",
+              "ok": true
+            },
+            "id": 6,
+            "ok": true
+          },
+          "ruta": "/api/portal-personas",
+          "status": 201
+        }
+      ]
+    },
+    {
+      "caidas": [],
+      "caidas_una_vez": [],
       "nombre": "quien_del_cuerpo_no_cuenta",
       "pasos": [
         {

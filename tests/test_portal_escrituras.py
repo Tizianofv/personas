@@ -25,6 +25,10 @@ Pruebas:
   R2  la regla recorre todos los códigos que pueden dar crear y editar, sacados de la foto (los que aparecen en sus pasos): cada
       código tiene un par de envíos con la misma clave; el 2.º trae `ya_guardado` / `ya_creada` si y solo si el 1.º cumple el
       `exito` de la App (evaluado sobre la respuesta del 1.º); si no, no lo trae.
+  HU1 hermanos de `una_vez`: los sitios del programa que usan `una_vez` (AST de `personas_portal_escritura._ejecutar`) son los
+      mismos que la foto (crear y editar), y a cada uno se le exige el MISMO juego de escenarios, sacado de la foto: mismo cuerpo,
+      cuerpo distinto, fallo y cada código que la foto da al sitio. Además, el escenario de cuerpo distinto de cada sitio escribe
+      otra vez (el 2.º no trae ya_*): así se pone roja una huella que ignore el cuerpo, en los dos.
   K2  las rutas de Registro (cara, nueva, editar, credito) con la llave del portal: 401, cero pedidos.
   I1  con la llave bien: sin `quien`, con `quien` en blanco, sin tipo, con otro tipo («B», «a», vacío): 400 con el texto de
       identidad, cero pedidos. En CADA entrada de la tabla (las tres puertas, en todas las rutas).
@@ -274,6 +278,74 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
             with self.subTest(accion=accion):
                 self.assertTrue(codigos[accion] <= cubiertos[accion],
                                 "códigos de la foto sin reintento: %s" % sorted(codigos[accion] - cubiertos[accion]))
+
+    def _accion_de_cada_sitio_una_vez(self):
+        """Del AST del programa: ámbito de cada `una_vez` y la acción (`if nombre == ...`) en que está. Exige que sea todo el
+        conjunto de llamadas a `una_vez` del módulo (ningún sitio queda sin acción)."""
+        arbol = ast.parse((RAIZ / "personas_portal_escritura.py").read_text(encoding="utf-8"))
+        ejecutar = next(n for n in arbol.body if isinstance(n, ast.FunctionDef) and n.name == "_ejecutar")
+        por_ambito = {}
+        for nodo in ast.walk(ejecutar):
+            if isinstance(nodo, ast.If) and isinstance(nodo.test, ast.Compare) and isinstance(nodo.test.left, ast.Name) \
+                    and nodo.test.left.id == "nombre" and isinstance(nodo.test.ops[0], ast.Eq):
+                accion = nodo.test.comparators[0].value
+                for sub in ast.walk(nodo):
+                    if isinstance(sub, ast.Call) and isinstance(sub.func, ast.Name) and sub.func.id == "una_vez":
+                        por_ambito[sub.args[0].value] = accion
+        todos = {n.args[0].value for n in ast.walk(arbol)
+                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == "una_vez"}
+        self.assertEqual(set(por_ambito), todos, "un sitio de una_vez sin acción")
+        return {ambito: accion for ambito, accion in por_ambito.items()}
+
+    def _juego_de_escenarios_de_la_foto(self):
+        """Por acción (crear / editar): los escenarios de dos pasos con la misma clave, clasificados (fallo, mismo cuerpo,
+        cuerpo distinto), y los códigos que la foto da a esa acción."""
+        juego, codigos, primeros = {}, {}, {}
+        for e in self.foto["escenarios"]:
+            pasos = e["pasos"]
+            ruta = pasos[0]["ruta"]
+            if ruta == esc.RUTA_PORTAL:
+                accion = "crear"
+            elif ruta.endswith("/editar"):
+                accion = "editar"
+            else:
+                continue
+            codigos.setdefault(accion, set()).update(p["status"] for p in pasos if p["ruta"] == ruta)
+            if e.get("caidas_una_vez"):
+                clase = "fallo"
+            elif len(pasos) == 2 and all(p.get("cuerpo", {}).get("clave_envio") for p in pasos):
+                clase = "mismo_cuerpo" if pasos[0]["cuerpo"] == pasos[1]["cuerpo"] else "cuerpo_distinto"
+            else:
+                continue
+            juego.setdefault(accion, {}).setdefault(clase, e["nombre"])
+            primeros.setdefault(accion, set()).add(pasos[0]["status"])
+        return juego, codigos, primeros
+
+    def test_HU1_hermanos_de_una_vez_tienen_el_mismo_juego(self):
+        por_ambito = self._accion_de_cada_sitio_una_vez()
+        acciones = set(por_ambito.values())
+        juego, codigos, primeros = self._juego_de_escenarios_de_la_foto()
+        self.assertEqual(acciones, set(juego), "todo sitio de una_vez tiene escenarios en la foto")
+        requeridas = {"fallo", "mismo_cuerpo", "cuerpo_distinto"}
+        for accion in acciones:
+            with self.subTest(accion=accion):
+                self.assertTrue(requeridas <= set(juego[accion]),
+                                "falta un escenario en %s: %s" % (accion, sorted(requeridas - set(juego[accion]))))
+                self.assertTrue(codigos[accion] <= primeros[accion],
+                                "códigos de la foto sin reintento en %s: %s" % (accion, sorted(codigos[accion] - primeros[accion])))
+        self.assertEqual(set(juego["crear"]), set(juego["editar"]), "crear y editar tienen que tener el mismo juego de escenarios")
+        # Comportamiento: en cada sitio, el escenario de cuerpo distinto escribe otra vez y el 2.º no trae ya_*.
+        ya_clave = {"crear": "ya_creada", "editar": "ya_guardado"}
+        for accion in acciones:
+            with self.subTest(accion=accion, comportamiento=True):
+                nombre = juego[accion]["cuerpo_distinto"]
+                escenario = next(e for e in esc.ESCENARIOS if e["nombre"] == nombre)
+                pasos = [p for p in escenario["pasos"] if esc.es_dorado(p)]
+                real, errores = _correr(pasos, caidas=escenario.get("caidas", ()), caidas_una_vez=escenario.get("caidas_una_vez", ()))
+                self.assertEqual(errores, [])
+                segundo = real[1]
+                self.assertNotIn(ya_clave[accion], segundo["respuesta"])
+                self.assertTrue([q for q in segundo["pedidos"] if q["metodo"] != "GET"], "el cuerpo distinto tiene que escribir")
 
     def test_K2_la_llave_del_portal_no_abre_las_rutas_de_registro(self):
         pasos = [{"ruta": ruta, "llave": "portal", "quien": QUIEN, "tipo": "A", "cuerpo": {"persona_id": 1, "vec": [0.5] * 128}}

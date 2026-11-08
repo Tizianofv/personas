@@ -185,6 +185,14 @@ ESCENARIOS = [
     {"nombre": "crear_reintento_422", "pasos": [
         _p(RUTA_PORTAL, {"cambios": {"nombre": "Corto", "telefono": "12"}, "clave_envio": "envio-r-c422"}),
         _p(RUTA_PORTAL, {"cambios": {"nombre": "Corto", "telefono": "12"}, "clave_envio": "envio-r-c422"})]},
+    # Misma clave, cuerpo DISTINTO: es un envío nuevo (la huella del cuerpo decide), no un repetido. El 2.º no trae ya_*.
+    {"nombre": "editar_cuerpo_distinto", "pasos": [
+        _p(RUTA_EDITAR, dict(EDITAR, clave_envio="envio-cd-e")),
+        _p(RUTA_EDITAR, {"id": 2, "base": {"instagram": "persona_dos"}, "cambios": {"instagram": "otra_cuenta"},
+                         "clave_envio": "envio-cd-e"})]},
+    {"nombre": "crear_cuerpo_distinto", "pasos": [
+        _p(RUTA_PORTAL, dict(CREAR, clave_envio="envio-cd-c")),
+        _p(RUTA_PORTAL, {"cambios": {"nombre": "Portal Cuatro", "telefono": "8095550204"}, "clave_envio": "envio-cd-c"})]},
     {"nombre": "quien_del_cuerpo_no_cuenta", "pasos": [
         _p(RUTA_PORTAL, {"quien": "Otra Persona", "cambios": {"nombre": "Quien Cuerpo"}}),
         _p(RUTA_PORTAL + "/2/editar", {"id": 2, "quien": "Otra Persona", "base": {"nombre": "Persona de prueba 2"},
