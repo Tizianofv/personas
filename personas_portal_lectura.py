@@ -15,6 +15,10 @@ No se escriben logs (la App imprime el tipo de error; aquí no, para no sacar da
 
 Lo que NO está aquí (declarado en `servidor.PORTAL_FUERA_DEL_PROGRAMA`): `entrada/cuadro`. `borrar/revisar` sí está (parte 5): la App
 lo contesta con 502 si NocoDB falla al leer la ficha (el 404 de «ficha» es solo para `ficha`, como en la App: su `m` es la ficha).
+
+Parte 6 (tipo C): `buscar` (`GET /api/personas?q=`) e `instrumentos` (`GET /api/persona-instrumentos`). No son del portal: la App las
+contesta en `do_GET`, bajo `autorizado()`, y su error no pasa por `portal_personas_get`. Su error es el de `do_GET` de la App: 500 con
+el texto de la excepción (`{"error": str(e)}`), no el 502 del portal. Ver `DE_SESION`.
 """
 import re
 
@@ -23,6 +27,8 @@ import personas
 
 ERROR_LECTURA = "No se pudo leer la base de personas. Inténtalo en un momento."
 FICHA_NO_ESTA = "Esa persona ya no está en la base."
+# Las lecturas de tipo C (parte 6): sus errores salen como en el `do_GET` de la App (500 con el texto), no como en el portal (502).
+DE_SESION = ("buscar", "instrumentos")
 
 
 def _lista(grupos, consulta):
@@ -81,21 +87,46 @@ def _borrar_revisar(grupos, consulta):
     return personas.revisar_borrado(int(grupos[0]))
 
 
+def _buscar(grupos, consulta):
+    """`GET /api/personas?q=` (tipo C): el buscador del check-in y de los selectores. Igual que la App con la bandera
+    `PROGRAMA_REGISTRO_LECTURAS_PERSONAS` APAGADA (su `do_GET`, línea 16226 en 594ec12): con menos de 2 caracteres (ya recortados)
+    contesta `[]` sin leer NocoDB; si no, `personas.buscar_personas`, la función que la App llama en esa ruta. Con la bandera ENCENDIDA
+    la App va por `buscar_de_personas` (el servicio de Personas por red); este programa no lo replica: sirve el camino de bandera apagada."""
+    busq = (consulta.get("q") or "").strip()
+    if len(busq) < 2:
+        return 200, {"personas": []}
+    return 200, {"personas": personas.buscar_personas(busq)}
+
+
+def _instrumentos(grupos, consulta):
+    """`GET /api/persona-instrumentos` (tipo C): las opciones del MultiSelect `instrumento` de Personas. Igual que
+    `opciones_instrumento_persona` de la App: `_opciones_select(T_PERSONAS, "instrumento")`, la misma lectura de `base.py`."""
+    return 200, {"instrumentos": base._opciones_select(base.T_PERSONAS, "instrumento")}
+
+
 FUNCIONES = {
     "lista": _lista, "ficha": _ficha, "nueva": _nueva, "borradas": _borradas,
     "por_resolver": _por_resolver, "unir_revisar": _unir_revisar, "borrar_revisar": _borrar_revisar,
+    "buscar": _buscar, "instrumentos": _instrumentos,
 }
+
+
+def _error(nombre, e):
+    """Lo que contesta cada lectura cuando lanza. Las del portal, como `portal_personas_get`; las de tipo C, como `do_GET` de la App."""
+    if nombre in DE_SESION:
+        return 500, {"error": str(e)}
+    if isinstance(e, base.ErrorDeNocodb):
+        if nombre == "ficha" and e.status == 404:
+            return 404, {"ok": False, "error": FICHA_NO_ESTA}
+        return 502, {"ok": False, "error": ERROR_LECTURA}
+    if isinstance(e, personas.PortalNoCargo):
+        return 502, {"ok": False, "error": str(e) + " Inténtalo otra vez."}
+    return 502, {"ok": False, "error": ERROR_LECTURA}     # la pantalla dice que falló; nunca una lista corta
 
 
 def responder(nombre, grupos, consulta):
     """Corre la lectura `nombre` y devuelve `(código, cuerpo)`, con los mismos errores que la App (ver la docstring del módulo)."""
     try:
         return FUNCIONES[nombre](grupos, consulta)
-    except base.ErrorDeNocodb as e:
-        if nombre == "ficha" and e.status == 404:
-            return 404, {"ok": False, "error": FICHA_NO_ESTA}
-        return 502, {"ok": False, "error": ERROR_LECTURA}
-    except personas.PortalNoCargo as e:
-        return 502, {"ok": False, "error": str(e) + " Inténtalo otra vez."}
-    except Exception:  # noqa: BLE001 — la pantalla dice que falló; nunca una lista corta
-        return 502, {"ok": False, "error": ERROR_LECTURA}
+    except Exception as e:  # noqa: BLE001 — cada error se contesta según la tabla de `_error`
+        return _error(nombre, e)
