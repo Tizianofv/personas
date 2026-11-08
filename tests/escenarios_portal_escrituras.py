@@ -158,6 +158,33 @@ ESCENARIOS = [
         _p(RUTA_PORTAL, dict(CREAR, clave_envio="envio-crear-fallo")),
         _p(RUTA_PORTAL, dict(CREAR, clave_envio="envio-crear-fallo")),
     ]},
+    # La regla entera de la App: un envío se recuerda SOLO si `exito` de la App dice que sí. Un par por código; el 2.º envío
+    # (misma clave) no debe traer ya_guardado / ya_creada salvo que el 1.º haya sido éxito.
+    {"nombre": "editar_reintento_200_guardado", "pasos": [
+        _p(RUTA_EDITAR, dict(EDITAR, clave_envio="envio-r-200")), _p(RUTA_EDITAR, dict(EDITAR, clave_envio="envio-r-200"))]},
+    {"nombre": "editar_reintento_200_sin_cambios", "pasos": [
+        _p(RUTA_EDITAR, {"id": 2, "base": {"instagram": ""}, "cambios": {"instagram": ""}, "clave_envio": "envio-r-sc"}),
+        _p(RUTA_EDITAR, {"id": 2, "base": {"instagram": ""}, "cambios": {"instagram": ""}, "clave_envio": "envio-r-sc"})]},
+    {"nombre": "editar_reintento_400", "pasos": [
+        _p(RUTA_EDITAR, {"id": 2, "base": {"nombre": "Persona de prueba 2"}, "cambios": {"nombre": 7}, "clave_envio": "envio-r-400"}),
+        _p(RUTA_EDITAR, {"id": 2, "base": {"nombre": "Persona de prueba 2"}, "cambios": {"nombre": 7}, "clave_envio": "envio-r-400"})]},
+    {"nombre": "editar_reintento_404", "pasos": [
+        _p(RUTA_PORTAL + "/99/editar", {"id": 99, "base": {"nombre": "x"}, "cambios": {"nombre": "x"}, "clave_envio": "envio-r-404"}),
+        _p(RUTA_PORTAL + "/99/editar", {"id": 99, "base": {"nombre": "x"}, "cambios": {"nombre": "x"}, "clave_envio": "envio-r-404"})]},
+    {"nombre": "editar_reintento_409", "pasos": [
+        _p(RUTA_EDITAR, {"id": 2, "base": {"telefono": "18097770002"}, "cambios": {"telefono": "18097770001"}, "clave_envio": "envio-r-409"}),
+        _p(RUTA_EDITAR, {"id": 2, "base": {"telefono": "18097770002"}, "cambios": {"telefono": "18097770001"}, "clave_envio": "envio-r-409"})]},
+    {"nombre": "crear_reintento_201", "pasos": [
+        _p(RUTA_PORTAL, dict(CREAR, clave_envio="envio-r-c201")), _p(RUTA_PORTAL, dict(CREAR, clave_envio="envio-r-c201"))]},
+    {"nombre": "crear_reintento_400", "pasos": [
+        _p(RUTA_PORTAL, {"cambios": {"nombre": 5}, "clave_envio": "envio-r-c400"}),
+        _p(RUTA_PORTAL, {"cambios": {"nombre": 5}, "clave_envio": "envio-r-c400"})]},
+    {"nombre": "crear_reintento_409", "pasos": [
+        _p(RUTA_PORTAL, {"cambios": {"nombre": "Repetida", "telefono": "18097770001"}, "clave_envio": "envio-r-c409"}),
+        _p(RUTA_PORTAL, {"cambios": {"nombre": "Repetida", "telefono": "18097770001"}, "clave_envio": "envio-r-c409"})]},
+    {"nombre": "crear_reintento_422", "pasos": [
+        _p(RUTA_PORTAL, {"cambios": {"nombre": "Corto", "telefono": "12"}, "clave_envio": "envio-r-c422"}),
+        _p(RUTA_PORTAL, {"cambios": {"nombre": "Corto", "telefono": "12"}, "clave_envio": "envio-r-c422"})]},
     {"nombre": "quien_del_cuerpo_no_cuenta", "pasos": [
         _p(RUTA_PORTAL, {"quien": "Otra Persona", "cambios": {"nombre": "Quien Cuerpo"}}),
         _p(RUTA_PORTAL + "/2/editar", {"id": 2, "quien": "Otra Persona", "base": {"nombre": "Persona de prueba 2"},

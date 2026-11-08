@@ -20,6 +20,11 @@ Pruebas:
       de la tabla. La llave va antes que la identidad.
   R1  un fallo de escritura no se recuerda como guardado: editar y crear, con la misma `clave_envio`, fallan una vez (la base
       no contesta), y el segundo envío VUELVE a escribir (hay pedido de escritura) y no trae `ya_guardado` / `ya_creada`.
+  X1  la regla de «envío hecho» es la de la App, entera: el predicado `exito` de cada `una_vez` del programa (AST de
+      `personas_portal_escritura.py`) es el texto que la foto saca de la App (`exito_de_la_app`).
+  R2  la regla recorre todos los códigos que pueden dar crear y editar, sacados de la foto (los que aparecen en sus pasos): cada
+      código tiene un par de envíos con la misma clave; el 2.º trae `ya_guardado` / `ya_creada` si y solo si el 1.º cumple el
+      `exito` de la App (evaluado sobre la respuesta del 1.º); si no, no lo trae.
   K2  las rutas de Registro (cara, nueva, editar, credito) con la llave del portal: 401, cero pedidos.
   I1  con la llave bien: sin `quien`, con `quien` en blanco, sin tipo, con otro tipo («B», «a», vacío): 400 con el texto de
       identidad, cero pedidos. En CADA entrada de la tabla (las tres puertas, en todas las rutas).
@@ -42,6 +47,7 @@ Lo que NO ve (declarado):
     NocoDB solo en las anotaciones de permiso: crear y editar no lo guardan en la tabla de personas (por eso Q1 hace falta).
   - El límite de cuerpo y el `Content-Length` no numérico no se prueban (no están portados; ver `el-programa-personas.md`).
 """
+import ast
 import hashlib
 import json
 import sys
@@ -62,6 +68,7 @@ FOTA = RAIZ / "contrato_dorado" / "portal_escrituras.json"
 SHA_DECLARADO = RAIZ / "contrato_dorado" / "SHA256_portal_escrituras"
 COMANDO = [sys.executable, "-B", str(RAIZ / "servidor.py")]
 QUIEN = esc.QUIEN_DORADO
+RUTA_CREAR = esc.RUTA_PORTAL
 RUTA_REGISTRO = ["/api/servicio/personas/cara", "/api/servicio/personas/nueva", "/api/servicio/personas/editar"]
 RUTA_REGISTRO_LECTURA = "/api/servicio/personas/credito"
 
@@ -224,6 +231,49 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
                 self.assertNotIn("ya_creada", segundo["respuesta"])
                 self.assertIn(escribe, [q["metodo"] for q in segundo["pedidos"]],
                               "el reintento tiene que volver a escribir")
+
+    def test_X1_el_exito_del_programa_es_el_de_la_app(self):
+        arbol = ast.parse((RAIZ / "personas_portal_escritura.py").read_text(encoding="utf-8"))
+        de_programa = {}
+        for nodo in ast.walk(arbol):
+            if isinstance(nodo, ast.Call) and isinstance(nodo.func, ast.Name) and nodo.func.id == "una_vez":
+                for kw in nodo.keywords:
+                    if kw.arg == "exito":
+                        de_programa[nodo.args[0].value] = ast.unparse(kw.value.body)
+        self.assertEqual(de_programa, self.foto["exito_de_la_app"])
+
+    def test_R2_la_regla_recorre_los_codigos_de_la_foto(self):
+        # Los códigos que la App contesta a crear y a editar, sacados de la foto (sus pasos, no una lista tecleada).
+        codigos = {}
+        for e in self.foto["escenarios"]:
+            for paso in e["pasos"]:
+                if paso["ruta"] == RUTA_CREAR:
+                    codigos.setdefault("crear", set()).add(paso["status"])
+                elif paso["ruta"].endswith("/editar"):
+                    codigos.setdefault("editar", set()).add(paso["status"])
+        self.assertTrue(codigos.get("crear") and codigos.get("editar"))
+        exitos = {"crear": eval("lambda r: " + self.foto["exito_de_la_app"]["portal-persona-crear"]),
+                  "editar": eval("lambda r: " + self.foto["exito_de_la_app"]["portal-persona-editar"])}
+        ya_clave = {"crear": "ya_creada", "editar": "ya_guardado"}
+        cubiertos = {"crear": set(), "editar": set()}
+        for nombre in [e["nombre"] for e in esc.ESCENARIOS if "reintento" in e["nombre"]]:
+            escenario = next(e for e in esc.ESCENARIOS if e["nombre"] == nombre)
+            accion = "crear" if escenario["pasos"][0]["ruta"] == RUTA_CREAR else "editar"
+            pasos = [p for p in escenario["pasos"] if esc.es_dorado(p)]
+            real, errores = _correr(pasos, caidas=escenario.get("caidas", ()), caidas_una_vez=escenario.get("caidas_una_vez", ()))
+            self.assertEqual(errores, [], nombre)
+            primero, segundo = real
+            cubiertos[accion].add(primero["status"])
+            recordado = bool(exitos[accion]((primero["status"], primero["respuesta"])))
+            with self.subTest(escenario=nombre):
+                self.assertEqual(ya_clave[accion] in segundo["respuesta"], recordado,
+                                 "la regla de la App dice recordado=%s" % recordado)
+                if recordado:
+                    self.assertIs(segundo["respuesta"][ya_clave[accion]], True)
+        for accion in ("crear", "editar"):
+            with self.subTest(accion=accion):
+                self.assertTrue(codigos[accion] <= cubiertos[accion],
+                                "códigos de la foto sin reintento: %s" % sorted(codigos[accion] - cubiertos[accion]))
 
     def test_K2_la_llave_del_portal_no_abre_las_rutas_de_registro(self):
         pasos = [{"ruta": ruta, "llave": "portal", "quien": QUIEN, "tipo": "A", "cuerpo": {"persona_id": 1, "vec": [0.5] * 128}}

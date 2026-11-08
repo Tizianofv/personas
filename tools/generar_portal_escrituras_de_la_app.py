@@ -99,6 +99,22 @@ def rutas_post_de_la_app(copia):
     return [{"patron": p, "exacta": not regex} for p, regex in sorted(rutas.items())]
 
 
+def exitos_de_la_app(copia):
+    """El predicado `exito` de cada `una_vez` de `Handler.portal_personas_post` (AST): qué respuestas se recuerdan como envío hecho."""
+    arbol = ast.parse((copia / "server.py").read_text(encoding="utf-8"))
+    clase = [n for n in arbol.body if isinstance(n, ast.ClassDef) and n.name == "Handler"][0]
+    metodo = [n for n in clase.body if isinstance(n, ast.FunctionDef) and n.name == "portal_personas_post"][0]
+    salida = {}
+    for nodo in ast.walk(metodo):
+        if isinstance(nodo, ast.Call) and isinstance(nodo.func, ast.Attribute) and nodo.func.attr == "una_vez":
+            for kw in nodo.keywords:
+                if kw.arg == "exito":
+                    salida[nodo.args[0].value] = ast.unparse(kw.value.body)
+    if set(salida) != {"portal-persona-editar", "portal-persona-crear"}:
+        raise SystemExit("no se encontraron los dos `exito` de la App: %s" % sorted(salida))
+    return salida
+
+
 def correr_escenario(copia, pasos, caidas, caidas_una_vez=()):
     """Corre los pasos de un escenario en la App y devuelve, por paso, `{status, respuesta, pedidos}`."""
     doble = doble_escrituras.DobleEscrituras(caidas=caidas, caidas_una_vez=caidas_una_vez)
@@ -160,6 +176,7 @@ def main():
                   "rutas_de_la_app), con su `portal_personas` (sin la puerta de sesión) y las funciones de personas.py de la App. "
                   "Datos del doble tests/doble_nocodb.py y tests/doble_escrituras.py.",
         "rutas_de_la_app": rutas_post_de_la_app(copia),
+        "exito_de_la_app": exitos_de_la_app(copia),
         "escenarios": escenarios_foto,
     }
     texto = json.dumps(foto, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
