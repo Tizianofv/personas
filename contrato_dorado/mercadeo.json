@@ -1718,7 +1718,7 @@
       ]
     }
   ],
-  "fuente": "App de registro, commit 8c9d21a: server.py (Handler.mercadeo_baja y Handler.mercadeo_foto, con sus rutas MERCADEO_BAJA_RUTA y MERCADEO_FOTO_RUTA) y personas.py (baja_de_natalia, foto_de_natalia, anotar_permiso, anotar_foto)",
+  "fuente": "App de registro, commit feb87a5: server.py (Handler.mercadeo_baja y Handler.mercadeo_foto, con sus rutas MERCADEO_BAJA_RUTA y MERCADEO_FOTO_RUTA) y personas.py (baja_de_natalia, foto_de_natalia, anotar_permiso, anotar_foto)",
   "rutas_de_la_app": {
     "@baja": "/api/servicio/mercadeo/baja",
     "@foto": "/api/servicio/mercadeo/foto"

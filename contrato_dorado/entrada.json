@@ -1534,6 +1534,6 @@
       ]
     }
   ],
-  "fuente": "App de registro, commit 8c9d21a: server.py (Handler.entrada_fichas, entrada_fichas, entrada_procesar, entrada_barrer, _entrada_resumen, _entrada_cuerpo, _entrada_leer_resultado, _entrada_confirmado) y personas.py (recibir_y_unir)",
+  "fuente": "App de registro, commit feb87a5: server.py (Handler.entrada_fichas, entrada_fichas, entrada_procesar, entrada_barrer, _entrada_resumen, _entrada_cuerpo, _entrada_leer_resultado, _entrada_confirmado) y personas.py (recibir_y_unir)",
   "version": 1
 }

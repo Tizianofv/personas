@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Saca la foto de la baja y la foto de Mercadeo DE LA APP: `contrato_dorado/mercadeo.json` y `contrato_dorado/SHA256_mercadeo`.
 
-Uso:  python3 -B tools/generar_mercadeo_de_la_app.py <carpeta de una copia `git archive 8c9d21a` de la App de registro>
+Uso:  python3 -B tools/generar_mercadeo_de_la_app.py <carpeta de una copia `git archive feb87a5` de la App de registro>
 
 Salen de la App, con los pedidos de `tests/escenarios_mercadeo.py` (solo los dorados, con la llave buena):
   1. `rutas_de_la_app`: las constantes `MERCADEO_BAJA_RUTA` y `MERCADEO_FOTO_RUTA` de `server.py` de la App, leídas con AST.
@@ -84,7 +84,7 @@ def main():
         escenarios_foto.append({"nombre": escenario["nombre"], "pasos": [esc.normalizar(p) for p in pasos]})
     foto = {
         "version": 1,
-        "fuente": "App de registro, commit 8c9d21a: server.py (Handler.mercadeo_baja y Handler.mercadeo_foto, con sus rutas "
+        "fuente": "App de registro, commit feb87a5: server.py (Handler.mercadeo_baja y Handler.mercadeo_foto, con sus rutas "
                   "MERCADEO_BAJA_RUTA y MERCADEO_FOTO_RUTA) y personas.py (baja_de_natalia, foto_de_natalia, anotar_permiso, anotar_foto)",
         "rutas_de_la_app": rutas,
         "escenarios": escenarios_foto,

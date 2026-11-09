@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Saca la foto de las escrituras de Registro DE LA APP: `contrato_dorado/escrituras.json` y su `contrato_dorado/SHA256_escrituras`.
 
-Uso:  python3 -B tools/generar_escrituras_de_la_app.py <carpeta de una copia `git archive 0b48b5d` de la App de registro>
+Uso:  python3 -B tools/generar_escrituras_de_la_app.py <carpeta de una copia `git archive feb87a5` de la App de registro>
 
 La App se corre en un proceso aparte, desde esa carpeta, con su `server.Handler` en un puerto. NO se usa su `main()`: lanzaría
 hilos que leen y escriben NocoDB al arrancar, y esas llamadas ensuciarían la foto. Contra el mismo doble de
@@ -45,7 +45,7 @@ def main():
         escenarios_foto.append({"nombre": escenario["nombre"], "pasos": pasos})
     foto = {
         "version": 1,
-        "fuente": "App de registro, commit 0b48b5d: personas_escritura_rutas.py y server.py (personas_escritura_post, guardar_cara, "
+        "fuente": "App de registro, commit feb87a5: personas_escritura_rutas.py y server.py (personas_escritura_post, guardar_cara, "
                   "crear_persona, editar_persona, campos_persona)",
         "escenarios": escenarios_foto,
     }

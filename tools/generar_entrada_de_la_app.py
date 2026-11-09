@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Saca la foto de la entrada de Natalia DE LA APP: `contrato_dorado/entrada.json` y `contrato_dorado/SHA256_entrada`.
 
-Uso:  python3 -B tools/generar_entrada_de_la_app.py <carpeta de una copia `git archive 8c9d21a` de la App de registro>
+Uso:  python3 -B tools/generar_entrada_de_la_app.py <carpeta de una copia `git archive feb87a5` de la App de registro>
 
 La App se corre en un proceso aparte, desde esa carpeta, con su `server.Handler` en un puerto. NO se usa su `main()`: lanzaría
 hilos que leen y escriben NocoDB al arrancar (la barredura de la bandeja), y esas llamadas ensuciarían la foto. Contra el mismo doble
@@ -54,7 +54,7 @@ def main():
         escenarios_foto.append({"nombre": escenario["nombre"], "pasos": pasos})
     foto = {
         "version": 1,
-        "fuente": "App de registro, commit 8c9d21a: server.py (Handler.entrada_fichas, entrada_fichas, entrada_procesar, entrada_barrer, "
+        "fuente": "App de registro, commit feb87a5: server.py (Handler.entrada_fichas, entrada_fichas, entrada_procesar, entrada_barrer, "
                   "_entrada_resumen, _entrada_cuerpo, _entrada_leer_resultado, _entrada_confirmado) y personas.py (recibir_y_unir)",
         "escenarios": escenarios_foto,
     }

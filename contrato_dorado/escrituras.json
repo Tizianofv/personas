@@ -4716,6 +4716,6 @@
       ]
     }
   ],
-  "fuente": "App de registro, commit 0b48b5d: personas_escritura_rutas.py y server.py (personas_escritura_post, guardar_cara, crear_persona, editar_persona, campos_persona)",
+  "fuente": "App de registro, commit feb87a5: personas_escritura_rutas.py y server.py (personas_escritura_post, guardar_cara, crear_persona, editar_persona, campos_persona)",
   "version": 1
 }

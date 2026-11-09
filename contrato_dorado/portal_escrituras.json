@@ -17270,7 +17270,7 @@
     "portal-persona-crear": "r[0] == 201 and r[1].get('estado') == 'creada'",
     "portal-persona-editar": "r[0] == 200 and r[1].get('estado') == 'guardado'"
   },
-  "fuente": "App de registro, commit 594ec12: server.Handler.portal_personas_post (las rutas POST del portal, leídas con AST: rutas_de_la_app), con su `portal_personas` (sin la puerta de sesión) y las funciones de personas.py de la App. Datos del doble tests/doble_nocodb.py y tests/doble_escrituras.py.",
+  "fuente": "App de registro, commit feb87a5: server.Handler.portal_personas_post (las rutas POST del portal, leídas con AST: rutas_de_la_app), con su `portal_personas` (sin la puerta de sesión) y las funciones de personas.py de la App. Datos del doble tests/doble_nocodb.py y tests/doble_escrituras.py.",
   "rutas_checkin_de_la_app": [
     {
       "exacta": false,

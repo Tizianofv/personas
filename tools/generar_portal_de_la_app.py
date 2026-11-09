@@ -350,7 +350,7 @@ def main():
                         "caidas": list(caidas), "lecturas_a_nocodb": doble.lecturas, "respuesta": resultado["respuesta"]})
     foto = {
         "version": 5,
-        "fuente": "App de registro, commit 594ec12: server.Handler.parse y portal_personas_get (las rutas GET del portal, leídas "
+        "fuente": "App de registro, commit feb87a5: server.Handler.parse y portal_personas_get (las rutas GET del portal, leídas "
                   "con AST: rutas_de_la_app), y server.Handler.do_GET para las de sesión (rutas_de_sesion_de_la_app: GET /api/personas "
                   "y GET /api/persona-instrumentos, bajo autorizado()) y para la de tipo D (rutas_de_tipo_d_de_la_app: GET "
                   "/api/google/contactos/conteo, bajo veredicto().es_admin, con la llamada a Google cambiada por tests/doble_google.py), "

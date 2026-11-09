@@ -915,7 +915,7 @@
   "exito_de_la_app": {
     "ficha-editar": "r[0] == 200 and r[1].get('estado') == 'guardado'"
   },
-  "fuente": "App de registro, commit 8c9d21a: server.py (Handler.do_POST, ruta /api/aprendizaje/fichas/<id>/editar) y personas.py (editar_ficha_cliente, _guardar_edicion_de_persona)",
+  "fuente": "App de registro, commit feb87a5: server.py (Handler.do_POST, ruta /api/aprendizaje/fichas/<id>/editar) y personas.py (editar_ficha_cliente, _guardar_edicion_de_persona)",
   "ruta_de_la_app": "/api/aprendizaje/fichas/(\\d+|[A-Za-z]{2}\\.[A-Za-z0-9]{1,128})/editar",
   "version": 1
 }

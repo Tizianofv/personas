@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Saca la foto de la ficha del Aprendizaje DE LA APP: `contrato_dorado/aprendizaje.json` y `contrato_dorado/SHA256_aprendizaje`.
 
-Uso:  python3 -B tools/generar_aprendizaje_de_la_app.py <carpeta de una copia `git archive 8c9d21a` de la App de registro>
+Uso:  python3 -B tools/generar_aprendizaje_de_la_app.py <carpeta de una copia `git archive feb87a5` de la App de registro>
 
 Salen de la App, con los pedidos de `tests/escenarios_aprendizaje.py` (solo los dorados):
   1. `ruta_de_la_app`: el literal de la expresión de la ruta `/api/aprendizaje/fichas/<id>/editar` en `do_POST` de la App, leído con
@@ -108,7 +108,7 @@ def main():
         escenarios_foto.append({"nombre": escenario["nombre"], "pasos": [esc.normalizar(p) for p in pasos]})
     foto = {
         "version": 1,
-        "fuente": "App de registro, commit 8c9d21a: server.py (Handler.do_POST, ruta /api/aprendizaje/fichas/<id>/editar) y personas.py "
+        "fuente": "App de registro, commit feb87a5: server.py (Handler.do_POST, ruta /api/aprendizaje/fichas/<id>/editar) y personas.py "
                   "(editar_ficha_cliente, _guardar_edicion_de_persona)",
         "ruta_de_la_app": ruta_app,
         "exito_de_la_app": {"ficha-editar": exito_app},

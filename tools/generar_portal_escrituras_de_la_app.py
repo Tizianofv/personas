@@ -252,7 +252,7 @@ def main():
                  **r) for p, r in zip(pasos, resultados)]})
     foto = {
         "version": 1,
-        "fuente": "App de registro, commit 594ec12: server.Handler.portal_personas_post (las rutas POST del portal, leídas con AST: "
+        "fuente": "App de registro, commit feb87a5: server.Handler.portal_personas_post (las rutas POST del portal, leídas con AST: "
                   "rutas_de_la_app), con su `portal_personas` (sin la puerta de sesión) y las funciones de personas.py de la App. "
                   "Datos del doble tests/doble_nocodb.py y tests/doble_escrituras.py.",
         "rutas_de_la_app": rutas_post_de_la_app(copia),
