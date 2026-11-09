@@ -79,6 +79,9 @@ GUARDA = [
     {"nombre": "llave_mala", "pasos": [_paso(DOS, _cuerpo(), llave="mala")]},
     {"nombre": "llave_vacia", "pasos": [_paso(DOS, _cuerpo(), llave="vacia")]},
     {"nombre": "llave_ausente", "pasos": [_paso(DOS, _cuerpo(), llave=None)]},
+    # Variable vacía: la ruta nace cerrada. Con la variable vacía, ni una cabecera vacía abre (la pareja de «llave_vacia»).
+    {"nombre": "llave_vacia_con_la_variable_vacia", "entorno": {"PERSONAS_PORTAL_LLAVE": ""},
+     "pasos": [_paso(DOS, _cuerpo(), llave="vacia"), _paso(DOS, _cuerpo(), llave="portal")]},
     {"nombre": "identidad_tipo_a", "pasos": [_paso(DOS, _cuerpo(), tipo="A")]},
     {"nombre": "identidad_sin_tipo", "pasos": [_paso(DOS, _cuerpo(), tipo=None)]},
     {"nombre": "identidad_quien_vacio", "pasos": [_paso(DOS, _cuerpo(), quien="")]},
