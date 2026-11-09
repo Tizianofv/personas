@@ -25,6 +25,9 @@ Lo que cada acción hace (las funciones son las de `personas.py`, copia de la Ap
                   nació); la respuesta es la de `do_POST` de la App (parte 7, tipo C). SIN `quien`: la App no lo escribe.
   editar_checkin  `personas_escrituras.editar_persona(id, cuerpo)`, SIN `una_vez` (la App tampoco): la respuesta es la de `do_PATCH`
                   (parte 7, tipo C). SIN `quien`.
+  editar_aprendizaje  `personas.editar_ficha_cliente(identidad, cuerpo, quien)` con `una_vez` («ficha-editar», `ya_guardado` si se repite),
+                  como `do_POST` de la App en `/api/aprendizaje/fichas/<id>/editar` (P6, tipo C). `quien` DE LA CABECERA (la App lo calcula
+                  con `firma_escrita()`); la respuesta es la de `do_POST` de la App, con sus errores.
 
 Las tres de unión, como `Handler.portal_personas_post` de la App: validan el cuerpo (400 con sus textos), leen la clave del aviso
 (`aviso`) y, si la unión o el deshacer salen bien, marcan el aviso (`_con_el_aviso_marcado`, copia de `Handler.con_el_aviso_marcado`).
@@ -159,8 +162,9 @@ def _deshacer(ficha, cuerpo, quien):
     return codigo, _con_el_aviso_marcado(aviso, "deshacer", "deshecha", codigo, datos, quien)
 
 
-# Parte 7: las dos escrituras de SESIÓN (check-in, tipo C). Sus errores no son los del portal: los de `do_POST` y `do_PATCH` de la App.
-ACCIONES_DE_SESION = ("crear_checkin", "editar_checkin")
+# Parte 7: las escrituras de SESIÓN (check-in, tipo C). Sus errores no son los del portal: los de `do_POST` y `do_PATCH` de la App.
+# P6: la ficha del Aprendizaje también es de sesión (tipo C) y lleva `quien` de la cabecera, así que `_responder_de_sesion` lo recibe.
+ACCIONES_DE_SESION = ("crear_checkin", "editar_checkin", "editar_aprendizaje")
 
 
 def _leer_o_minimo(ruta, campos, minimo):
@@ -199,6 +203,14 @@ def _ejecutar(nombre, ruta, grupos, cuerpo, quien):
         persona = personas_escrituras.editar_persona(int(grupos[0]), cuerpo)
         avisos = persona.pop("avisos", None)
         return 200, dict({"persona": persona}, **({"avisos": avisos} if avisos else {}))
+    if nombre == "editar_aprendizaje":
+        # Copia del tramo de `do_POST` de la App para `/api/aprendizaje/fichas/<id>/editar` (8c9d21a): `una_vez` con la llave del cuerpo y
+        # `ya_guardado` si se repite. La función es la de la App (`personas.editar_ficha_cliente`; cadena comparada por AST, sin diferencias).
+        identidad = grupos[0]
+        (codigo, datos), repetido = una_vez(
+            "ficha-editar", ruta, cuerpo, lambda: personas.editar_ficha_cliente(identidad, cuerpo, quien),
+            exito=lambda r: r[0] == 200 and r[1].get("estado") == "guardado")
+        return codigo, (dict(datos, ya_guardado=True) if repetido else datos)
     if nombre == "unir":
         return _unir(int(grupos[0]), cuerpo, quien)
     if nombre == "continuar":
@@ -237,12 +249,12 @@ def _error_inesperado():
     return 500, {"error": ERROR_ANTES_DE_GUARDAR}
 
 
-def _responder_de_sesion(nombre, ruta, grupos, crudo):
+def _responder_de_sesion(nombre, ruta, grupos, crudo, quien=None):
     """Las escrituras de SESIÓN (check-in, tipo C), con los errores de `do_POST` y `do_PATCH` de la App: un `ValueError` (también el JSON
     ilegible, que la App lee con `read_json`) da 400 con su texto; `PersonaRechazada` da su código y sus datos; cualquier otro error da 500
-    con `str(e)`, como `do_POST` de la App. Sin `quien`."""
+    con `str(e)`, como `do_POST` de la App. `quien` solo lo usa la ficha del Aprendizaje; el check-in no lo escribe."""
     try:
-        return _ejecutar(nombre, ruta, grupos, leer_cuerpo(crudo), None)
+        return _ejecutar(nombre, ruta, grupos, leer_cuerpo(crudo), quien)
     except personas_escrituras.PersonaRechazada as e:
         return e.codigo, e.datos
     except ValueError as e:
@@ -254,7 +266,7 @@ def _responder_de_sesion(nombre, ruta, grupos, crudo):
 def responder(nombre, ruta, grupos, crudo, quien):
     """Corre la escritura `nombre` y devuelve `(código, cuerpo)`, con los mismos errores que la App (ver la docstring del módulo)."""
     if nombre in ACCIONES_DE_SESION:
-        return _responder_de_sesion(nombre, ruta, grupos, crudo)
+        return _responder_de_sesion(nombre, ruta, grupos, crudo, quien)
     try:
         cuerpo = leer_cuerpo(crudo)
         return _ejecutar(nombre, ruta, grupos, cuerpo, quien)

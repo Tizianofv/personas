@@ -1,0 +1,921 @@
+{
+  "escenarios": [
+    {
+      "nombre": "editar_ok",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "nombre": "Persona Aprendizaje Dos"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            }
+          ],
+          "respuesta": {
+            "base": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "campos": [
+              "nombre"
+            ],
+            "estado": "guardado",
+            "ok": true
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "nombre": "editar_sin_ficha",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono,eq,18090009999)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "respuesta": {
+            "error": "Este cliente no tiene ficha. No se guardó nada.",
+            "motivo": "sin_ficha"
+          },
+          "ruta": "/api/aprendizaje/fichas/18090009999/editar",
+          "status": 404
+        }
+      ]
+    },
+    {
+      "nombre": "editar_duplicada",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono,eq,18097770001)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "respuesta": {
+            "error": "Este cliente tiene más de una ficha: no se edita ninguna. No se guardó nada.",
+            "motivo": "duplicada"
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770001/editar",
+          "status": 409
+        }
+      ]
+    },
+    {
+      "nombre": "editar_identidad_bsuid_sin_ficha",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(bsuid,eq,AB.abc123)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "respuesta": {
+            "error": "Este cliente no tiene ficha. No se guardó nada.",
+            "motivo": "sin_ficha"
+          },
+          "ruta": "/api/aprendizaje/fichas/AB.abc123/editar",
+          "status": 404
+        }
+      ]
+    },
+    {
+      "nombre": "editar_identidad_con_forma_que_no_es_nada",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            }
+          ],
+          "respuesta": {
+            "error": "Este cliente no tiene ficha. No se guardó nada.",
+            "motivo": "sin_ficha"
+          },
+          "ruta": "/api/aprendizaje/fichas/ab.abc123/editar",
+          "status": 404
+        }
+      ]
+    },
+    {
+      "nombre": "editar_campo_no_editable",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "credito": "0"
+            },
+            "cambios": {
+              "credito": "5"
+            },
+            "id": 2
+          },
+          "pedidos": [],
+          "respuesta": {
+            "campos_rechazados": [
+              "credito"
+            ],
+            "error": "esos campos no se pueden editar desde aquí: credito. No se guardó nada."
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "nombre": "editar_sin_cambios",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {},
+            "id": 2
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "no hay nada que guardar. No se guardó nada."
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "nombre": "editar_valor_no_texto",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": 5
+            },
+            "id": 2
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "los valores van como texto. No se guardó nada."
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "nombre": "editar_sin_id",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            }
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "falta el número de la ficha. No se guardó nada."
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "nombre": "editar_id_de_otra_ficha",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "id": 3
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "respuesta": {
+            "error": "La ficha que abriste ya no es la de este cliente. Ábrela de nuevo. No se guardó nada.",
+            "motivo": "otra_ficha"
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 409
+        }
+      ]
+    },
+    {
+      "nombre": "editar_cuerpo_ilegible",
+      "pasos": [
+        {
+          "crudo": "esto no es json",
+          "pedidos": [],
+          "respuesta": {
+            "error": "Expecting value: line 1 column 1 (char 0)"
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "nombre": "editar_cuerpo_que_no_es_objeto",
+      "pasos": [
+        {
+          "crudo": "[1, 2]",
+          "pedidos": [],
+          "respuesta": {
+            "error": "pedido ilegible. No se guardó nada."
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "nombre": "editar_repetido_ya_guardado",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "clave_envio": "aprendizaje-clave-0001",
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "nombre": "Persona Aprendizaje Dos"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            }
+          ],
+          "respuesta": {
+            "base": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "campos": [
+              "nombre"
+            ],
+            "estado": "guardado",
+            "ok": true
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 200
+        },
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "clave_envio": "aprendizaje-clave-0001",
+            "id": 2
+          },
+          "pedidos": [],
+          "respuesta": {
+            "base": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "campos": [
+              "nombre"
+            ],
+            "estado": "guardado",
+            "ok": true,
+            "ya_guardado": true
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "nombre": "editar_cuerpo_distinto",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "clave_envio": "aprendizaje-clave-0003",
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "nombre": "Persona Aprendizaje Dos"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            }
+          ],
+          "respuesta": {
+            "base": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "campos": [
+              "nombre"
+            ],
+            "estado": "guardado",
+            "ok": true
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 200
+        },
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Tres"
+            },
+            "clave_envio": "aprendizaje-clave-0003",
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "nombre": "Persona Aprendizaje Tres"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            }
+          ],
+          "respuesta": {
+            "base": {
+              "nombre": "Persona Aprendizaje Tres"
+            },
+            "campos": [
+              "nombre"
+            ],
+            "estado": "guardado",
+            "ok": true
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "nombre": "editar_reintento_tras_fallo",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "clave_envio": "aprendizaje-clave-0002",
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "nombre": "Persona Aprendizaje Dos"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "respuesta": {
+            "error": "No se pudo confirmar que el cambio quedó guardado: la base no contestó bien o lo que se leyó después no coincide con lo que escribiste. NO lo des por guardado: abre la ficha de nuevo y mira cómo quedó antes de repetirlo.",
+            "estado": "sin_confirmar",
+            "sin_confirmar": true
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 502
+        },
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "clave_envio": "aprendizaje-clave-0002",
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "nombre": "Persona Aprendizaje Dos"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            }
+          ],
+          "respuesta": {
+            "base": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "campos": [
+              "nombre"
+            ],
+            "estado": "guardado",
+            "ok": true
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "nombre": "editar_lectura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            }
+          ],
+          "respuesta": {
+            "error": "No se pudo leer la ficha en la base. No se guardó nada."
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "nombre": "editar_escritura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "id": 2
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "nombre": "Persona Aprendizaje Dos"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "respuesta": {
+            "error": "No se pudo confirmar que el cambio quedó guardado: la base no contestó bien o lo que se leyó después no coincide con lo que escribiste. NO lo des por guardado: abre la ficha de nuevo y mira cómo quedó antes de repetirlo.",
+            "estado": "sin_confirmar",
+            "sin_confirmar": true
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "nombre": "editar_quien_del_cuerpo_no_cuenta",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "nombre": "Persona de prueba 2"
+            },
+            "cambios": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "id": 2,
+            "quien": "Otra Persona"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,quitada_el",
+                "limit": "200",
+                "offset": "0",
+                "where": "(telefono,eq,18097770002)"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,telefono,telefono_2,email,email_2,unida_a,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "nombre": "Persona Aprendizaje Dos"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            }
+          ],
+          "respuesta": {
+            "base": {
+              "nombre": "Persona Aprendizaje Dos"
+            },
+            "campos": [
+              "nombre"
+            ],
+            "estado": "guardado",
+            "ok": true
+          },
+          "ruta": "/api/aprendizaje/fichas/18097770002/editar",
+          "status": 200
+        }
+      ]
+    }
+  ],
+  "exito_de_la_app": {
+    "ficha-editar": "r[0] == 200 and r[1].get('estado') == 'guardado'"
+  },
+  "fuente": "App de registro, commit 8c9d21a: server.py (Handler.do_POST, ruta /api/aprendizaje/fichas/<id>/editar) y personas.py (editar_ficha_cliente, _guardar_edicion_de_persona)",
+  "ruta_de_la_app": "/api/aprendizaje/fichas/(\\d+|[A-Za-z]{2}\\.[A-Za-z0-9]{1,128})/editar",
+  "version": 1
+}

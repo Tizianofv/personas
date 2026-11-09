@@ -52,6 +52,12 @@ X-Personas-Entrada-Llave (PERSONAS_ENTRADA_LLAVE). La llave se mira ANTES del cu
 ningún pedido a NocoDB. La respuesta y las escrituras en la bandeja y en las fichas son las de `POST /api/fichas/entrada` de la App. Su
 modo lo da `FICHAS_ENTRADA_MODO` de este proceso (`escribir` escribe; cualquier otra cosa, cuenta).
 
+LA FICHA DEL APRENDIZAJE (P6, tipo «C»): `POST /api/aprendizaje/fichas/<id>/editar` (tabla `APRENDIZAJE_ESCRITURA`). Misma llave del portal
+(`PERSONAS_PORTAL_LLAVE`) e identidad (`X-Personas-Portal-Quien` = el `quien` que calcula la App, `X-Personas-Portal-Tipo` = `C`). El
+`quien` del cuerpo no se lee. Las respuestas son las de `do_POST` de la App (400 con el texto de la excepción, 500 con `str(e)`) y la
+función es `personas.editar_ficha_cliente`, la misma de la App. Lo que la App mira antes de reenviar (`entra_aprendizaje()`, la sesión)
+no lo ve el programa. El reenvío desde la App NO está hecho: es otra pieza, y la App sigue atendiendo esta ruta.
+
 NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): las GET de proveedores y `entrada/cuadro`. Del cuadro ya están el
 formato del `resultado` (`personas_entrada._entrada_leer_resultado`) y la bandeja; quedan sus piezas propias (`CuadroPersonas` y
 `cuadro_renglon` de la App), que son otra pieza.
@@ -187,6 +193,14 @@ PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA = {
         "la memoria."),
 }
 
+# P6, la ficha del Aprendizaje: `POST /api/aprendizaje/fichas/<id>/editar`. Tabla propia, FUERA de `PORTAL_ESCRITURA`, porque K0 compara
+# esa tabla con las rutas que la App lee del portal y de sesión. Tipo «C» (sesión): la App mira `entra_aprendizaje()` antes de reenviar.
+# Misma llave e identidad que el portal, y `quien` de la cabecera (la App lo calcula con `firma_escrita()`). La expresión es la de la App
+# (`RE_IDENT_CONV`, escrita como literal en `do_POST`); la prueba de la foto la compara con ese literal.
+APRENDIZAJE_ESCRITURA = {
+    r"/api/aprendizaje/fichas/(\d+|[A-Za-z]{2}\.[A-Za-z0-9]{1,128})/editar": ("editar_aprendizaje", PORTAL_TIPO_C, True),
+}
+
 
 def escrituras_del_portal():
     """Todas las escrituras que el programa sirve, como `(verbo, patron, (nombre, tipo, exige_identidad))`: primero las POST de
@@ -267,6 +281,10 @@ class Manejador(BaseHTTPRequestHandler):
             codigo, cuerpo = ESCRITURA_FUNCIONES[ESCRITURA_RUTAS[ruta]](personas_escrituras, self._pedido())
             return self._enviar(codigo, cuerpo)
         entrada = _portal_entrada(ruta, PORTAL_ESCRITURA)
+        if entrada is not None:
+            patron, (nombre, tipo, exige_identidad), grupos = entrada
+            return self._portal_escritura(ruta, nombre, tipo, exige_identidad, grupos)
+        entrada = _portal_entrada(ruta, APRENDIZAJE_ESCRITURA)
         if entrada is not None:
             patron, (nombre, tipo, exige_identidad), grupos = entrada
             return self._portal_escritura(ruta, nombre, tipo, exige_identidad, grupos)

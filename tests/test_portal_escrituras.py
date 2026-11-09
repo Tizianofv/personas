@@ -111,6 +111,10 @@ import personas_escrituras  # noqa: E402  (parte 7: crear y editar del check-in,
 import personas_portal_escritura  # noqa: E402
 import candado  # noqa: E402  (el candado de «envío hecho»: la forma y los usos, sacados del código)
 
+# Sitios de `una_vez` que NO son del portal: la ficha del Aprendizaje (P6, tipo C) tiene su propia foto, `contrato_dorado/aprendizaje.json`,
+# y `tests/test_aprendizaje.py` (A6) prueba su `exito` contra la App y su hermano «cuerpo distinto». Aquí solo se exige que existan.
+AMBITOS_DE_APRENDIZAJE = {"ficha-editar"}
+
 FOTA = RAIZ / "contrato_dorado" / "portal_escrituras.json"
 SHA_DECLARADO = RAIZ / "contrato_dorado" / "SHA256_portal_escrituras"
 COMANDO = reloj.comando_programa()     # el día del programa fijado (`dicho_el`, `_borrar_reservas`): ver tests/reloj.py
@@ -369,7 +373,8 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
         for nodo in ast.walk(arbol):
             if isinstance(nodo, ast.Call) and isinstance(nodo.func, ast.Name) and nodo.func.id == "una_vez":
                 exitos = [ast.unparse(kw.value.body) for kw in nodo.keywords if kw.arg == "exito"]
-                de_programa[nodo.args[0].value] = exitos[0] if exitos else None
+                if nodo.args[0].value not in AMBITOS_DE_APRENDIZAJE:
+                    de_programa[nodo.args[0].value] = exitos[0] if exitos else None
         self.assertEqual(de_programa, self.foto["exito_de_la_app"])
 
     def test_R2_la_regla_recorre_los_codigos_de_la_foto(self):
@@ -409,7 +414,7 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
         """Los sitios de `una_vez` del programa (`candado.usos_y_sitios`, B1): ámbito -> acción. Ningún uso fuera de ellos."""
         violaciones, sitios = candado.usos_y_sitios(RAIZ)
         self.assertEqual(violaciones, [], "uso de una_vez fuera de un sitio")
-        return {ambito: accion for ambito, accion, _archivo, _linea in sitios}
+        return {ambito: accion for ambito, accion, _archivo, _linea in sitios if ambito not in AMBITOS_DE_APRENDIZAJE}
 
     def _juego_de_escenarios_de_la_foto(self):
         """Por acción (crear / editar / crear_checkin): los escenarios de dos pasos con la misma clave, clasificados (fallo, mismo cuerpo,
@@ -469,7 +474,9 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
         GA pasa esta prueba)."""
         violaciones, sitios = candado.usos_y_sitios(RAIZ)
         self.assertEqual(violaciones, [])
-        self.assertEqual(sorted({ambito for ambito, _a, _f, _l in sitios}), ["persona", "portal-persona-crear", "portal-persona-editar"])
+        self.assertEqual(sorted({ambito for ambito, _a, _f, _l in sitios} - AMBITOS_DE_APRENDIZAJE),
+                         ["persona", "portal-persona-crear", "portal-persona-editar"])
+        self.assertEqual(sorted(a for a, _x, _f, _l in sitios if a in AMBITOS_DE_APRENDIZAJE), sorted(AMBITOS_DE_APRENDIZAJE))
 
     def test_K2_la_llave_del_portal_no_abre_las_rutas_de_registro(self):
         pasos = [{"ruta": ruta, "llave": "portal", "quien": QUIEN, "tipo": "A", "cuerpo": {"persona_id": 1, "vec": [0.5] * 128}}
