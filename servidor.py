@@ -47,7 +47,14 @@ estas rutas (`do_POST` y `do_PATCH`: 400 con el texto de la excepción, 500 con 
 La paridad con la App (la foto) vale con `PROGRAMA_REGISTRO_ESCRITURAS_PERSONAS` APAGADA, que es su valor por defecto: con ella encendida,
 la App manda crear, editar y cara al servicio de Personas por red, y este programa no replica ese camino.
 
-NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): la puerta de Natalia, las GET de proveedores y `entrada/cuadro`.
+LA ENTRADA DE NATALIA (P5a + P5b, `personas_entrada.py`): `POST /api/servicio/personas/entrada` con `{"fila": n}`, cabecera
+X-Personas-Entrada-Llave (PERSONAS_ENTRADA_LLAVE). La llave se mira ANTES del cuerpo: sin ella, con otra o con la variable vacía, 401 y
+ningún pedido a NocoDB. La respuesta y las escrituras en la bandeja y en las fichas son las de `POST /api/fichas/entrada` de la App. Su
+modo lo da `FICHAS_ENTRADA_MODO` de este proceso (`escribir` escribe; cualquier otra cosa, cuenta).
+
+NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): las GET de proveedores y `entrada/cuadro`. Del cuadro ya están el
+formato del `resultado` (`personas_entrada._entrada_leer_resultado`) y la bandeja; quedan sus piezas propias (`CuadroPersonas` y
+`cuadro_renglon` de la App), que son otra pieza.
 
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN,
 PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, NOCODB_T_*, y para la ruta de
@@ -61,6 +68,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import base
+import personas_entrada
 import personas_escritura_rutas
 import personas_escrituras
 import personas_lectura
@@ -72,6 +80,9 @@ LLAVE_PERSONAS_LECTURA = os.environ.get("PERSONAS_LECTURA_LLAVE", "").strip()
 LLAVE_PERSONAS_REGISTRO = os.environ.get("PERSONAS_REGISTRO_LLAVE", "").strip()
 LLAVE_PERSONAS_ESCRITURA_REGISTRO = os.environ.get("PERSONAS_REGISTRO_ESCRITURA_LLAVE", "").strip()
 LLAVE_PERSONAS_PORTAL = os.environ.get("PERSONAS_PORTAL_LLAVE", "").strip()
+# La entrada de Natalia (`personas_entrada.py`): llave propia del grupo. Vacía, la ruta nace cerrada (401).
+LLAVE_PERSONAS_ENTRADA = os.environ.get("PERSONAS_ENTRADA_LLAVE", "").strip()
+ENTRADA_RUTA = "/api/servicio/personas/entrada"
 
 ESCRITURA_RUTAS = {
     "/api/servicio/personas/cara": "cara",
@@ -133,11 +144,9 @@ PORTAL_FUERA_DEL_PROGRAMA = {
         "cuadro de la entrada (`cuadro_de_la_entrada`, App en 594ec12, `server.py:7350`). Lo que pide ya está en el programa: la "
         "bandeja (`base._bandeja_leer`, `personas._bandeja_pagina`; la ruta `/api/servicio/personas/bandeja`, `personas_servicio_rutas"
         ".bandeja`, es la que la App llama por red con `personas_cliente`) y la puerta (`personas.PUERTA_CASOS`, `PUERTA_AVISOS`, "
-        "`clave_id`, `clave_telefono`). Lo que NO está: el formato del `resultado` de cada fila (`_entrada_leer_resultado` y "
-        "`_entrada_resumen`, `server.py:7016` y `:7001`). Lo escribe la entrada de Natalia (`entrada_procesar`, `server.py:7140`, "
-        "un `json.dumps` del resumen) y lo lee también `POST /api/fichas/entrada` (`_entrada_cuerpo`, `server.py:7040`). Es de la "
-        "entrada, no de Personas: portarlo sin su escritor partiría el contrato entre dos repos. Sus piezas propias (`CuadroPersonas`, "
-        "`cuadro_renglon`, `CUADRO_*`) dependen de él."),
+        "`clave_id`, `clave_telefono`). El formato del `resultado` de cada fila ya está en el programa (`personas_entrada."
+        "_entrada_leer_resultado` y `_entrada_resumen`, desde la pieza P5a+P5b): no es lo que falta. Lo que falta son las piezas "
+        "propias del cuadro (`CuadroPersonas`, `cuadro_renglon`, `CUADRO_*`, App `server.py`), que no están portadas."),
 }
 
 
@@ -245,6 +254,12 @@ class Manejador(BaseHTTPRequestHandler):
     def do_POST(self):
         base.estrenar_la_cuenta_de_escrituras()     # cada pedido empieza sin escrituras mandadas (como `estrenar_el_pedido` de la App)
         ruta = urllib.parse.urlsplit(self.path).path
+        if ruta == ENTRADA_RUTA:
+            # La llave de la entrada se mira ANTES de leer el cuerpo. Sin ella, con otra o con la variable vacía: 401 y no se escribe nada.
+            if not lucy_llave_valida(self.headers.get("X-Personas-Entrada-Llave"), LLAVE_PERSONAS_ENTRADA):
+                return self._enviar(401, ERROR_LLAVE)
+            codigo, cuerpo = personas_entrada.entrada_de_natalia(self._pedido())
+            return self._enviar(codigo, cuerpo)
         if ruta in ESCRITURA_RUTAS:
             # La llave de escrituras se mira ANTES de leer el cuerpo (como `personas_escritura_post` de la App).
             if not lucy_llave_valida(self.headers.get("X-Personas-Registro-Escritura-Llave"), LLAVE_PERSONAS_ESCRITURA_REGISTRO):

@@ -95,6 +95,9 @@ class DobleEscrituras:
                     resultados.append(v != valor)
                 elif op == "like":
                     resultados.append(valor.strip("%").lower() in v.lower())
+                elif op in ("gt", "gte", "lt", "lte"):          # numéricos (el `Id` de la bandeja, p. ej.): sin número, el doble se queja
+                    a, b = float(v), float(valor)
+                    resultados.append({"gt": a > b, "gte": a >= b, "lt": a < b, "lte": a <= b}[op])
                 else:
                     raise ValueError("operador no soportado en el doble de escrituras: " + op)
             return all(resultados) if modo == "and" else any(resultados)

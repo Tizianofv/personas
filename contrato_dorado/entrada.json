@@ -1,0 +1,1539 @@
+{
+  "escenarios": [
+    {
+      "nombre": "contar_crea_una_ficha_nueva",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "contado",
+                "resultado": "{\"accion\": \"no_tocada\", \"avisos\": [], \"caso\": \"ninguna:crea\", \"crearia\": true, \"estado\": \"aplicado\", \"modo\": \"contar\", \"union\": null, \"valores\": {\"nombre\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardaria\"}, \"telefono\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardaria\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "accion": "no_tocada",
+            "avisos": [],
+            "caso": "ninguna:crea",
+            "estado": "contado",
+            "ficha_id": null,
+            "fila": 1,
+            "modo": "contar",
+            "valores": {
+              "nombre": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardaria"
+              },
+              "telefono": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardaria"
+              }
+            }
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 200,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "escribir_crea_y_repite_sin_duplicar",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,escribiendo)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "escribiendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,puerta-c7890e1b7a0ffeb4d03cc3e853e498a542d82275)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "nombre": "Cliente Nueva Uno",
+                "telefono": "18097770501"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<hora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 5,
+                "quien": "sistema",
+                "valor": "mensaje"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,nombre"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/5"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "aplicado",
+                "ficha_id": 5,
+                "resultado": "{\"accion\": \"creada\", \"avisos\": [], \"caso\": \"ninguna:crea\", \"crearia\": false, \"estado\": \"aplicado\", \"modo\": \"escribir\", \"union\": null, \"valores\": {\"nombre\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardado\"}, \"telefono\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardado\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            }
+          ],
+          "respuesta": {
+            "accion": "creada",
+            "avisos": [],
+            "caso": "ninguna:crea",
+            "estado": "aplicado",
+            "ficha_id": 5,
+            "fila": 1,
+            "modo": "escribir",
+            "valores": {
+              "nombre": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardado"
+              },
+              "telefono": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardado"
+              }
+            }
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 200,
+          "valor": "valida"
+        },
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,escribiendo)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            }
+          ],
+          "respuesta": {
+            "accion": "creada",
+            "avisos": [],
+            "caso": "ninguna:crea",
+            "estado": "aplicado",
+            "ficha_id": 5,
+            "fila": 1,
+            "modo": "escribir",
+            "valores": {
+              "nombre": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardado"
+              },
+              "telefono": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardado"
+              }
+            }
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 200,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "escribir_completa_ficha_existente",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,escribiendo)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "escribiendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,puerta-c7890e1b7a0ffeb4d03cc3e853e498a542d82275)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "nombre_whatsapp": "Persona de prueba 1"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre_whatsapp"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "aplicado",
+                "ficha_id": 1,
+                "resultado": "{\"accion\": \"completada\", \"avisos\": [], \"caso\": \"telefono_meta:completa\", \"crearia\": false, \"estado\": \"aplicado\", \"modo\": \"escribir\", \"union\": null, \"valores\": {\"nombre_perfil\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardado\"}, \"telefono\": {\"en\": null, \"motivo\": null, \"resultado\": \"ya_estaba\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            }
+          ],
+          "respuesta": {
+            "accion": "completada",
+            "avisos": [],
+            "caso": "telefono_meta:completa",
+            "estado": "aplicado",
+            "ficha_id": 1,
+            "fila": 1,
+            "modo": "escribir",
+            "valores": {
+              "nombre_perfil": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardado"
+              },
+              "telefono": {
+                "en": null,
+                "motivo": null,
+                "resultado": "ya_estaba"
+              }
+            }
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 200,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "escribir_une_dos_fichas_de_la_misma_persona",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,escribiendo)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "escribiendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,puerta-c7890e1b7a0ffeb4d03cc3e853e498a542d82275)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "aplicado",
+                "ficha_id": 11,
+                "resultado": "{\"accion\": \"sin_cambios\", \"avisos\": [], \"caso\": \"telefono_meta:sin_cambios\", \"crearia\": false, \"estado\": \"aplicado\", \"modo\": \"escribir\", \"union\": null, \"valores\": {\"nombre\": {\"en\": null, \"motivo\": null, \"resultado\": \"ya_estaba\"}, \"telefono\": {\"en\": null, \"motivo\": null, \"resultado\": \"ya_estaba\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            }
+          ],
+          "respuesta": {
+            "accion": "sin_cambios",
+            "avisos": [],
+            "caso": "telefono_meta:sin_cambios",
+            "estado": "aplicado",
+            "ficha_id": 11,
+            "fila": 1,
+            "modo": "escribir",
+            "valores": {
+              "nombre": {
+                "en": null,
+                "motivo": null,
+                "resultado": "ya_estaba"
+              },
+              "telefono": {
+                "en": null,
+                "motivo": null,
+                "resultado": "ya_estaba"
+              }
+            }
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 200,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "modo_no_exacto_cuenta",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "contado",
+                "resultado": "{\"accion\": \"no_tocada\", \"avisos\": [], \"caso\": \"ninguna:crea\", \"crearia\": true, \"estado\": \"aplicado\", \"modo\": \"contar\", \"union\": null, \"valores\": {\"nombre\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardaria\"}, \"telefono\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardaria\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "accion": "no_tocada",
+            "avisos": [],
+            "caso": "ninguna:crea",
+            "estado": "contado",
+            "ficha_id": null,
+            "fila": 1,
+            "modo": "contar",
+            "valores": {
+              "nombre": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardaria"
+              },
+              "telefono": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardaria"
+              }
+            }
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 200,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "fila_inexistente",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 99
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "contado",
+                "resultado": "{\"accion\": \"no_tocada\", \"avisos\": [], \"caso\": \"ninguna:crea\", \"crearia\": true, \"estado\": \"aplicado\", \"modo\": \"contar\", \"union\": null, \"valores\": {\"nombre\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardaria\"}, \"telefono\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardaria\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/99"
+            }
+          ],
+          "respuesta": {
+            "error": "fila_inexistente"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 404,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "pedido_ilegible",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [],
+          "respuesta": {
+            "error": "pedido_ilegible"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 400,
+          "valor": "valida"
+        },
+        {
+          "cuerpo": {
+            "fila": "1"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "pedido_ilegible"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 400,
+          "valor": "valida"
+        },
+        {
+          "cuerpo": {
+            "fila": 0
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "pedido_ilegible"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 400,
+          "valor": "valida"
+        },
+        {
+          "cuerpo": {
+            "fila": 1,
+            "otra": 2
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "pedido_ilegible"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 400,
+          "valor": "valida"
+        },
+        {
+          "cuerpo": {
+            "fila": true
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "pedido_ilegible"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 400,
+          "valor": "valida"
+        },
+        {
+          "crudo": "esto no es json",
+          "pedidos": [],
+          "respuesta": {
+            "error": "pedido_ilegible"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 400,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "sin_bandeja",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "sin_bandeja"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 503,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "contar_caida_al_apuntar",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "contado",
+                "resultado": "{\"accion\": \"no_tocada\", \"avisos\": [], \"caso\": \"ninguna:crea\", \"crearia\": true, \"estado\": \"aplicado\", \"modo\": \"contar\", \"union\": null, \"valores\": {\"nombre\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardaria\"}, \"telefono\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardaria\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "contado",
+                "resultado": "{\"accion\": \"no_tocada\", \"avisos\": [], \"caso\": \"ninguna:crea\", \"crearia\": true, \"estado\": \"aplicado\", \"modo\": \"contar\", \"union\": null, \"valores\": {\"nombre\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardaria\"}, \"telefono\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardaria\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "error": "sin_confirmar"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 502,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "escribir_caida_al_marcar",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,escribiendo)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "escribiendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "escribiendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "error": "sin_confirmar"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 502,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "escribiendo_a_medias_cuenta_409",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            }
+          ],
+          "respuesta": {
+            "error": "escritura_a_medias"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 409,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "escribiendo_a_medias_escribe_y_reanuda",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,escribiendo)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,puerta-c7890e1b7a0ffeb4d03cc3e853e498a542d82275)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "telefono": "18097770501"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<hora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 5,
+                "quien": "sistema",
+                "valor": "mensaje"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/5"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "aplicado",
+                "ficha_id": 5,
+                "resultado": "{\"accion\": \"creada\", \"avisos\": [], \"caso\": \"ninguna:crea\", \"crearia\": false, \"estado\": \"aplicado\", \"modo\": \"escribir\", \"union\": null, \"valores\": {\"telefono\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardado\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            }
+          ],
+          "respuesta": {
+            "accion": "creada",
+            "avisos": [],
+            "caso": "ninguna:crea",
+            "estado": "aplicado",
+            "ficha_id": 5,
+            "fila": 1,
+            "modo": "escribir",
+            "valores": {
+              "telefono": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardado"
+              }
+            }
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 200,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "ya_contada_responde_lo_guardado",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            }
+          ],
+          "respuesta": {
+            "accion": "crea",
+            "avisos": [],
+            "caso": "fuera_del_conjunto",
+            "estado": "contado",
+            "ficha_id": null,
+            "fila": 1,
+            "modo": "contar",
+            "valores": {}
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 200,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "resultado_guardado_ilegible_422",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            }
+          ],
+          "respuesta": {
+            "error": "resultado_ilegible"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 422,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "origen_desconocido_descartado",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "descartado",
+                "resultado": "{\"accion\": \"no_tocada\", \"avisos\": [], \"caso\": \"ninguna:origen_desconocido\", \"crearia\": false, \"estado\": \"rechazado\", \"modo\": \"contar\", \"union\": null, \"valores\": {}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "accion": "no_tocada",
+            "avisos": [],
+            "caso": "ninguna:origen_desconocido",
+            "estado": "descartado",
+            "ficha_id": null,
+            "fila": 1,
+            "modo": "contar",
+            "valores": {}
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 200,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "barrido_procesa_las_pendientes_antes",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 3
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,pendiente)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "5",
+                "sort": "Id",
+                "where": "(estado,eq,escribiendo)~and(Id,gt,0)"
+              },
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "escribiendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,puerta-c7890e1b7a0ffeb4d03cc3e853e498a542d82275)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "nombre": "Cliente A",
+                "telefono": "18097770501"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<hora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 5,
+                "quien": "sistema",
+                "valor": "mensaje"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,nombre"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/5"
+            },
+            {
+              "cuerpo": {
+                "Id": 1,
+                "estado": "aplicado",
+                "ficha_id": 5,
+                "resultado": "{\"accion\": \"creada\", \"avisos\": [], \"caso\": \"ninguna:crea\", \"crearia\": false, \"estado\": \"aplicado\", \"modo\": \"escribir\", \"union\": null, \"valores\": {\"nombre\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardado\"}, \"telefono\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardado\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/2"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "estado": "escribiendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/2"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,puerta-554611f6d39e925e6a8e044a067b9fce8001e991)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "nombre": "Cliente B",
+                "telefono": "18097770502"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<hora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 6,
+                "quien": "sistema",
+                "valor": "mensaje"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,nombre"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/6"
+            },
+            {
+              "cuerpo": {
+                "Id": 2,
+                "estado": "aplicado",
+                "ficha_id": 6,
+                "resultado": "{\"accion\": \"creada\", \"avisos\": [], \"caso\": \"ninguna:crea\", \"crearia\": false, \"estado\": \"aplicado\", \"modo\": \"escribir\", \"union\": null, \"valores\": {\"nombre\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardado\"}, \"telefono\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardado\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/2"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/3"
+            },
+            {
+              "cuerpo": {
+                "Id": 3,
+                "estado": "escribiendo"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/3"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "limit": "200",
+                "offset": "0",
+                "where": "(clave,eq,puerta-e639a6227139f3758331e53d7d3c7fe76248271b)"
+              },
+              "ruta": "/api/v2/tables/tabla-uniones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsuid,unida_a,quitada_el,credito",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "nombre": "Cliente C",
+                "telefono": "18097770503"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "origen",
+                "cuando": "<hora>",
+                "dicho_el": "2026-11-08",
+                "ficha_id": 7,
+                "quien": "sistema",
+                "valor": "mensaje"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,nombre"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/7"
+            },
+            {
+              "cuerpo": {
+                "Id": 3,
+                "estado": "aplicado",
+                "ficha_id": 7,
+                "resultado": "{\"accion\": \"creada\", \"avisos\": [], \"caso\": \"ninguna:crea\", \"crearia\": false, \"estado\": \"aplicado\", \"modo\": \"escribir\", \"union\": null, \"valores\": {\"nombre\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardado\"}, \"telefono\": {\"en\": \"principal\", \"motivo\": null, \"resultado\": \"guardado\"}}}"
+              },
+              "metodo": "PATCH",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-bandeja-entrada-prueba/records/3"
+            }
+          ],
+          "respuesta": {
+            "accion": "creada",
+            "avisos": [],
+            "caso": "ninguna:crea",
+            "estado": "aplicado",
+            "ficha_id": 7,
+            "fila": 3,
+            "modo": "escribir",
+            "valores": {
+              "nombre": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardado"
+              },
+              "telefono": {
+                "en": "principal",
+                "motivo": null,
+                "resultado": "guardado"
+              }
+            }
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 200,
+          "valor": "valida"
+        }
+      ]
+    },
+    {
+      "nombre": "llave_mala_no_lee_ni_escribe",
+      "pasos": [
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "llave de servicio inválida"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 401,
+          "valor": "mala"
+        },
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "llave de servicio inválida"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 401,
+          "valor": "vacia"
+        },
+        {
+          "cuerpo": {
+            "fila": 1
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "llave de servicio inválida"
+          },
+          "ruta": "/api/fichas/entrada",
+          "status": 401,
+          "valor": "ausente"
+        }
+      ]
+    }
+  ],
+  "fuente": "App de registro, commit 8c9d21a: server.py (Handler.entrada_fichas, entrada_fichas, entrada_procesar, entrada_barrer, _entrada_resumen, _entrada_cuerpo, _entrada_leer_resultado, _entrada_confirmado) y personas.py (recibir_y_unir)",
+  "version": 1
+}

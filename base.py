@@ -379,6 +379,14 @@ class _EntradaSinConfirmar(Exception):
 def _entrada_id(x):
     return x if isinstance(x, int) and not isinstance(x, bool) else None
 
+def _resumen_del_fallo(motivo):
+    """La clase del fallo y su código HTTP si lo trae. Sin el mensaje, que repite el `where`. Copia de `server.py` de la App (`_resumen_del_fallo`)."""
+    if not isinstance(motivo, BaseException):
+        return "sin detalle"
+    clase = type(motivo).__name__
+    status = getattr(motivo, "status", None)
+    return f"{clase} {status}" if status is not None else clase
+
 def _bandeja_leer(estados, campos, visitar, tamano, tope, pagina_de=None):
     """Pasa a `visitar` las filas de la bandeja con alguno de esos `estados`, por páginas con cursor por `Id`; devuelve si no queda ninguna sin leer.
 
