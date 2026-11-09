@@ -11,6 +11,8 @@ Pruebas:
   E2  los pasos de la foto son los de `tests/escenarios_portal_escrituras.py` (dorado), y el servidor del repo, corrido sobre el
       doble que escribe (`tests/doble_escrituras.py`), contesta a cada paso con el MISMO código, la MISMA respuesta y los MISMOS
       pedidos que la App. Y el doble no recibió ningún pedido que no conociera.
+  E3  el día de hoy del programa (`dicho_el`) no entra en la foto: un escenario corre con el día fijado en dos fechas distintas
+      (`tests/reloj.py`) y en los dos casos, normalizado con su día, contesta lo que la foto guarda.
   K0  tablas de escritura (`servidor.escrituras_del_portal()`: POST y PATCH) + `PORTAL_ESCRITURA_FUERA_DEL_PROGRAMA` = las rutas de
       escritura que la App contesta (`rutas_de_la_app` del portal y `rutas_checkin_de_la_app` de sesión). Ningún patrón está en la
       tabla y en la lista de fuera a la vez. Cada salida tiene su motivo escrito.
@@ -102,6 +104,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(RAIZ))
 
 import escenarios_portal_escrituras as esc  # noqa: E402
+import reloj  # noqa: E402  (el día de hoy fijado: ver tests/reloj.py)
 import servidor  # noqa: E402  (la tabla real: K0, H1, H2 y Q1 comparan con ella)
 import personas  # noqa: E402
 import personas_escrituras  # noqa: E402  (parte 7: crear y editar del check-in, tipo C)
@@ -110,7 +113,7 @@ import candado  # noqa: E402  (el candado de «envío hecho»: la forma y los us
 
 FOTA = RAIZ / "contrato_dorado" / "portal_escrituras.json"
 SHA_DECLARADO = RAIZ / "contrato_dorado" / "SHA256_portal_escrituras"
-COMANDO = [sys.executable, "-B", str(RAIZ / "servidor.py")]
+COMANDO = reloj.comando_programa()     # el día del programa fijado (`dicho_el`, `_borrar_reservas`): ver tests/reloj.py
 QUIEN = esc.QUIEN_DORADO
 RUTA_CREAR = esc.RUTA_PORTAL
 RUTA_REGISTRO = ["/api/servicio/personas/cara", "/api/servicio/personas/nueva", "/api/servicio/personas/editar"]
@@ -265,6 +268,23 @@ class EscriturasDelPortalEnElPrograma(unittest.TestCase):
                     self.assertEqual(r["status"], f["status"])
                     self.assertEqual(esc.normalizar(r["respuesta"]), f["respuesta"])
                     self.assertEqual(esc.normalizar(r["pedidos"]), f["pedidos"])
+
+    def test_E3_el_dia_no_entra_en_la_comparacion(self):
+        """Prueba de que la foto no depende del día: un escenario que escribe la anotación de origen (`dicho_el`) corre con el día del
+        programa fijado en dos fechas (la de la foto y otra). En los dos, normalizado con SU día, contesta lo que la foto guarda."""
+        nombre = "crear_ok"
+        escenario = next(e for e in esc.ESCENARIOS if e["nombre"] == nombre)
+        pasos = [p for p in escenario["pasos"] if esc.es_dorado(p)]
+        foto = self.por_nombre[nombre]
+        for dia in (reloj.DIA_FIJO, "2026-11-20"):
+            with self.subTest(dia=dia):
+                real, errores = esc.ejecutar(escenario, reloj.comando_programa(dia), cwd=str(RAIZ))
+                self.assertEqual(errores, [], "el doble recibió un pedido que no conoce")
+                self.assertEqual(len(real), len(foto["pasos"]))
+                for r, f in zip(real, foto["pasos"]):
+                    self.assertEqual(esc.normalizar(r["respuesta"], dia), f["respuesta"], "respuesta distinta con el día %s" % dia)
+                    self.assertEqual(esc.normalizar(r["pedidos"], dia), f["pedidos"], "pedidos distintos con el día %s" % dia)
+                    self.assertTrue(_cuandos_son_iso(r["pedidos"]), "un «cuando» que no es fecha ISO con zona")
 
     # ---- K: la tabla contra la App ------------------------------------------------------------------------------------
 

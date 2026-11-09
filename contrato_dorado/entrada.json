@@ -154,7 +154,7 @@
               "cuerpo": {
                 "clase": "origen",
                 "cuando": "<hora>",
-                "dicho_el": "2026-11-08",
+                "dicho_el": "<hoy>",
                 "ficha_id": 5,
                 "quien": "sistema",
                 "valor": "mensaje"
@@ -989,7 +989,7 @@
               "cuerpo": {
                 "clase": "origen",
                 "cuando": "<hora>",
-                "dicho_el": "2026-11-08",
+                "dicho_el": "<hoy>",
                 "ficha_id": 5,
                 "quien": "sistema",
                 "valor": "mensaje"
@@ -1254,7 +1254,7 @@
               "cuerpo": {
                 "clase": "origen",
                 "cuando": "<hora>",
-                "dicho_el": "2026-11-08",
+                "dicho_el": "<hoy>",
                 "ficha_id": 5,
                 "quien": "sistema",
                 "valor": "mensaje"
@@ -1342,7 +1342,7 @@
               "cuerpo": {
                 "clase": "origen",
                 "cuando": "<hora>",
-                "dicho_el": "2026-11-08",
+                "dicho_el": "<hoy>",
                 "ficha_id": 6,
                 "quien": "sistema",
                 "valor": "mensaje"
@@ -1430,7 +1430,7 @@
               "cuerpo": {
                 "clase": "origen",
                 "cuando": "<hora>",
-                "dicho_el": "2026-11-08",
+                "dicho_el": "<hoy>",
                 "ficha_id": 7,
                 "quien": "sistema",
                 "valor": "mensaje"

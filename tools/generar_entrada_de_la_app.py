@@ -25,10 +25,15 @@ DRIVER = (
     "import http.server, os, sys\n"
     "sys.path.insert(0, os.getcwd())\n"
     "import server\n"
+    "import personas\n"
+    "sys.path.insert(0, '@TESTS@')\n"
+    "import reloj\n"
+    "reloj.fijar('@DIA@', server, personas)\n"   # el día de hoy de la App, fijado igual que el del programa (tests/reloj.py)
     "srv = http.server.ThreadingHTTPServer(('127.0.0.1', int(os.environ['PORT'])), server.Handler)\n"
     "sys.stdout.write('listo\\n'); sys.stdout.flush()\n"
     "srv.serve_forever()\n"
 )
+DRIVER = DRIVER.replace("@DIA@", escenarios.reloj.DIA_FIJO).replace("@TESTS@", str(RAIZ / "tests"))
 
 
 def main():

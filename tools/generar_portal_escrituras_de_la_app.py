@@ -42,6 +42,10 @@ DRIVER = (
     "import base64, io, json, os, sys, types\n"
     "sys.path.insert(0, os.getcwd())\n"
     "import server\n"
+    "import personas\n"
+    "sys.path.insert(0, '@TESTS@')\n"
+    "import reloj\n"
+    "reloj.fijar('@DIA@', server, personas)\n"   # el día de hoy de la App, fijado igual que el del programa (tests/reloj.py)
     "server.puerta = types.SimpleNamespace(buscar=lambda *a, **k: None)\n"   # la puerta de programas: no es parte de estas respuestas
     "class Pedido(server.Handler):\n"
     "    def __init__(self, ruta, quien, datos):\n"
@@ -95,6 +99,7 @@ DRIVER = (
     "    sys.stdout.write('PASO ' + json.dumps({'status': p.codigo, 'respuesta': cuerpo}, ensure_ascii=False) + '\\n')\n"
     "    sys.stdout.flush()\n"
 )
+DRIVER = DRIVER.replace("@DIA@", esc.reloj.DIA_FIJO).replace("@TESTS@", str(RAIZ / "tests"))
 
 
 def rutas_post_de_la_app(copia):

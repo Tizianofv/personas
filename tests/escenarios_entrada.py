@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import doble_escrituras  # noqa: E402
 import doble_nocodb  # noqa: E402
 import escenarios_escrituras  # noqa: E402  (puerto libre, espera de arranque, entorno mínimo)
+import reloj  # noqa: E402  (el día de hoy fijado: ver tests/reloj.py)
 
 RUTA = {"app": "/api/fichas/entrada", "programa": "/api/servicio/personas/entrada"}
 CABECERA = {"app": "X-Fichas-Llave", "programa": "X-Personas-Entrada-Llave"}
@@ -115,13 +116,16 @@ def horas_de_los_pedidos(pasos):
             if isinstance(p.get("cuerpo"), dict) and "cuando" in p["cuerpo"]]
 
 
-def normalizar_horas(pasos):
+def normalizar_horas(pasos, dia=reloj.DIA_FIJO):
     """`cuando` es la hora en que la App o el programa anotan el origen de una ficha: cambia en cada corrida. En la foto y en la comparación
-    va como `<hora>`. Quien llama debe haber comprobado antes que cada valor es una hora ISO (`horas_de_los_pedidos`, `_HORA`)."""
+    va como `<hora>`. Quien llama debe haber comprobado antes que cada valor es una hora ISO (`horas_de_los_pedidos`, `_HORA`).
+    `dicho_el` (el día de esa anotación) igual al día fijado de la corrida (`dia`, ver `tests/reloj.py`) va como `<hoy>`; otro día se deja."""
     for paso in pasos:
         for p in paso["pedidos"]:
             if isinstance(p.get("cuerpo"), dict) and "cuando" in p["cuerpo"]:
                 p["cuerpo"]["cuando"] = "<hora>"
+            if isinstance(p.get("cuerpo"), dict) and p["cuerpo"].get("dicho_el") == dia:
+                p["cuerpo"]["dicho_el"] = reloj.MARCA_DIA
     return pasos
 
 

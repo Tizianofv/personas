@@ -5,6 +5,7 @@
   E2  los escenarios de `tests/escenarios_entrada.py`, corridos contra `servidor.py` del programa y el doble que escribe: en cada
       paso, el MISMO código, la MISMA respuesta y los MISMOS pedidos al doble que en la foto de la App (método, ruta, consulta y cuerpo).
       El doble no recibió ningún pedido que no conociera. La hora `cuando` se compara como `<hora>`, pero antes se exige que sea ISO.
+  E3  el mismo escenario con el día del programa fijado en dos fechas (`tests/reloj.py`): en los dos, la foto. El día no entra en la foto.
   K1  la llave de la entrada: sin cabecera, vacía, mala o con la variable vacía, 401, y el doble no recibe ningún pedido. Con la
       variable vacía la ruta nace cerrada, aunque la cabecera traiga un valor.
   K2  sin llave, un cuerpo que no es JSON da 401 y no 400: la llave se mira antes del cuerpo.
@@ -24,8 +25,9 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(RAIZ))
 import escenarios_entrada as esc  # noqa: E402
+import reloj  # noqa: E402  (el día de hoy fijado para el programa: `dicho_el` no depende del día en que se corre)
 
-COMANDO = [sys.executable, "-B", str(RAIZ / "servidor.py")]
+COMANDO = reloj.comando_programa()
 FOTO = RAIZ / "contrato_dorado" / "entrada.json"
 SHA = RAIZ / "contrato_dorado" / "SHA256_entrada"
 
@@ -56,6 +58,22 @@ class TestEntrada(unittest.TestCase):
                     self.assertEqual(real["status"], app["status"], "código distinto")
                     self.assertEqual(real["respuesta"], app["respuesta"], "respuesta distinta")
                     self.assertEqual(real["pedidos"], app["pedidos"], "pedidos al doble distintos")
+
+    def test_E3_el_dia_no_entra_en_la_comparacion(self):
+        """Prueba de que la foto no depende del día: el mismo escenario corre con el día del programa fijado en dos fechas distintas
+        (la de la foto y otra), y en los dos casos, normalizado con SU día, contesta lo que la foto guarda."""
+        nombre = "escribir_crea_y_repite_sin_duplicar"
+        escenario = next(e for e in esc.ESCENARIOS if e["nombre"] == nombre)
+        esperado = next(e for e in _foto()["escenarios"] if e["nombre"] == nombre)["pasos"]
+        for dia in (reloj.DIA_FIJO, "2026-11-20"):
+            with self.subTest(dia=dia):
+                pasos, errores = esc.ejecutar(escenario, "programa", reloj.comando_programa(dia), cwd=str(RAIZ))
+                self.assertEqual(errores, [], "el doble recibió un pedido que no conoce")
+                self.assertTrue(all(esc._HORA.fullmatch(h) for h in esc.horas_de_los_pedidos(pasos)), "una hora `cuando` no es ISO")
+                esc.normalizar_horas(pasos, dia)
+                self.assertEqual(len(pasos), len(esperado))
+                for real, app in zip(pasos, esperado):
+                    self.assertEqual(real["pedidos"], app["pedidos"], "pedidos al doble distintos con el día %s" % dia)
 
     def test_K1_sin_llave_valida_no_se_lee_ni_se_escribe(self):
         escenario = {"nombre": "k1", "entorno": {"FICHAS_ENTRADA_MODO": "escribir"}, "tablas": esc.bandeja(esc.NUEVA),

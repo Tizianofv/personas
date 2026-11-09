@@ -29,6 +29,7 @@ import urllib.request
 
 import doble_escrituras
 import doble_nocodb
+import reloj  # el día de hoy fijado (`dicho_el`): ver tests/reloj.py
 
 RUTA_PORTAL = "/api/portal-personas"
 CABECERA_LLAVE = "X-Personas-Portal-Llave"
@@ -415,14 +416,23 @@ def es_clave_de_hora(clave):
     return clave == "cuando" or clave == "quitada_el" or clave.endswith("_en")
 
 
-def normalizar(valor):
-    """Quita de un registro lo que depende de la hora de la corrida: el valor de cualquier clave de hora (`es_clave_de_hora`) que sea
-    una fecha ISO se cambia por «<ahora>». Lo aplican la foto y la prueba, a los dos lados, así que la comparación no ve la hora. Lo que
-    sí se comprueba (en `test_portal_escrituras.py`) es que ese valor sea una fecha ISO con zona y no otra cosa."""
+def normalizar(valor, dia=reloj.DIA_FIJO):
+    """Quita de un registro lo que depende de la corrida. (1) El valor de cualquier clave de hora (`es_clave_de_hora`) que sea una
+    fecha ISO se cambia por «<ahora>». Lo que sí se comprueba (en `test_portal_escrituras.py`) es que ese valor sea una fecha ISO con
+    zona y no otra cosa. (2) `dicho_el` igual al día fijado de la corrida (`dia`, ver `tests/reloj.py`) se cambia por «<hoy>»; otro día
+    se deja tal cual. Lo aplican la foto y la prueba, a los dos lados."""
     if isinstance(valor, dict):
-        return {k: (AHORA if es_clave_de_hora(k) and _es_iso(v) else normalizar(v)) for k, v in valor.items()}
+        salida = {}
+        for k, v in valor.items():
+            if k == "dicho_el" and v == dia:
+                salida[k] = reloj.MARCA_DIA
+            elif es_clave_de_hora(k) and _es_iso(v):
+                salida[k] = AHORA
+            else:
+                salida[k] = normalizar(v, dia)
+        return salida
     if isinstance(valor, list):
-        return [normalizar(v) for v in valor]
+        return [normalizar(v, dia) for v in valor]
     return valor
 
 
