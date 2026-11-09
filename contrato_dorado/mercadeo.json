@@ -1,0 +1,1727 @@
+{
+  "escenarios": [
+    {
+      "nombre": "baja_ok",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "<hoy>",
+            "identidad": "18097770002"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "canal": "whatsapp",
+                "clase": "permiso",
+                "cuando": "<ahora>",
+                "dicho_el": "<hoy>",
+                "ficha_id": 2,
+                "quien": "Natalia",
+                "valor": "baja"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "estado": "anotado",
+            "fichas": 1,
+            "ok": true
+          },
+          "ruta": "@baja",
+          "status": 200
+        },
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "<hoy>",
+            "identidad": "18097770002"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "estado": "ya_estaba",
+            "fichas": 1,
+            "ok": true
+          },
+          "ruta": "@baja",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "nombre": "baja_grupo",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-grupo",
+            "dicho_el": "<hoy>",
+            "identidad": "18097770001"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "canal": "whatsapp",
+                "clase": "permiso",
+                "cuando": "<ahora>",
+                "dicho_el": "<hoy>",
+                "ficha_id": 4,
+                "quien": "Natalia",
+                "valor": "baja"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "canal": "whatsapp",
+                "clase": "permiso",
+                "cuando": "<ahora>",
+                "dicho_el": "<hoy>",
+                "ficha_id": 1,
+                "quien": "Natalia",
+                "valor": "baja"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "estado": "anotado",
+            "fichas": 2,
+            "ok": true
+          },
+          "ruta": "@baja",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "nombre": "baja_sin_ficha",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "<hoy>",
+            "identidad": "18090009999"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "respuesta": {
+            "error": "No hay ninguna ficha con esa identidad. No se anotó nada.",
+            "estado": "sin_ficha",
+            "ok": false
+          },
+          "ruta": "@baja",
+          "status": 404
+        }
+      ]
+    },
+    {
+      "nombre": "baja_errores",
+      "pasos": [
+        {
+          "cuerpo": {},
+          "pedidos": [],
+          "respuesta": {
+            "error": "El pedido tiene que traer exactamente: identidad, dicho_el, clave. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@baja",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "<hoy>",
+            "identidad": ""
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "`identidad` tiene que ser el número o el ID de WhatsApp de quien pidió la baja. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@baja",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "",
+            "dicho_el": "<hoy>",
+            "identidad": "18097770002"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "`clave` tiene que ser un texto de hasta 200 caracteres. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@baja",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "dicho_el": "<hoy>",
+            "identidad": "18097770002"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "`clave` tiene que ser un texto de hasta 200 caracteres. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@baja",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "2026-13-45",
+            "identidad": "18097770002"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "La fecha en que lo dijo tiene que ser un día de verdad, escrito AAAA-MM-DD. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@baja",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "<hoy>",
+            "extra": 1,
+            "identidad": "18097770002"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "El pedido tiene que traer exactamente: identidad, dicho_el, clave. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@baja",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "<hoy>",
+            "identidad": 7
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "`identidad` tiene que ser el número o el ID de WhatsApp de quien pidió la baja. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@baja",
+          "status": 400
+        },
+        {
+          "crudo": "{",
+          "pedidos": [],
+          "respuesta": {
+            "error": "El pedido tiene que traer exactamente: identidad, dicho_el, clave. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@baja",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "nombre": "baja_sin_tabla",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "<hoy>",
+            "identidad": "18097770002"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "Todavía no hay dónde guardar el permiso. No se anotó nada.",
+            "estado": "sin_tabla",
+            "ok": false
+          },
+          "ruta": "@baja",
+          "status": 503
+        }
+      ]
+    },
+    {
+      "nombre": "baja_lectura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "<hoy>",
+            "identidad": "18097770002"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "respuesta": {
+            "error": "No se pudo leer las fichas. No se anotó nada.",
+            "estado": "sin_confirmar",
+            "ok": false
+          },
+          "ruta": "@baja",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "nombre": "baja_escritura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "<hoy>",
+            "identidad": "18097770002"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "canal": "whatsapp",
+                "clase": "permiso",
+                "cuando": "<ahora>",
+                "dicho_el": "<hoy>",
+                "ficha_id": 2,
+                "quien": "Natalia",
+                "valor": "baja"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "error": "Algo falló mientras se guardaba, y no se puede confirmar si lo que mandaste quedó guardado. NO lo repitas todavía: abre la cuenta (o el pago, o la caja) y mira si ya aparece. Solo si no aparece, vuelve a hacerlo. Detalle técnico: No se pudo confirmar que quedó anotado. NO lo des por anotado.",
+            "estado": "sin_confirmar",
+            "ok": false,
+            "sin_confirmar": true
+          },
+          "ruta": "@baja",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "nombre": "baja_reintento_tras_fallo",
+      "pasos": [
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "<hoy>",
+            "identidad": "18097770002"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "canal": "whatsapp",
+                "clase": "permiso",
+                "cuando": "<ahora>",
+                "dicho_el": "<hoy>",
+                "ficha_id": 2,
+                "quien": "Natalia",
+                "valor": "baja"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "error": "Algo falló mientras se guardaba, y no se puede confirmar si lo que mandaste quedó guardado. NO lo repitas todavía: abre la cuenta (o el pago, o la caja) y mira si ya aparece. Solo si no aparece, vuelve a hacerlo. Detalle técnico: No se pudo confirmar que quedó anotado. NO lo des por anotado.",
+            "estado": "sin_confirmar",
+            "ok": false,
+            "sin_confirmar": true
+          },
+          "ruta": "@baja",
+          "status": 502
+        },
+        {
+          "cuerpo": {
+            "clave": "baja-prueba-0001",
+            "dicho_el": "<hoy>",
+            "identidad": "18097770002"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "canal": "whatsapp",
+                "clase": "permiso",
+                "cuando": "<ahora>",
+                "dicho_el": "<hoy>",
+                "ficha_id": 2,
+                "quien": "Natalia",
+                "valor": "baja"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "estado": "anotado",
+            "fichas": 1,
+            "ok": true
+          },
+          "ruta": "@baja",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "nombre": "foto_ok",
+      "pasos": [
+        {
+          "cuerpo": {
+            "identidad": "18097770002",
+            "valor": "no"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "foto",
+                "cuando": "<ahora>",
+                "ficha_id": 2,
+                "quien": "Natalia",
+                "valor": "no"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "estado": "anotado",
+            "fichas": 1,
+            "ok": true,
+            "valor": "no"
+          },
+          "ruta": "@foto",
+          "status": 200
+        },
+        {
+          "cuerpo": {
+            "identidad": "18097770002",
+            "valor": "no"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "estado": "ya_estaba",
+            "fichas": 1,
+            "ok": true,
+            "valor": "no"
+          },
+          "ruta": "@foto",
+          "status": 200
+        },
+        {
+          "cuerpo": {
+            "identidad": "18097770002",
+            "valor": "si"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "foto",
+                "cuando": "<ahora>",
+                "ficha_id": 2,
+                "quien": "Natalia",
+                "valor": "si"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "estado": "anotado",
+            "fichas": 1,
+            "ok": true,
+            "valor": "si"
+          },
+          "ruta": "@foto",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "nombre": "foto_grupo",
+      "pasos": [
+        {
+          "cuerpo": {
+            "identidad": "18097770001",
+            "valor": "no"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "foto",
+                "cuando": "<ahora>",
+                "ficha_id": 4,
+                "quien": "Natalia",
+                "valor": "no"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "foto",
+                "cuando": "<ahora>",
+                "ficha_id": 1,
+                "quien": "Natalia",
+                "valor": "no"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "estado": "anotado",
+            "fichas": 2,
+            "ok": true,
+            "valor": "no"
+          },
+          "ruta": "@foto",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "nombre": "foto_sin_ficha",
+      "pasos": [
+        {
+          "cuerpo": {
+            "identidad": "18090009999",
+            "valor": "no"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "respuesta": {
+            "error": "No hay ninguna ficha con esa identidad. No se anotó nada.",
+            "estado": "sin_ficha",
+            "ok": false
+          },
+          "ruta": "@foto",
+          "status": 404
+        }
+      ]
+    },
+    {
+      "nombre": "foto_errores",
+      "pasos": [
+        {
+          "cuerpo": {
+            "identidad": "18097770002",
+            "valor": "tal vez"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "`valor` tiene que ser «si» o «no». No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@foto",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "identidad": "18097770002"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "El pedido tiene que traer exactamente: identidad, valor. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@foto",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "valor": "no"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "El pedido tiene que traer exactamente: identidad, valor. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@foto",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "identidad": "18097770002",
+            "quien": "Otro",
+            "valor": "no"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "El pedido tiene que traer exactamente: identidad, valor. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@foto",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "identidad": "",
+            "valor": "no"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "`identidad` tiene que ser el número o el ID de WhatsApp de la persona. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@foto",
+          "status": 400
+        },
+        {
+          "cuerpo": {
+            "identidad": 5,
+            "valor": "no"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "`identidad` tiene que ser el número o el ID de WhatsApp de la persona. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@foto",
+          "status": 400
+        },
+        {
+          "crudo": "{",
+          "pedidos": [],
+          "respuesta": {
+            "error": "El pedido tiene que traer exactamente: identidad, valor. No se anotó nada.",
+            "estado": "pedido_malo",
+            "ok": false
+          },
+          "ruta": "@foto",
+          "status": 400
+        }
+      ]
+    },
+    {
+      "nombre": "foto_sin_tabla",
+      "pasos": [
+        {
+          "cuerpo": {
+            "identidad": "18097770002",
+            "valor": "no"
+          },
+          "pedidos": [],
+          "respuesta": {
+            "error": "Todavía no hay dónde guardar el permiso de fotos. No se anotó nada.",
+            "estado": "sin_tabla",
+            "ok": false,
+            "sin_tabla": true
+          },
+          "ruta": "@foto",
+          "status": 503
+        }
+      ]
+    },
+    {
+      "nombre": "foto_lectura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "identidad": "18097770002",
+            "valor": "no"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            }
+          ],
+          "respuesta": {
+            "error": "No se pudo leer las fichas. No se anotó nada.",
+            "estado": "no_se_pudo_saber",
+            "ok": false
+          },
+          "ruta": "@foto",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "nombre": "foto_escritura_caida",
+      "pasos": [
+        {
+          "cuerpo": {
+            "identidad": "18097770002",
+            "valor": "no"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "foto",
+                "cuando": "<ahora>",
+                "ficha_id": 2,
+                "quien": "Natalia",
+                "valor": "no"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "error": "Algo falló mientras se guardaba, y no se puede confirmar si lo que mandaste quedó guardado. NO lo repitas todavía: abre la cuenta (o el pago, o la caja) y mira si ya aparece. Solo si no aparece, vuelve a hacerlo. Detalle técnico: No se pudo confirmar que quedó anotado. NO lo des por anotado.",
+            "estado": "sin_confirmar",
+            "ok": false,
+            "sin_confirmar": true
+          },
+          "ruta": "@foto",
+          "status": 502
+        }
+      ]
+    },
+    {
+      "nombre": "foto_reintento_tras_fallo",
+      "pasos": [
+        {
+          "cuerpo": {
+            "identidad": "18097770002",
+            "valor": "no"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "foto",
+                "cuando": "<ahora>",
+                "ficha_id": 2,
+                "quien": "Natalia",
+                "valor": "no"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "error": "Algo falló mientras se guardaba, y no se puede confirmar si lo que mandaste quedó guardado. NO lo repitas todavía: abre la cuenta (o el pago, o la caja) y mira si ya aparece. Solo si no aparece, vuelve a hacerlo. Detalle técnico: No se pudo confirmar que quedó anotado. NO lo des por anotado.",
+            "estado": "sin_confirmar",
+            "ok": false,
+            "sin_confirmar": true
+          },
+          "ruta": "@foto",
+          "status": 502
+        },
+        {
+          "cuerpo": {
+            "identidad": "18097770002",
+            "valor": "no"
+          },
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,telefono,telefono_2,bsuid",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": {
+                "clase": "foto",
+                "cuando": "<ahora>",
+                "ficha_id": 2,
+                "quien": "Natalia",
+                "valor": "no"
+              },
+              "metodo": "POST",
+              "query": {},
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,unida_a",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,ficha_id,clase,valor,canal,dicho_el,quien,cuando",
+                "limit": "200",
+                "offset": "0"
+              },
+              "ruta": "/api/v2/tables/tabla-anotaciones-prueba/records"
+            }
+          ],
+          "respuesta": {
+            "estado": "anotado",
+            "fichas": 1,
+            "ok": true,
+            "valor": "no"
+          },
+          "ruta": "@foto",
+          "status": 200
+        }
+      ]
+    }
+  ],
+  "fuente": "App de registro, commit 8c9d21a: server.py (Handler.mercadeo_baja y Handler.mercadeo_foto, con sus rutas MERCADEO_BAJA_RUTA y MERCADEO_FOTO_RUTA) y personas.py (baja_de_natalia, foto_de_natalia, anotar_permiso, anotar_foto)",
+  "rutas_de_la_app": {
+    "@baja": "/api/servicio/mercadeo/baja",
+    "@foto": "/api/servicio/mercadeo/foto"
+  },
+  "version": 1
+}

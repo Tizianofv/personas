@@ -62,8 +62,14 @@ NO PORTADO (declarado en `el-programa-personas.md`, «Lo que falta»): las GET d
 formato del `resultado` (`personas_entrada._entrada_leer_resultado`) y la bandeja; quedan sus piezas propias (`CuadroPersonas` y
 `cuadro_renglon` de la App), que son otra pieza.
 
+MERCADEO HACIA PERSONAS (P7, `personas_mercadeo.py`): `POST /api/servicio/personas/mercadeo/baja` y `POST /api/servicio/personas/mercadeo/foto`,
+con la cabecera X-Personas-Mercadeo-Llave (PERSONAS_MERCADEO_LLAVE), mirada antes del cuerpo. Son las funciones `baja_de_natalia` y
+`foto_de_natalia` de la App (`Handler.mercadeo_baja` y `Handler.mercadeo_foto` en `8c9d21a`); las anotaciones de baja, foto y permiso las
+escribe `anotar_permiso` / `anotar_foto`. Respuestas y escrituras: `contrato_dorado/mercadeo.json`. El reenvío desde la App NO está hecho.
+La App sigue atendiendo estas dos rutas; el programa no las ve.
+
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN,
-PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, NOCODB_T_*, y para la ruta de
+PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, PERSONAS_MERCADEO_LLAVE, NOCODB_T_*, y para la ruta de
 tipo «D»: GOOGLE_CONTACTOS_CLIENT_ID, GOOGLE_CONTACTOS_CLIENT_SECRET, GOOGLE_CONTACTOS_REFRESH_TOKEN (las mismas de la App).
 """
 import hmac
@@ -78,6 +84,7 @@ import personas_entrada
 import personas_escritura_rutas
 import personas_escrituras
 import personas_lectura
+import personas_mercadeo
 import personas_portal_escritura
 import personas_portal_lectura
 import personas_servicio_rutas
@@ -89,6 +96,12 @@ LLAVE_PERSONAS_PORTAL = os.environ.get("PERSONAS_PORTAL_LLAVE", "").strip()
 # La entrada de Natalia (`personas_entrada.py`): llave propia del grupo. Vacía, la ruta nace cerrada (401).
 LLAVE_PERSONAS_ENTRADA = os.environ.get("PERSONAS_ENTRADA_LLAVE", "").strip()
 ENTRADA_RUTA = "/api/servicio/personas/entrada"
+# Mercadeo hacia Personas (P7, `personas_mercadeo.py`): llave propia del grupo, NO la de la App (`MERCADEO_LLAVE_SERVICIO`). Vacía, la ruta nace cerrada.
+LLAVE_PERSONAS_MERCADEO = os.environ.get("PERSONAS_MERCADEO_LLAVE", "").strip()
+MERCADEO_RUTAS = {
+    "/api/servicio/personas/mercadeo/baja": personas_mercadeo.baja,
+    "/api/servicio/personas/mercadeo/foto": personas_mercadeo.foto,
+}
 
 ESCRITURA_RUTAS = {
     "/api/servicio/personas/cara": "cara",
@@ -273,6 +286,12 @@ class Manejador(BaseHTTPRequestHandler):
             if not lucy_llave_valida(self.headers.get("X-Personas-Entrada-Llave"), LLAVE_PERSONAS_ENTRADA):
                 return self._enviar(401, ERROR_LLAVE)
             codigo, cuerpo = personas_entrada.entrada_de_natalia(self._pedido())
+            return self._enviar(codigo, cuerpo)
+        if ruta in MERCADEO_RUTAS:
+            # La llave de Mercadeo se mira ANTES de leer el cuerpo y antes de NocoDB. Sin ella, con otra (la de la entrada incluida) o con la variable vacía: 401.
+            if not lucy_llave_valida(self.headers.get("X-Personas-Mercadeo-Llave"), LLAVE_PERSONAS_MERCADEO):
+                return self._enviar(401, ERROR_LLAVE)
+            codigo, cuerpo = MERCADEO_RUTAS[ruta](self._pedido())
             return self._enviar(codigo, cuerpo)
         if ruta in ESCRITURA_RUTAS:
             # La llave de escrituras se mira ANTES de leer el cuerpo (como `personas_escritura_post` de la App).
