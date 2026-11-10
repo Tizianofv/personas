@@ -7,8 +7,8 @@ ambos un módulo `personas`, y no se pueden importar a la vez. Sin `PERSONAS_APP
 
 Qué garantiza y con qué prueba:
   K1  RUTAS: cada nombre del grupo (a) lo reconoce la App (`server.escritura_de_personas_para_cuenta`) con la ruta que el programa usa.
-  K2  COINCIDE: con los escenarios del grupo (a) que escriben, lo que el programa calcula y lo que se escribe de verdad dan `coincide`
-      en la función de la App. La «App» aquí es la escritura del programa (capturada en el doble de NocoDB, con los ids reales, sin
+  K2  COINCIDE: con los escenarios del grupo (a) que escriben, lo que calcula el programa (por el CLIENTE REAL de la App contra el
+      servidor real del programa) y lo que se escribe de verdad dan `coincide` en la función de la App, en los cinco nombres. La «App» aquí es la escritura del programa (capturada en el doble de NocoDB, con los ids reales, sin
       normalizar): la escritura de la App en vivo no se corre (frontera). Esto incluye el número real de una alta (`<nueva>` en sin_valor).
   K3  NO_COINCIDE: si lo escrito cambia un valor, o sobra o falta una fila, la App dice `no_coincide` y nombra la columna (nunca el valor).
   K4  UNA_VEZ: la App, con el mismo envío dos veces, escribe UNA vez (su `escribir_una_vez`); el segundo envío no captura escrituras y
@@ -30,7 +30,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import base  # noqa: E402
 import personas  # noqa: E402
 import personas_cuenta  # noqa: E402
+import escenarios_portal_escrituras as esc  # noqa: E402
+import test_calcular_cuenta as tc  # noqa: E402
 import test_calcular_grupo_a as g  # noqa: E402
+
+CLIENTE = RAIZ / "tests" / "cliente_app_calcular.py"
 
 GUION_APP = r'''
 import json, sys
@@ -74,6 +78,17 @@ def preguntar_a_la_app(rama, casos):
     return json.loads(r.stdout.strip().splitlines()[-1])
 
 
+def llamar_cliente(rama, entorno, nombre, cuerpo):
+    """`panel_reenvio.calcular_personas` de la App, en su propio proceso (como C7). Devuelve su resultado: `calculado`, `motivo`, `cuenta`."""
+    env = dict(esc.ENTORNO_MINIMO)
+    env.update(entorno)
+    r = subprocess.run([sys.executable, "-B", str(CLIENTE), rama, nombre, json.dumps(cuerpo, ensure_ascii=False), g.QUIEN],
+                       env=env, capture_output=True, text=True, timeout=120)
+    if r.returncode != 0:
+        raise AssertionError("el cliente de la App falló: " + r.stderr[-800:])
+    return json.loads(r.stdout.strip().splitlines()[-1])
+
+
 def _capturadas_de(escrituras):
     """Lo que la App captura al escribir (`_anotar_personas`): tabla con su nombre lógico, método, enlace, cuerpo tal cual (con ids reales)."""
     return [{"tabla": g.NOMBRE_DE_TABLA[e["tabla"]], "metodo": e["metodo"], "enlace": None, "cuerpo": e["cuerpo"],
@@ -98,18 +113,27 @@ class ContratoConLaApp(unittest.TestCase):
         respuestas = preguntar_a_la_app(self.rama, casos)
         self.assertEqual([r["escritura"] for r in respuestas], esperados)
 
-    def test_K2_coincide_cuando_la_App_escribe_lo_mismo(self):
-        casos, meta = [], []
-        for nombre, cuerpo, etiqueta in g.ESCENARIOS:
-            with g.Corrida() as w:
-                codigo_w, _ = g.escribir(nombre, dict(cuerpo))
-                escrituras_w = w.escrituras()
-            with g.Corrida():
-                codigo_c, datos_c = personas_cuenta.calcular(nombre, g.cuerpo_del_calculo(nombre, dict(cuerpo)), g.QUIEN)
-            if codigo_w in (200, 201) and codigo_c in (200, 201) and "escrituras" in datos_c and escrituras_w:
-                casos.append({"op": "comparar", "nombre": nombre, "capturadas": _capturadas_de(escrituras_w), "cuenta": datos_c})
+    def test_K2_coincide_con_el_cliente_real_de_la_App_en_los_cinco_nombres(self):
+        """Pasa por `panel_reenvio.calcular_personas` (el cliente real de la App, en su propio proceso) contra el servidor real del
+        programa (HTTP, con el doble de NocoDB). Cada nombre del grupo tiene que dar `coincide` por la comparación de la App."""
+        cubiertos, casos, meta = set(), [], []
+        with tc.Servidor() as s:
+            entorno = {"PERSONAS_BASE": "http://127.0.0.1:%d" % s.puerto, tc.VARIABLE_LLAVE: tc.LLAVE_CUENTA}
+            for nombre, cuerpo, etiqueta in g.ESCENARIOS:
+                with g.Corrida() as w:
+                    codigo_w, _ = g.escribir(nombre, dict(cuerpo))
+                    escrituras_w = w.escrituras()
+                if codigo_w not in (200, 201) or not escrituras_w:
+                    continue
+                s.doble.pedidos.clear()
+                resp = llamar_cliente(self.rama, entorno, nombre, g.cuerpo_del_calculo(nombre, dict(cuerpo)))
+                escrituras_c = [x for x in s.doble.pedidos if x["metodo"] in g.METODOS_ESCRITURA]
+                self.assertEqual(escrituras_c, [], "el cálculo mandó una escritura (%s)" % etiqueta)
+                self.assertTrue(resp.get("calculado"), "el cliente de la App no dio cálculo (%s): %r" % (etiqueta, resp))
+                cubiertos.add(nombre)
+                casos.append({"op": "comparar", "nombre": nombre, "capturadas": _capturadas_de(escrituras_w), "cuenta": resp["cuenta"]})
                 meta.append(etiqueta)
-        self.assertTrue(casos, "ningún escenario que escriba")
+        self.assertEqual(cubiertos, set(g.GRUPO_A), "algún nombre del grupo no tiene un escenario de éxito")
         for etiqueta, r in zip(meta, preguntar_a_la_app(self.rama, casos)):
             with self.subTest(escenario=etiqueta):
                 self.assertEqual((r["resultado"], r["difieren"]), ("coincide", []), r)

@@ -164,8 +164,9 @@ def _en_forma_de_la_app(escrituras):
 def _contrato(codigo, datos):
     """Lo que `calcular` contesta: si el cálculo dice escrituras, en forma de la App; lo demás (rechazos) tal cual."""
     if codigo in (200, 201) and isinstance(datos, dict) and "escrituras" in datos:
+        # Un cálculo exitoso contesta SIEMPRE 200 (es un cálculo, no una creación: el cliente de la App solo lee el 200).
         filas, sin_valor = _en_forma_de_la_app(datos["escrituras"])
-        return codigo, {"ok": True, "estado": "calculado", "escrituras": filas, "sin_valor": sin_valor}
+        return 200, {"ok": True, "estado": "calculado", "escrituras": filas, "sin_valor": sin_valor}
     return codigo, datos
 
 

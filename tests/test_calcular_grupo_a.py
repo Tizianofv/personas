@@ -190,7 +190,8 @@ def _pareja(testcase, nombre, cuerpo, etiqueta, **caidas_del_calculo):
         escrituras_c = c.escrituras()
     testcase.assertEqual(escrituras_c, [], "G2: el cálculo mandó escrituras (%s)" % etiqueta)
     if codigo_w in (200, 201) and codigo_c in (200, 201) and isinstance(datos_c, dict) and "escrituras" in datos_c:
-        testcase.assertEqual(codigo_c, codigo_w, "G1: código distinto (%s)" % etiqueta)
+        # Un cálculo exitoso contesta 200 siempre (la escritura de alta contesta 201): el cálculo no es una creación.
+        testcase.assertEqual(codigo_c, 200 if codigo_w == 201 else codigo_w, "G1: código distinto (%s)" % etiqueta)
         testcase.assertEqual(datos_c["escrituras"], forma_app(escrituras_w), "G1: el cálculo no dice lo que la escritura mandó (%s)" % etiqueta)
         return escrituras_w
     testcase.assertEqual((codigo_c, datos_c), (codigo_w, datos_w), "G3: el rechazo no es el mismo (%s)" % etiqueta)
@@ -231,6 +232,21 @@ class GrupoA(unittest.TestCase):
                 with Corrida(caidas=("POST", "PATCH", "PUT", "DELETE")) as c:
                     personas_cuenta.calcular(nombre, dict(cuerpo), QUIEN)
                     self.assertEqual(c.escrituras(), [], "el cálculo mandó una escritura con la base caída")
+
+    def test_G6_ruta_ajena_ruta_de_otro_nombre_y_id_distinto_dan_400_sin_escribir(self):
+        cuerpo = {"cambios": {"instagram": "@g6"}, "base": {"instagram": ""}}
+        casos = [
+            ("editar", dict(cuerpo, ruta_de_la_escritura="/api/portal-personas/1/editar/extra"), "ruta con sobra al final"),
+            ("crear", dict(cuerpo, ruta_de_la_escritura="/api/portal-personas/1/editar"), "ruta de otra escritura"),
+            ("crear", dict(cuerpo, ruta_de_la_escritura="/api/portal-personas/1/unir"), "ruta de unir con el nombre de crear"),
+            ("editar", dict(cuerpo, id=2, ruta_de_la_escritura="/api/portal-personas/1/editar"), "id del cuerpo distinto del de la ruta"),
+            ("editar", dict(cuerpo), "sin ruta"),
+        ]
+        for nombre, cuerpo_c, etiqueta in casos:
+            with self.subTest(caso=etiqueta), Corrida() as c:
+                codigo, _ = personas_cuenta.calcular(nombre, cuerpo_c, QUIEN)
+                self.assertEqual(codigo, 400, etiqueta)
+                self.assertEqual(c.escrituras(), [], "la guarda dejó pasar algo a NocoDB (%s)" % etiqueta)
 
     def test_G4_el_grupo_esta_registrado_con_sus_cinco_nombres(self):
         self.assertEqual(set(personas_cuenta.CALCULOS), set(GRUPO_A))

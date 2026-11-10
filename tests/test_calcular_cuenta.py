@@ -195,7 +195,8 @@ class TablaDeCalculos(unittest.TestCase):
 
 
 class ContratoConElClienteDeLaApp(unittest.TestCase):
-    """C7: el cliente real de la App (`panel_reenvio.calcular_personas`) contra el servidor real del programa."""
+    """C7: el cliente real de la App (`panel_reenvio.calcular_personas`) contra el servidor real del programa, en los CASOS DE ERROR
+    (llave, sin cálculo, sin llave, identidad). El caso de éxito (200 y `coincide`) lo cubre K2 en `test_contrato_app_p11.py`."""
 
     CLIENTE = Path(__file__).resolve().parent / "cliente_app_calcular.py"
 
