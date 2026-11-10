@@ -252,5 +252,47 @@ class ContratoConLaEntrada(unittest.TestCase):
                 self.assertEqual((r["resultado"], r["difieren"]), ("coincide", []), r)
 
 
+class ContratoConLaAnotacion(unittest.TestCase):
+    """K1d y K2d (grupo d): permiso, baja y foto. La App los reconoce con su `escritura_de_personas_para_cuenta` (K1d) y la comparación de la
+    App da `coincide` entre lo que calcula el programa, por el cliente real de la App contra el servidor real, y lo que la escritura del
+    programa mandó a NocoDB, capturado en el doble (K2d). La escritura de la App en vivo no se corre (frontera de siempre)."""
+
+    def setUp(self):
+        self.rama = os.environ.get("PERSONAS_APP_RAMA", "").strip()
+        if not self.rama:
+            self.skipTest("falta la variable PERSONAS_APP_RAMA: la rama de la App (registro) para el contrato. Sin ella no hay contrato real.")
+
+    def test_K1d_la_App_reconoce_permiso_baja_y_foto_con_la_ruta_del_programa(self):
+        import test_calcular_grupo_d as gd  # noqa: E402
+        casos = [{"op": "ruta", "metodo": "POST", "ruta": gd.ruta_de("permiso", 2)},
+                 {"op": "ruta", "metodo": "POST", "ruta": gd.ruta_de("baja", 0)},
+                 {"op": "ruta", "metodo": "POST", "ruta": gd.ruta_de("foto", 0)}]
+        respuestas = preguntar_a_la_app(self.rama, casos)
+        self.assertEqual([r["escritura"] for r in respuestas], ["permiso", "baja", "foto"])
+
+    def test_K2d_permiso_baja_y_foto_coinciden_con_el_cliente_real_de_la_App(self):
+        import test_calcular_grupo_d as gd  # noqa: E402
+        casos, meta = [], []
+        for nombre, ficha, pedido, etiqueta, extra in gd.ESCRIBEN:
+            with gd.corrida(extra) as w:
+                codigo_w, _ = gd.escribir(nombre, ficha, dict(pedido))
+                escritas = w.escrituras()
+            self.assertEqual(codigo_w, 200, etiqueta)
+            self.assertTrue(escritas, "la escritura no escribió (%s)" % etiqueta)
+            with tc.Servidor(tablas={doble_nocodb.TABLA_ANOTACIONES: gd.con_anotaciones(*(extra or ()))}) as s:
+                entorno = {"PERSONAS_BASE": "http://127.0.0.1:%d" % s.puerto, tc.VARIABLE_LLAVE: tc.LLAVE_CUENTA}
+                s.doble.pedidos.clear()
+                resp = llamar_cliente(self.rama, entorno, nombre, gd.cuerpo_del_calculo(nombre, ficha, dict(pedido)))
+                escrituras_c = [x for x in s.doble.pedidos if x["metodo"] in g.METODOS_ESCRITURA]
+                self.assertEqual(escrituras_c, [], "el cálculo mandó una escritura (%s)" % etiqueta)
+            self.assertTrue(resp.get("calculado"), "el cliente de la App no dio cálculo (%s): %r" % (etiqueta, resp))
+            casos.append({"op": "comparar", "nombre": nombre, "capturadas": _capturadas_de(escritas), "cuenta": resp["cuenta"]})
+            meta.append(etiqueta)
+        self.assertEqual({c["nombre"] for c in casos}, {"permiso", "baja", "foto"}, "falta un nombre del grupo (d) con escritura")
+        for etiqueta, r in zip(meta, preguntar_a_la_app(self.rama, casos)):
+            with self.subTest(escenario=etiqueta):
+                self.assertEqual((r["resultado"], r["difieren"]), ("coincide", []), r)
+
+
 if __name__ == "__main__":
     unittest.main()

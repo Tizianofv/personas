@@ -60,6 +60,9 @@ RUTAS = {
     "editar_aprendizaje": ("POST", re.compile(r"/api/aprendizaje/fichas/" + _IDENTIDAD + r"/editar")),
     "entrada": ("POST", re.compile(r"/api/fichas/entrada")),
     "cara": ("POST", re.compile(r"/api/personas/" + _DIRECCION + r"/cara")),
+    "permiso": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/permiso")),
+    "baja": ("POST", re.compile(r"/api/servicio/mercadeo/baja")),
+    "foto": ("POST", re.compile(r"/api/servicio/mercadeo/foto")),
 }
 
 
@@ -164,6 +167,32 @@ def _calc_cara(cuerpo, quien, direccion):
     return 200, {"escrituras": [{"tabla": _base.T_PERSONAS, "metodo": "PATCH", "cuerpo": patch}]}
 
 
+# ---------- P11-6, grupo (d): el permiso, la baja y la foto (filas 3, 15 y 16). Cada escritura va con `solo_contar=True`: la misma decisión y los
+# mismos rechazos, y en vez de cada POST, el renglón que mandaría (`personas._planear_renglones`). La baja y la foto recorren las fichas de la
+# identidad; el permiso, las del grupo de la ficha. La ruta de la baja y de la foto es la de la App (`/api/servicio/mercadeo/...`).
+
+
+def _calculo_de_anotacion(r):
+    """Lo que contesta la escritura con `solo_contar`: si trae `escrituras` (éxito, 200), es un cálculo; los rechazos pasan tal cual."""
+    codigo, datos = r
+    if codigo == 200 and isinstance(datos, dict) and "escrituras" in datos:
+        return personas.calculo_de_escrituras(datos["escrituras"], 200)
+    return codigo, datos
+
+
+def _calc_permiso(cuerpo, quien, direccion):
+    pid = int(direccion)
+    return _envuelto(lambda: _calculo_de_anotacion(personas.anotar_permiso(pid, cuerpo, quien, solo_contar=True)))
+
+
+def _calc_baja(cuerpo, quien, _direccion):
+    return _envuelto(lambda: _calculo_de_anotacion(personas.baja_de_natalia(cuerpo, solo_contar=True)))
+
+
+def _calc_foto(cuerpo, quien, _direccion):
+    return _envuelto(lambda: _calculo_de_anotacion(personas.foto_de_natalia(cuerpo, solo_contar=True)))
+
+
 # Cálculos registrados: nombre -> función `(cuerpo, quien, direccion) -> (codigo, cuerpo)`. Los nombres son los de `RUTAS`.
 CALCULOS = {
     "crear": _calc_crear,
@@ -173,6 +202,9 @@ CALCULOS = {
     "editar_aprendizaje": _calc_editar_aprendizaje,
     "cara": _calc_cara,
     "entrada": _calc_entrada,
+    "permiso": _calc_permiso,
+    "baja": _calc_baja,
+    "foto": _calc_foto,
 }
 
 

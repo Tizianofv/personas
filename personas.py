@@ -5340,8 +5340,37 @@ def _anotar_no_se_supo(e):
                       mercadeo=_anotaciones_no_se_supo(motivo))
 
 
-def _anotar_leer(ficha_id, tabla):
-    """`(grupo, filas, estado)` con el estado SABIDO, o levanta `_NoSeSupo`. Cualquier otro fallo de lectura también es «no se pudo saber»."""
+# Solo el cálculo (`solo_contar`, P11-6d): los renglones que la escritura mandaría se suman a la lectura en memoria, para que el paso
+# siguiente (otra ficha del mismo pedido) los vea como ya escritos. `PREVISTO_ID_BASE` es un número fuera de lo que la tabla da (decisión
+# de diseño, no una medición): así el renglón previsto más nuevo es el de «gana lo último». Nada de esto sale a la red.
+PREVISTO_ID_BASE = 10 ** 12
+
+
+def _planear_renglones(tabla, base, destinos, ficha, previstas, filtrar_nulos):
+    """Lo que la escritura mandaría (solo el cálculo): un POST por cada ficha de `destinos`, en el orden de la escritura (la ficha abierta
+    al final). Cada uno se suma a `previstas`. `filtrar_nulos` igual que la escritura: el permiso no manda las columnas vacías; la foto sí."""
+    planeados = []
+    for destino in [i for i in destinos if i != ficha] + ([ficha] if ficha in destinos else []):
+        fila = dict(base, ficha_id=destino)
+        cuerpo = {k: v for k, v in fila.items() if v is not None} if filtrar_nulos else dict(fila)
+        planeados.append({"tabla": tabla, "metodo": "POST", "cuerpo": cuerpo})
+        previstas.append(dict(fila, Id=PREVISTO_ID_BASE + len(previstas) + 1))
+    return planeados
+
+
+def _con_previstas(leido, previstas):
+    """La lectura de `_anotar_leer` con los renglones previstos sumados. Mismo grupo; el estado se calcula otra vez, y si no se sabe, levanta."""
+    grupo, filas, _estado = leido
+    filas = list(filas) + list(previstas)
+    estado = anotaciones_estado(grupo, filas)
+    if not estado["sabido"]:
+        raise _NoSeSupo(estado["motivo"])
+    return grupo, filas, estado
+
+
+def _anotar_leer(ficha_id, tabla, previstas=None):
+    """`(grupo, filas, estado)` con el estado SABIDO, o levanta `_NoSeSupo`. Cualquier otro fallo de lectura también es «no se pudo saber».
+    `previstas` (solo el cálculo): los renglones que la escritura escribiría antes de esta lectura (`_planear_renglones`)."""
     try:
         leido = _anotaciones_leer(ficha_id, tabla)
     except _NoSeSupo:
@@ -5350,10 +5379,12 @@ def _anotar_leer(ficha_id, tabla):
         raise _NoSeSupo("lectura_fallo")
     if not leido[2]["sabido"]:
         raise _NoSeSupo(leido[2]["motivo"])
+    if previstas:
+        return _con_previstas(leido, previstas)
     return leido
 
 
-def anotar_permiso(ficha_id, cuerpo, quien):
+def anotar_permiso(ficha_id, cuerpo, quien, solo_contar=False, previstas=None):
     """Anota el permiso (`sin_preguntar` | `si` | `no` | `baja`) de la persona de la ficha `ficha_id`. Devuelve `(codigo, dict)`. El orden:
       1. Se valida el pedido (`_anotar_pedido`), sin leer ni escribir: 400. Sin la variable de la tabla: 503 `sin_tabla`.
       2. Se lee el grupo de la ficha (ella más las que hoy están unidas a ella; la ficha propia, una unida a otra o la que sobró dan el mismo grupo).
@@ -5385,6 +5416,8 @@ def anotar_permiso(ficha_id, cuerpo, quien):
     su renglón (completar); (f) completar solo mira lo que cada ficha lee HOY: si un `POST` de completar falla, el siguiente intento completa lo que quede; lo que no se
     puede completar es una ficha cuyo renglón propio de baja se quiere cambiar sin `confirmo`; (g) las baja propias de fichas que ya estaban unidas cuando se anotó otra cosa
     (por la regla «gana lo último», decidida por Tiziano) se sobrescriben sin confirmar en el camino normal si el grupo no leía baja (hallazgo H2, en la cola de la sala)."""
+    if solo_contar and previstas is None:
+        previstas = []                                  # `solo_contar` (P11-6d): contesta lo que escribiría y no escribe nada
     pedido, error = _anotar_pedido(cuerpo)
     if error:
         return 400, {"ok": False, "estado": "pedido_malo", "error": error + " " + _ANOTAR_SIN}
@@ -5408,7 +5441,7 @@ def anotar_permiso(ficha_id, cuerpo, quien):
         for i in sorted(grupo):
             candados.enter_context(_candado_de_ficha(i))
         try:
-            grupo2, filas, estado = _anotar_leer(ficha, tabla)
+            grupo2, filas, estado = _anotar_leer(ficha, tabla, previstas)
         except _NoSeSupo as e:
             return _anotar_no_se_supo(e)
         if grupo2 != grupo:
@@ -5423,7 +5456,7 @@ def anotar_permiso(ficha_id, cuerpo, quien):
             propios[i] = propio["permiso"]
         faltan = [i for i in sorted(grupo) if propios[i] != valor]       # las fichas que NO leen lo pedido
         if estado["permiso"] == valor and not faltan:
-            return 200, {"ok": True, "estado": "ya_estaba", "mercadeo": estado}
+            return 200, dict({"ok": True, "estado": "ya_estaba", "mercadeo": estado}, **({"escrituras": []} if solo_contar else {}))
         # COMPLETAR: la persona (el grupo) ya lee lo pedido pero alguna ficha suelta no. Completar no cambia lo que el grupo lee (el renglón más nuevo ya es lo pedido),
         # así que no pide `visto` y escribe solo en las fichas que faltan. Si el grupo lee OTRA cosa, no se completa: sigue el camino de siempre (`visto`, confirmar).
         completar = estado["permiso"] == valor
@@ -5439,6 +5472,9 @@ def anotar_permiso(ficha_id, cuerpo, quien):
         destinos = faltan if completar else sorted(grupo)
         base = {"clase": "permiso", "valor": valor, "canal": pedido["canal"], "dicho_el": pedido["dicho_el"], "nota": pedido["nota"],
                 "quien": quien.strip(), "cuando": _ahora_utc()}
+        if solo_contar:
+            planeados = _planear_renglones(tabla, base, destinos, ficha, previstas, filtrar_nulos=True)
+            return 200, {"ok": True, "estado": "anotado", "renglones": len(planeados), "escrituras": planeados}
         escritos, fallo = [], False                 # [(ficha, Id)]
         for destino in [i for i in destinos if i != ficha] + ([ficha] if ficha in destinos else []):
             try:
@@ -5517,18 +5553,19 @@ def _baja_fichas_de(identidad):
     return sorted(ids)
 
 
-def _baja_anotar_una(ficha, dicho_el):
+def _baja_anotar_una(ficha, dicho_el, solo_contar=False, previstas=None):
     """`anotar_permiso(baja)` en esa ficha. Sin `visto` del que llama: se prueba `null` y, si la respuesta es el 409 «cambió» con el renglón que manda hoy, se repite una vez con ese."""
     visto = None
     for _intento in range(2):                       # UNA sola llamada a `anotar_permiso` en el código: la repetición es este bucle
-        codigo, datos = anotar_permiso(ficha, {"valor": "baja", "canal": "whatsapp", "dicho_el": dicho_el, "visto": visto}, BAJA_NATALIA_QUIEN)
+        codigo, datos = anotar_permiso(ficha, {"valor": "baja", "canal": "whatsapp", "dicho_el": dicho_el, "visto": visto}, BAJA_NATALIA_QUIEN,
+                                       solo_contar=solo_contar, previstas=previstas)
         if not (codigo == 409 and datos.get("motivo") == "cambio_mientras_mirabas" and isinstance(datos.get("mercadeo"), dict)):
             break
         visto = datos["mercadeo"].get("renglon_visto")
     return codigo, datos
 
 
-def baja_de_natalia(cuerpo):
+def baja_de_natalia(cuerpo, solo_contar=False):
     """`POST /api/servicio/mercadeo/baja` -> `(codigo, dict)`. Ya pasó la llave. El orden: pedido (400, sin leer nada); sin tabla de anotaciones (503); las fichas de la identidad (502 si no se pudieron leer
     completas; 404 `sin_ficha` si no hay ninguna); cada ficha con `anotar_permiso`. Contesta 200 `anotado` solo si CADA ficha quedó en baja y lo comprobó su relectura, y 200 `ya_estaba` si todas ya
     estaban; si alguna no se pudo anotar o confirmar, 502 `sin_confirmar` (con las que sí se anotaron ya escritas: repetir completa). Nunca viaja un dato de la persona."""
@@ -5548,14 +5585,19 @@ def baja_de_natalia(cuerpo):
         return 502, {"ok": False, "estado": "sin_confirmar", "error": "No se pudo leer las fichas. " + _BAJA_SIN}
     if not fichas:
         return 404, {"ok": False, "estado": "sin_ficha", "error": "No hay ninguna ficha con esa identidad. " + _BAJA_SIN}
-    estados = []
+    estados, planeados = [], []
+    previstas = [] if solo_contar else None            # `solo_contar` (P11-6d): cada ficha ve lo que la anterior escribiría
     for ficha in fichas:
-        codigo, datos = _baja_anotar_una(ficha, pedido["dicho_el"])
+        codigo, datos = _baja_anotar_una(ficha, pedido["dicho_el"], solo_contar, previstas)
         if codigo != 200 or datos.get("estado") not in ("anotado", "ya_estaba"):
-            print(f"[PERSONAS-BAJA] sin confirmar codigo={codigo} estado={datos.get('estado')} fichas={len(fichas)}")
+            if not solo_contar:
+                print(f"[PERSONAS-BAJA] sin confirmar codigo={codigo} estado={datos.get('estado')} fichas={len(fichas)}")
             return 502, {"ok": False, "estado": "sin_confirmar", "error": "No se pudo confirmar que quedó anotado. NO lo des por anotado."}
         estados.append(datos["estado"])
+        planeados.extend(datos.get("escrituras", []))
     estado = "ya_estaba" if all(e == "ya_estaba" for e in estados) else "anotado"
+    if solo_contar:
+        return 200, {"ok": True, "estado": estado, "fichas": len(fichas), "escrituras": planeados}
     print(f"[PERSONAS-BAJA] {estado} fichas={len(fichas)}")
     return 200, {"ok": True, "estado": estado, "fichas": len(fichas)}
 
@@ -5591,7 +5633,7 @@ def _foto_pedido(cuerpo):
     return {"identidad": identidad.strip(), "valor": valor}, None
 
 
-def anotar_foto(ficha_id, valor, quien):
+def anotar_foto(ficha_id, valor, quien, solo_contar=False, previstas=None):
     """Anota el permiso de fotos (`si` | `no`) de la persona de la ficha `ficha_id`. Devuelve `(codigo, dict)`. El orden (el de `anotar_permiso`, sin `visto` ni baja):
       1. `valor` y `quien` se validan sin leer (400). Sin la variable de la tabla: 503 `sin_tabla`.
       2. Se lee el grupo de la ficha (ella más las que hoy están unidas). No se pudo: 502 `no_se_pudo_saber` (404 si la ficha ya no está). Nunca se escribe sin saber.
@@ -5600,6 +5642,8 @@ def anotar_foto(ficha_id, valor, quien):
       5. Se escribe un renglón de foto SOLO en las fichas que no leen `valor` (la de la dirección al final). El renglón nuevo es el más alto: el grupo pasa a leer `valor`.
       6. Se RELEE bajo los candados: 200 `anotado` solo si cada renglón está en la tabla con su ficha, clase, valor y quien, y el grupo lee `valor`. Si no: 502 `sin_confirmar`.
     «Gana lo último» (`anotaciones_estado`). Sin renglón de foto, la ficha dice «no se sabe»."""
+    if solo_contar and previstas is None:
+        previstas = []                                  # `solo_contar` (P11-6d): contesta lo que escribiría y no escribe nada
     if valor not in ANOTACIONES_FOTOS:
         return 400, {"ok": False, "estado": "pedido_malo", "error": "`valor` tiene que ser «si» o «no». " + _FOTO_SIN}
     if not isinstance(quien, str) or not quien.strip():
@@ -5621,7 +5665,7 @@ def anotar_foto(ficha_id, valor, quien):
         for i in sorted(grupo):
             candados.enter_context(_candado_de_ficha(i))
         try:
-            grupo2, filas, estado = _anotar_leer(ficha, tabla)
+            grupo2, filas, estado = _anotar_leer(ficha, tabla, previstas)
         except _NoSeSupo as e:
             return _anotar_no_se_supo(e)
         if grupo2 != grupo:
@@ -5635,8 +5679,11 @@ def anotar_foto(ficha_id, valor, quien):
             propios[i] = propio["foto"]["valor"]
         faltan = [i for i in sorted(grupo) if propios[i] != valor]
         if estado["foto"]["valor"] == valor and not faltan:
-            return 200, {"ok": True, "estado": "ya_estaba", "mercadeo": estado}
+            return 200, dict({"ok": True, "estado": "ya_estaba", "mercadeo": estado}, **({"escrituras": []} if solo_contar else {}))
         base = {"clase": "foto", "valor": valor, "quien": quien.strip(), "cuando": _ahora_utc()}
+        if solo_contar:
+            planeados = _planear_renglones(tabla, base, faltan, ficha, previstas, filtrar_nulos=False)
+            return 200, {"ok": True, "estado": "anotado", "renglones": len(planeados), "escrituras": planeados}
         escritos, fallo = [], False                 # [(ficha, Id)]
         for destino in [i for i in faltan if i != ficha] + ([ficha] if ficha in faltan else []):
             try:
@@ -5668,7 +5715,7 @@ def anotar_foto(ficha_id, valor, quien):
         return 200, {"ok": True, "estado": "anotado", "renglones": len(escritos), "mercadeo": nuevo_estado}
 
 
-def foto_de_natalia(cuerpo):
+def foto_de_natalia(cuerpo, solo_contar=False):
     """`POST /api/servicio/mercadeo/foto` -> `(codigo, dict)`. Ya pasó la llave de Mercadeo. El orden: pedido (400, sin leer nada); sin tabla (503); las fichas de la
     identidad (`_baja_fichas_de`: 502 `no_se_pudo_saber` si no se pudieron leer completas; 404 `sin_ficha` si no hay ninguna); cada ficha con `anotar_foto`.
     200 `anotado` si alguna quedó escrita y todas están confirmadas; 200 `ya_estaba` si todas ya leían `valor`; 502 `sin_confirmar` si alguna no se pudo confirmar
@@ -5689,14 +5736,19 @@ def foto_de_natalia(cuerpo):
         return 502, {"ok": False, "estado": "no_se_pudo_saber", "error": "No se pudo leer las fichas. " + _FOTO_SIN}
     if not fichas:
         return 404, {"ok": False, "estado": "sin_ficha", "error": "No hay ninguna ficha con esa identidad. " + _FOTO_SIN}
-    estados = []
+    estados, planeados = [], []
+    previstas = [] if solo_contar else None            # `solo_contar` (P11-6d): cada ficha ve lo que la anterior escribiría
     for ficha in fichas:
-        codigo, datos = anotar_foto(ficha, pedido["valor"], FOTO_NATALIA_QUIEN)
+        codigo, datos = anotar_foto(ficha, pedido["valor"], FOTO_NATALIA_QUIEN, solo_contar, previstas)
         if codigo != 200 or datos.get("estado") not in ("anotado", "ya_estaba"):
-            print(f"[PERSONAS-FOTO] sin confirmar codigo={codigo} estado={datos.get('estado')} fichas={len(fichas)}")
+            if not solo_contar:
+                print(f"[PERSONAS-FOTO] sin confirmar codigo={codigo} estado={datos.get('estado')} fichas={len(fichas)}")
             return 502, {"ok": False, "estado": "sin_confirmar", "error": "No se pudo confirmar que quedó anotado. NO lo des por anotado."}
         estados.append(datos["estado"])
+        planeados.extend(datos.get("escrituras", []))
     estado = "ya_estaba" if all(e == "ya_estaba" for e in estados) else "anotado"
+    if solo_contar:
+        return 200, {"ok": True, "estado": estado, "fichas": len(fichas), "valor": pedido["valor"], "escrituras": planeados}
     print(f"[PERSONAS-FOTO] {estado} fichas={len(fichas)}")
     return 200, {"ok": True, "estado": estado, "fichas": len(fichas), "valor": pedido["valor"]}
 
