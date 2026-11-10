@@ -6,12 +6,16 @@ su única escritura en contar es el PATCH de la fila de la bandeja (el barrido d
 dice con `personas_entrada.entrada_calculada`, que recorre lo mismo que la entrada sin escribir.
 
 Qué garantiza y con qué prueba:
-  B1  PAREJA: el cálculo dice EXACTAMENTE lo que la entrada (`entrada_fichas`, modo contar) escribió en la bandeja, en orden, en forma de la App.
+  B1  PAREJA en los cuatro escenarios de `ESCENARIOS` (alta por mensaje, dos pendientes, origen desconocido, fila ya contada): el cálculo dice
+      exactamente lo que la entrada (`entrada_fichas`, modo contar) escribió en la bandeja, en orden, en forma de la App. La rama de la
+      unión en contar (`_union_sola_decidir`, con `solo_contar`) no la toca ninguna de estas pruebas: queda fuera (frontera).
   B2  CERO ESCRITURAS al calcular, en cada escenario (también con la bandeja caída en escrituras).
   B3  RECHAZOS: un pedido ilegible, sin bandeja, con el modo escribir o con la fila en curso dan el MISMO código que la entrada, sin escribir.
   B4  BARRIDO LLENO: con el tope lleno el cálculo contesta 409 y no escribe (la App puede saltar filas por su cursor).
   B5  REGISTRO: `entrada` está en `CALCULOS` y `RUTAS`.
-Lo que NO ve (declarado): el cursor de la App (su proceso), y la App escribiendo en modo escribir (el cálculo no lo predice).
+Lo que NO ve (declarado): el cursor de la App (su proceso); la rama de unión en contar (`_union_sola_decidir`, con `solo_contar`), que
+ningún escenario de aquí recorre; y la App escribiendo en modo escribir (el cálculo no lo predice). Cada proceso lee su propio
+`FICHAS_ENTRADA_MODO`: con la App en `escribir` y el programa en otro modo, la comparación daría `no_coincide` siempre.
 """
 import copy
 import os
