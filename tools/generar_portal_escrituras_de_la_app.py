@@ -246,7 +246,8 @@ def main():
     for escenario in esc.ESCENARIOS:
         pasos = [p for p in escenario["pasos"] if esc.es_dorado(p)]
         resultados = correr_escenario(copia, pasos, escenario.get("caidas", ()), escenario.get("caidas_una_vez", ()),
-                                      union=escenario.get("union", False), entorno_extra=escenario.get("entorno"))
+                                      union=escenario.get("union", False), entorno_extra=escenario.get("entorno"),
+                                      columnas_personas=escenario.get("columnas_personas", ()))
         escenarios_foto.append({"nombre": escenario["nombre"], "caidas": list(escenario.get("caidas", ())),
                                 "caidas_una_vez": list(escenario.get("caidas_una_vez", ())), "pasos": [
             dict({"ruta": p["ruta"], "quien": p["quien"], "metodo": p.get("metodo", "POST")},
@@ -254,7 +255,7 @@ def main():
                  **r) for p, r in zip(pasos, resultados)]})
     foto = {
         "version": 1,
-        "fuente": "App de registro, commit feb87a5: server.Handler.portal_personas_post (las rutas POST del portal, leídas con AST: "
+        "fuente": "App de registro, commit 4e2ad20: server.Handler.portal_personas_post (las rutas POST del portal, leídas con AST: "
                   "rutas_de_la_app), con su `portal_personas` (sin la puerta de sesión) y las funciones de personas.py de la App. "
                   "Datos del doble tests/doble_nocodb.py y tests/doble_escrituras.py.",
         "rutas_de_la_app": rutas_post_de_la_app(copia),

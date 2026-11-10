@@ -403,6 +403,41 @@ ESCENARIOS_CHECKIN = [
 ]
 ESCENARIOS.extend(ESCENARIOS_CHECKIN)
 
+# PRECIO DE REFERENCIA (P10-a): editar `Precio_referencia` por la ruta del portal. Proveedores y el precio de Compras van a escribir por
+# aquí (`disenos/personas-programa-aparte/P10-PROVEEDORES.md`). La columna no está en las filas del doble: el escenario la declara con
+# `columnas_personas` (como la memoria de Natalia, P8a-1). Tipo «Decimal»: la App la clasifica como número (`personas.py`,
+# `_FICHA_TIPOS_NUMERO`). Lo que contesta la App sale de correrla (`tools/generar_portal_escrituras_de_la_app.py`), no de teclearlo.
+COLUMNA_PRECIO = {"title": "Precio_referencia", "uidt": "Decimal", "system": False}
+ESCENARIOS_PRECIO = [
+    {"nombre": "editar_precio_ok", "columnas_personas": [COLUMNA_PRECIO], "pasos": [
+        _p(RUTA_EDITAR, {"id": 2, "base": {"Precio_referencia": ""}, "cambios": {"Precio_referencia": "1500"},
+                         "clave_envio": "envio-precio-1"}),
+        _p(RUTA_EDITAR, {"id": 2, "base": {"Precio_referencia": "1500"}, "cambios": {"Precio_referencia": "1500.00"},
+                         "clave_envio": "envio-precio-2"}),
+    ]},
+    {"nombre": "editar_precio_rechazado", "columnas_personas": [COLUMNA_PRECIO], "pasos": [
+        _p(RUTA_EDITAR, {"id": 2, "base": {"Precio_referencia": ""}, "cambios": {"Precio_referencia": "-1500"}}),
+        _p(RUTA_EDITAR, {"id": 2, "base": {"Precio_referencia": ""}, "cambios": {"Precio_referencia": "1,500"}}),
+    ]},
+    {"nombre": "editar_precio_quitar", "columnas_personas": [COLUMNA_PRECIO], "pasos": [
+        _p(RUTA_EDITAR, {"id": 2, "base": {"Precio_referencia": ""}, "cambios": {"Precio_referencia": "1500"},
+                         "clave_envio": "envio-precio-3"}),
+        _p(RUTA_EDITAR, {"id": 2, "base": {"Precio_referencia": "1500"}, "cambios": {"Precio_referencia": ""},
+                         "clave_envio": "envio-precio-4"}),
+        _p(RUTA_EDITAR, {"id": 2, "base": {"Precio_referencia": ""}, "cambios": {"Precio_referencia": ""},
+                         "clave_envio": "envio-precio-5"}),
+    ]},
+    # El 422 de precio es un código de `editar` en la foto: tiene que haber un reintento que lo dé como primer paso (la regla de
+    # R2 y HU1). La App no lo recuerda: el segundo pedido, con la misma clave, vuelve a contestar 422.
+    {"nombre": "editar_reintento_precio_422", "columnas_personas": [COLUMNA_PRECIO], "pasos": [
+        _p(RUTA_EDITAR, {"id": 2, "base": {"Precio_referencia": ""}, "cambios": {"Precio_referencia": "-1500"},
+                         "clave_envio": "envio-precio-422"}),
+        _p(RUTA_EDITAR, {"id": 2, "base": {"Precio_referencia": ""}, "cambios": {"Precio_referencia": "-1500"},
+                         "clave_envio": "envio-precio-422"}),
+    ]},
+]
+ESCENARIOS.extend(ESCENARIOS_PRECIO)
+
 
 
 
@@ -517,7 +552,8 @@ def ejecutar(escenario, comando, cwd, entorno_extra=None):
     (pasos, errores_del_doble). Cada paso dice código, respuesta y los pedidos que llegaron al doble en ese paso. El proceso y el doble
     se cierran al terminar, pase lo que pase."""
     doble = doble_escrituras.DobleEscrituras(caidas=escenario.get("caidas", ()), caidas_una_vez=escenario.get("caidas_una_vez", ()),
-                                             union=escenario.get("union", False))
+                                             union=escenario.get("union", False),
+                                             columnas_personas=escenario.get("columnas_personas", ()))
     url_doble = doble.arrancar()
     puerto = _puerto_libre()
     entorno = dict(ENTORNO_MINIMO)

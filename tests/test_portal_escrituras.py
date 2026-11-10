@@ -176,17 +176,19 @@ def _cuandos_son_iso(x):
     return True
 
 
-def _correr(pasos, entorno=None, caidas=(), caidas_una_vez=(), union=False):
-    escenario = {"nombre": "prueba", "pasos": pasos, "caidas": list(caidas), "caidas_una_vez": list(caidas_una_vez), "union": union}
+def _correr(pasos, entorno=None, caidas=(), caidas_una_vez=(), union=False, columnas_personas=()):
+    escenario = {"nombre": "prueba", "pasos": pasos, "caidas": list(caidas), "caidas_una_vez": list(caidas_una_vez), "union": union,
+                 "columnas_personas": list(columnas_personas)}
     if entorno is not None:
         escenario["entorno"] = entorno
     return esc.ejecutar(escenario, COMANDO, cwd=str(RAIZ))
 
 
 def _correr_escenario(escenario, pasos):
-    """Corre los pasos de un escenario de la foto con SU modo (caídas, unión y entorno): lo mismo que hace la foto."""
+    """Corre los pasos de un escenario de la foto con SU modo (caídas, unión, columnas extra y entorno): lo mismo que hace la foto."""
     return _correr(pasos, entorno=escenario.get("entorno"), caidas=escenario.get("caidas", ()),
-                   caidas_una_vez=escenario.get("caidas_una_vez", ()), union=escenario.get("union", False))
+                   caidas_una_vez=escenario.get("caidas_una_vez", ()), union=escenario.get("union", False),
+                   columnas_personas=escenario.get("columnas_personas", ()))
 
 
 def _acciones_con_aviso():
