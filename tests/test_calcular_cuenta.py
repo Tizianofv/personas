@@ -177,7 +177,7 @@ class SinCalculos(unittest.TestCase):
         cls.s.__exit__(None, None, None)
 
     def test_C4_todo_nombre_contesta_404_sin_calculo(self):
-        for nombre in ["reabrir", "resolver", "unir", "borrar", "no_existe", "Crear", "a", "a/b", ""]:
+        for nombre in ["unir", "continuar", "deshacer", "no_existe", "Crear", "a", "a/b", ""]:
             with self.subTest(nombre=nombre):
                 codigo, resp = self.s.pedir(RUTA % nombre, cabeceras=self.s.buena())
                 self.assertEqual((codigo, resp), (404, ERROR_SIN_CALCULO))
@@ -197,7 +197,7 @@ class TablaDeCalculos(unittest.TestCase):
     def test_C6_la_tabla_tiene_los_grupos_a_b_c_y_d(self):
         self.assertEqual(set(personas_cuenta.CALCULOS),
                          {"crear", "editar", "crear_checkin", "editar_checkin", "editar_aprendizaje", "entrada", "cara",
-                          "permiso", "baja", "foto"})
+                          "permiso", "baja", "foto", "resolver", "reabrir", "borrar", "devolver"})
 
 
 class ContratoConElClienteDeLaApp(unittest.TestCase):
@@ -224,7 +224,7 @@ class ContratoConElClienteDeLaApp(unittest.TestCase):
             buena = {"PERSONAS_BASE": base, VARIABLE_LLAVE: LLAVE_CUENTA}
             fallo = {"calculado": False, "cuenta": None}
             casos = [
-                ("sin_calculo_con_identidad_utf8", buena, "reabrir", CUERPO, QUIEN,   # «reabrir» no tiene cálculo (grupo (e) de P11-6, pendiente)
+                ("sin_calculo_con_identidad_utf8", buena, "unir", CUERPO, QUIEN,   # «unir» no tiene cálculo (grupo (f) de P11-6, pendiente)
                  dict(fallo, motivo="sin_calculo")),
                 ("llave_rechazada", dict(buena, **{VARIABLE_LLAVE: "llave-equivocada-de-prueba"}), "crear", CUERPO, QUIEN,
                  dict(fallo, motivo="llave_rechazada")),
