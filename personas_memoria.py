@@ -13,7 +13,8 @@ import personas
 
 # Los 15 campos de la memoria de Natalia (`natalia/natalia/agent/memoria.py`, `CAMPOS`) menos los 3 de identidad. Lo saca
 # `tools/generar_memoria_de_la_app.py` de ese archivo y lo guarda en `contrato_dorado/memoria.json` (`campos_natalia`); la prueba M2
-# compara esta lista con esa foto. Si Natalia agrega un campo, la prueba se pone roja y hay que decidir si entra.
+# compara esta lista con esa foto (solo con la foto: la prueba no abre `natalia/`). Un campo nuevo en Natalia NO pone roja la
+# prueba: hasta regenerar la foto con `tools/generar_memoria_de_la_app.py`, la ruta lo rechaza con 400 `campos_rechazados`, sin escribir.
 MEMORIA_CAMPOS = {
     "instagram": personas.PORTAL_EDITABLES["instagram"],
     "instrumento": personas.PORTAL_EDITABLES["instrumento"],
