@@ -143,7 +143,7 @@ def _dato_del_checkin(body, ficha_id):
     return dato
 
 
-def editar_persona(persona_id, datos):
+def editar_persona(persona_id, datos, solo_contar=False):
     body = {"Id": persona_id}
     if "nombre" in datos:
         nombre = (datos.get("nombre") or "").strip()
@@ -155,10 +155,12 @@ def editar_persona(persona_id, datos):
     # teléfono o un correo NUEVO con TODAS las fichas, con el MISMO candado desde la comprobación hasta el `PATCH` (Tiziano, 7-oct-2026:
     # «9)Si»), y es quien escribe. Vaciar el teléfono o el correo no se comprueba (no se decidió). FRONTERA: el candado es del proceso (un
     # solo `python3 server.py`); no cubre a Natalia ni a quien escriba en NocoDB directo.
-    res = recibir(_dato_del_checkin(body, persona_id))
+    res = recibir(_dato_del_checkin(body, persona_id), solo_contar=solo_contar)
     rechazo = _rechazo_del_checkin(res, "No se guardó nada.", CHECKIN_SI_NO_SE_PUDO_EDITAR)
     if rechazo:
         raise PersonaRechazada(*rechazo)
+    if solo_contar:
+        return {"_calculo": res["mandaria"]}           # el cálculo (P11-6): lo que se mandaría
     if res["excepcion"] is not None:          # la base falló al escribir o al releer: lo de siempre (500), no un «guardado»
         raise res["excepcion"]
     if puerta_sin_confirmar(res) or not isinstance(res["releida"], dict):
@@ -170,7 +172,7 @@ def editar_persona(persona_id, datos):
     return persona
 
 
-def crear_persona(datos):
+def crear_persona(datos, solo_contar=False):
     nombre = (datos.get("nombre") or "").strip()
     if not nombre:
         raise ValueError("El nombre es obligatorio")
@@ -178,10 +180,12 @@ def crear_persona(datos):
     body = {k: v for k, v in body.items() if v is not None}
     # 🔴 Igual que `editar_persona`: la ficha nace por la PUERTA, así que un alta del check-in y una del portal (o dos mostradores) con el
     # mismo número o el mismo correo no dejan dos fichas. Sin teléfono ni correo, ni lectura de todas las fichas ni candado.
-    res = recibir(_dato_del_checkin(body, None))
+    res = recibir(_dato_del_checkin(body, None), solo_contar=solo_contar)
     rechazo = _rechazo_del_checkin(res, "No se creó nada.", CHECKIN_SI_NO_SE_PUDO_CREAR)
     if rechazo:
         raise PersonaRechazada(*rechazo)
+    if solo_contar:
+        return {"_calculo": res["mandaria"]}           # el cálculo (P11-6): lo que se mandaría; `personas_cuenta` lo convierte
     if res["etapa"] == "escritura" and res["excepcion"] is not None:
         raise res["excepcion"]
     if res["ficha_id"] is None:

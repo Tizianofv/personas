@@ -969,7 +969,7 @@ def _portal_con_ficha_releida(datos, persona_id):
     return datos
 
 
-def editar_persona_portal(persona_id, cuerpo, quien):
+def editar_persona_portal(persona_id, cuerpo, quien, solo_contar=False):
     """Guarda cambios desde el portal: la misma puerta que la ficha del Aprendizaje (`_guardar_edicion_de_persona`),
     con la fila leída por `Id` y `PORTAL_EDITABLES`. Devuelve `(codigo, dict)`; si se guardó (o ya estaba así) trae la
     ficha releída y dónde le toca en la lista (`q`/`orden` del pedido)."""
@@ -988,8 +988,9 @@ def editar_persona_portal(persona_id, cuerpo, quien):
             raise
         return [fila] if isinstance(fila, dict) and fila.get("Id") is not None else []
 
-    codigo, datos = _guardar_edicion_de_persona(cuerpo, quien, PORTAL_EDITABLES, filas, "PORTAL-PERSONA-EDITADA", portal=True)
-    if codigo == 200 and datos.get("estado") in ("guardado", "sin_cambios"):
+    codigo, datos = _guardar_edicion_de_persona(cuerpo, quien, PORTAL_EDITABLES, filas, "PORTAL-PERSONA-EDITADA", portal=True,
+                                                solo_contar=solo_contar)
+    if codigo == 200 and datos.get("estado") in ("guardado", "sin_cambios") and not solo_contar:
         _portal_con_ficha_releida(datos, persona_id)
         datos["en_lista"] = _portal_en_lista(persona_id, cuerpo)
     return codigo, datos
@@ -1010,7 +1011,7 @@ def _portal_en_lista(persona_id, cuerpo):
         return None
 
 
-def crear_persona_portal(cuerpo, quien):
+def crear_persona_portal(cuerpo, quien, solo_contar=False):
     """«+ Nueva persona». Devuelve `(codigo, dict)`. Mismas reglas de valores que al guardar (`_ficha_valor_para_nocodb`) y
     la MISMA comprobación de teléfono y correo repetido (la puerta, `recibir`, bajo `_FICHA_TELEFONO_LOCK`: dos «Crear» a la vez
     del mismo número no dejan dos fichas, dentro de este proceso). Exige al menos el nombre; sin teléfono se permite.
@@ -1056,10 +1057,12 @@ def crear_persona_portal(cuerpo, quien):
     for campo, clave in CASILLAS_DE_PANTALLA:
         if campo in nuevos:
             dato[clave] = nuevos[campo]
-    res = recibir(dato)
+    res = recibir(dato, solo_contar=solo_contar)
     rechazo = respuesta_de_rechazo(res, sin)
     if rechazo:
         return rechazo
+    if solo_contar:
+        return calculo_de_escrituras(res["mandaria"], 201)
     if res["etapa"] == "escritura":
         if res["motivo"] == "base_rechazo":
             return 502, {"estado": "no_creada", "sin_confirmar": True,
@@ -1534,13 +1537,14 @@ def avisos_para_la_pantalla(r):
             for a in r.get("avisos") or []]
 
 
-def _guardar_edicion_de_persona(cuerpo, quien, editables, leer_filas, rastro, portal):
+def _guardar_edicion_de_persona(cuerpo, quien, editables, leer_filas, rastro, portal, solo_contar=False):
     """Escribe en la ficha de una persona. Devuelve `(codigo, dict)`.
 
     🔑 ES LA ÚNICA PUERTA PARA ESCRIBIR LOS CAMPOS DE UNA PERSONA (y su teléfono) DESDE LAS PANTALLAS DE FICHAS: la
     usan la ficha del Aprendizaje (`editar_ficha_cliente`: `editables` = `FICHA_EDITABLES`, la fila sale de la identidad) y
     el portal «Personas» (`editar_persona_portal`: `editables` = `PORTAL_EDITABLES`, la fila sale del `Id`). `leer_filas(cols)`
-    devuelve las filas de la persona con `Id` y esas columnas; `rastro` es la etiqueta de la línea de registro. `portal` (SIN valor por omisión: cada pantalla dice cuál es; `True` solo el portal «Personas»): admite las listas
+    devuelve las filas de la persona con `Id` y esas columnas; `rastro` es la etiqueta de la línea de registro. `solo_contar=True`
+    (el cálculo de P11-6) hace lo mismo hasta la escritura, sin escribir, y devuelve lo que se mandaría (`calculo_de_escrituras`). `portal` (SIN valor por omisión: cada pantalla dice cuál es; `True` solo el portal «Personas»): admite las listas
     de varias opciones y exige forma de correo; la ficha del Aprendizaje queda como estaba.
 
     Orden y razones (todo antes de escribir, nada a medias):
@@ -1630,6 +1634,8 @@ def _guardar_edicion_de_persona(cuerpo, quien, editables, leer_filas, rastro, po
                               "abre la ficha de nuevo y vuelve a escribir tu cambio."
                               % ", ".join(editables[c] for c in conflictos)}
     if not a_escribir:
+        if solo_contar:
+            return calculo_de_escrituras([], 200)            # nada que escribir: el cálculo dice lo mismo, sin escrituras
         return 200, {"ok": True, "estado": "sin_cambios",
                      "base": {c: _ficha_a_texto(fila.get(c)) for c in campos}}
     # 🔴 UN SOLO CANDADO ENTRE «¿ya lo tiene otra?» Y EL `PATCH` (7-oct-2026, testigo: sin él, dos guardados a la vez del mismo
@@ -1662,7 +1668,7 @@ def _guardar_edicion_de_persona(cuerpo, quien, editables, leer_filas, rastro, po
     for campo, clave in CASILLAS_DE_PANTALLA:
         if campo in a_escribir:
             dato[clave] = a_escribir[campo]
-    res = recibir(dato, antes_de_escribir=confirmar_el_cambio_de_telefono)
+    res = recibir(dato, solo_contar=solo_contar, antes_de_escribir=confirmar_el_cambio_de_telefono)
     if res["estado"] == "detenido":
         return res["respuesta"]
     # La frase del «mismo valor en las dos casillas» la elige la pantalla: el portal las enseña las dos; la ficha del
@@ -1680,6 +1686,8 @@ def _guardar_edicion_de_persona(cuerpo, quien, editables, leer_filas, rastro, po
                                   "haya guardado. Antes de repetirlo, abre la ficha de nuevo y mira "
                                   "cómo quedó."}
         return 502, {"estado": "sin_confirmar", "sin_confirmar": True, "error": FICHA_ERROR_SIN_CONFIRMAR}
+    if solo_contar:
+        return calculo_de_escrituras(res["mandaria"], 200)     # antes del «sin cambios» de la escritura: su lectura de la ficha es de la escritura
     if not res["escrito"] and not dato["otros"]:
         # la puerta vio que lo pedido ya estaba (p. ej. el mismo correo con otras mayúsculas): nada que escribir
         return 200, {"ok": True, "estado": "sin_cambios", "base": {c: _ficha_a_texto(fila.get(c)) for c in campos}}
@@ -1731,10 +1739,11 @@ def editar_memoria_de_natalia(cuerpo, quien, editables):
     return codigo, datos
 
 
-def editar_ficha_cliente(identidad, cuerpo, quien):
+def editar_ficha_cliente(identidad, cuerpo, quien, solo_contar=False):
     """La ficha del Aprendizaje: la fila sale de la identidad (teléfono o BSUID) de la dirección."""
     return _guardar_edicion_de_persona(cuerpo, quien, FICHA_EDITABLES,
-                                       lambda cols: _filas_de_identidad(identidad, cols), "FICHA-EDITADA", False)
+                                       lambda cols: _filas_de_identidad(identidad, cols), "FICHA-EDITADA", False,
+                                       solo_contar=solo_contar)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -2367,6 +2376,60 @@ def _puerta_armar(E, p, **extra):
     return r
 
 
+# Lo que el cálculo pone en lugar de un Id que la base todavía no asignó (un alta). La escritura lo cambia por el número real.
+CALCULO_FICHA_NUEVA = "<nueva>"
+
+
+def _puerta_escritura_personas(plan, E):
+    """`(metodo, cuerpo)` de la escritura de la tabla de personas: lo que `_puerta_recibir` manda a NocoDB (POST si nace, PATCH si no).
+    Lo usan la escritura y el cálculo: una sola forma del cuerpo."""
+    cuerpo = dict(plan["escribir"], **E["otros"])
+    if plan["crear"]:
+        return "POST", {k: v for k, v in cuerpo.items() if v is not None}
+    return "PATCH", dict(cuerpo, Id=plan["ficha_id"])
+
+
+def _valores_de_bandeja(r):
+    """Los resultados por valor tal como los guarda la bandeja: el cálculo los marca `guardaria`, y la escritura diría `guardado`."""
+    return {k: ("guardado" if v["resultado"] in ("guardado", "guardaria") else v["resultado"]) for k, v in r["valores"].items()}
+
+
+def _bandeja_fila(E, r, a, clave, accion):
+    """La fila de la bandeja para un aviso (la misma que escribe `_puerta_apuntar_en_bandeja`, sin los nulos). `accion` es la que tiene
+    la ficha DESPUÉS de escribir (`creada` si nació): el cálculo la pasa, la escritura la tiene en `r`."""
+    L = E["L"]
+    fila = {"clave": clave, "origen": E["origen"], "estado": "informativo" if a["informativo"] else "por_resolver",
+            "tipo_aviso": a["tipo"], "ficha_id": a.get("ficha_id"), "otra_ficha_id": a.get("otra_ficha_id"),
+            "resultado": json.dumps({"estado": r["estado"], "accion": accion, "valores": _valores_de_bandeja(r)}, sort_keys=True)}
+    for campo in ("id_whatsapp", "telefono_meta", "telefono_dicho", "nombre", "nombre_perfil", "correo"):
+        if L[campo][0] == "valor":
+            fila[campo] = L[campo][1]
+    return {k: v for k, v in fila.items() if v is not None}
+
+
+def _puerta_bandeja_mandaria(E, r, avisos, accion):
+    """Las filas que `_puerta_apuntar_en_bandeja` escribiría, en el mismo orden, sin escribirlas. Lee lo mismo que ella (la comprobación
+    «ya está» de cada aviso); un aviso de una ficha que nace no puede estar ya, así que no se pregunta por él. Un aviso de ficha nueva
+    lleva la clave `aviso-<nueva>` (su huella depende del número que asigna la base)."""
+    tabla = _base.T_BANDEJA_PERSONAS
+    out = []
+    if not avisos or not tabla:
+        return out
+    base = f"/api/v2/tables/{tabla}/records"
+    for a in avisos:
+        if a.get("ficha_nueva") and a.get("ficha_id") is None:     # la misma regla que la escritura
+            continue
+        if a.get("ficha_id") == CALCULO_FICHA_NUEVA:
+            clave = "aviso-" + CALCULO_FICHA_NUEVA
+        else:
+            clave = _puerta_clave_de_aviso(a, E)
+            ya = _base.nc("GET", base, query={"where": f"(clave,eq,{clave})", "fields": "Id", "limit": 1})
+            if isinstance(ya, dict) and ya.get("list"):
+                continue
+        out.append({"tabla": tabla, "metodo": "POST", "cuerpo": _bandeja_fila(E, r, a, clave, accion)})
+    return out
+
+
 def _puerta_recibir(E, solo_contar, antes_de_escribir):
     L, pantalla, fid = E["L"], E["pantalla"], E["ficha_id"]
     # Las CLASES de valor que este pedido trae con valor (una casilla vacía no choca con nada). `lee_la_ficha`: una pantalla edita una
@@ -2421,10 +2484,25 @@ def _puerta_recibir(E, solo_contar, antes_de_escribir):
                             "etapa": "lectura", "rec": None, "escrito": [], "comprobaba": comparar}
         plan = _puerta_decidir_explicito(E, filas, actual) if pantalla else _puerta_decidir_automatico(E, filas if filas is not None else [])
         if solo_contar:
+            # 🔑 EL CÁLCULO: recorre lo mismo que la escritura (la misma decisión, el mismo `antes_de_escribir`) y dice lo que MANDARÍA
+            # a NocoDB, en `mandaria`, sin mandarlo. Ningún `_base.nc` de escritura se llama desde aquí (las lecturas sí).
             r = _puerta_armar(E, plan, solo_contar=True, crearia=bool(plan["crear"] and not plan["detener"]))
             for v in r["valores"].values():
                 if v["resultado"] == "guardado":
                     v["resultado"] = "guardaria"
+            r["mandaria"] = []
+            if plan["detener"]:
+                return r
+            if antes_de_escribir is not None:
+                parada = antes_de_escribir(_puerta_armar(E, plan))
+                if parada:
+                    return _puerta_armar(E, plan, estado="detenido", respuesta=parada)
+            if not (plan["escribir"] or E["otros"] or (pantalla and fid is not None)):
+                return r
+            metodo, cuerpo = _puerta_escritura_personas(plan, E)
+            r["mandaria"].append({"tabla": _base.T_PERSONAS, "metodo": metodo, "cuerpo": cuerpo})
+            if plan["crear"] and (_base.T_PERSONAS_ANOTACIONES or "").strip():
+                r["mandaria"].append(_origen_escritura(CALCULO_FICHA_NUEVA, E["origen"]))
             return r
         if plan["detener"]:
             return _puerta_armar(E, plan)
@@ -2435,12 +2513,9 @@ def _puerta_recibir(E, solo_contar, antes_de_escribir):
         r = _puerta_armar(E, plan)
         if not (plan["escribir"] or E["otros"] or (pantalla and fid is not None)):
             return r
-        cuerpo = dict(plan["escribir"], **E["otros"])
+        metodo, cuerpo = _puerta_escritura_personas(plan, E)
         try:
-            if plan["crear"]:
-                rec = _base.nc("POST", f"/api/v2/tables/{_base.T_PERSONAS}/records", body={k: v for k, v in cuerpo.items() if v is not None})
-            else:
-                rec = _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS}/records", body=dict(cuerpo, Id=plan["ficha_id"]))
+            rec = _base.nc(metodo, f"/api/v2/tables/{_base.T_PERSONAS}/records", body=cuerpo)
         except _base.SoloLectura:
             raise
         except Exception as e:                       # noqa: BLE001
@@ -2542,14 +2617,7 @@ def _puerta_apuntar_en_bandeja(E, r):
             if isinstance(ya, dict) and ya.get("list"):
                 a["apuntado"] = True
                 continue
-            fila = {"clave": clave, "origen": E["origen"], "estado": "informativo" if a["informativo"] else "por_resolver",
-                    "tipo_aviso": a["tipo"], "ficha_id": a.get("ficha_id"), "otra_ficha_id": a.get("otra_ficha_id"),
-                    "resultado": json.dumps({"estado": r["estado"], "accion": r["accion"],
-                                             "valores": {k: v["resultado"] for k, v in r["valores"].items()}}, sort_keys=True)}
-            for campo in ("id_whatsapp", "telefono_meta", "telefono_dicho", "nombre", "nombre_perfil", "correo"):
-                if L[campo][0] == "valor":
-                    fila[campo] = L[campo][1]
-            _base.nc("POST", base, body={k: v for k, v in fila.items() if v is not None})
+            _base.nc("POST", base, body=_bandeja_fila(E, r, a, clave, r["accion"]))
             a["apuntado"] = True
     except _base.SoloLectura:
         raise
@@ -2571,6 +2639,11 @@ def _puerta_registrar(origen, r):
     print("[PUERTA-FICHAS] origen=%s estado=%s motivo=%s accion=%s ficha_id=%s avisos=%s apuntados=%s" % (
         origen, r["estado"], r["motivo"] or "-", r["accion"], r["ficha_id"],
         ",".join(a["tipo"] for a in r["avisos"]) or "-", sum(1 for a in r["avisos"] if a.get("apuntado"))))
+
+
+def calculo_de_escrituras(escrituras, codigo):
+    """La respuesta de un cálculo que NO rechaza: el código que daría la escritura y lo que mandaría a NocoDB (nada se manda)."""
+    return codigo, {"ok": True, "estado": "calculado", "escrituras": escrituras}
 
 
 def recibir(dato, solo_contar=False, antes_de_escribir=None):
@@ -2601,6 +2674,13 @@ def recibir(dato, solo_contar=False, antes_de_escribir=None):
     r = _puerta_recibir(E, solo_contar, antes_de_escribir)
     if not solo_contar and r["estado"] not in ("rechazado", "detenido"):
         _puerta_apuntar_en_bandeja(E, r)
+    elif solo_contar and r["estado"] not in ("rechazado", "detenido"):
+        # Lo que la escritura apuntaría en la bandeja. Si la ficha nace, sus avisos llevan el número que la base asigna (la marca
+        # `<nueva>`) y su acción es `creada`: calculado aquí, sin tocar lo que `r` contesta a quien llama.
+        crea = any(e["metodo"] == "POST" and e["tabla"] == _base.T_PERSONAS for e in r.get("mandaria", []))
+        avisos = [dict(a, **_puerta_aviso(a["tipo"], CALCULO_FICHA_NUEVA, a["otra_ficha_id"])) if
+                  (crea and a["ficha_id"] is None) else a for a in r["avisos"]]
+        r["mandaria"] = r.get("mandaria", []) + _puerta_bandeja_mandaria(E, r, avisos, "creada" if crea else r["accion"])
     _puerta_registrar(E["origen"], r)
     return r
 
@@ -5642,6 +5722,16 @@ def origen_etiqueta(valor):
     return ORIGEN_ETIQUETAS.get(valor.strip(), valor.strip())
 
 
+def _origen_escritura(ficha_id, origen):
+    """La escritura de la anotación de origen (`clase = origen`) de una ficha que nace: `{tabla, metodo, cuerpo}`. La usa
+    `anotar_origen_al_nacer` para mandarla y el cálculo (`recibir(solo_contar=True)`) para decir que la mandaría: una sola forma."""
+    if origen not in PUERTA_ORIGENES:
+        origen = "desconocido"
+    cuerpo = {"ficha_id": ficha_id, "clase": "origen", "valor": origen, "dicho_el": _base.hoy_str(), "quien": ORIGEN_QUIEN,
+              "cuando": _ahora_utc()}
+    return {"tabla": (_base.T_PERSONAS_ANOTACIONES or "").strip(), "metodo": "POST", "cuerpo": cuerpo}
+
+
 def anotar_origen_al_nacer(ficha_id, origen):
     """Escribe el renglón `clase = origen` de la ficha que ACABA de nacer y devuelve `"si"` o `"no"`. NO levanta (salvo `_base.SoloLectura`, que ya habría
     parado el `POST` de la ficha) y no relee. Deja UNA línea de registro `[PUERTA-FICHAS-ORIGEN] origen=<puerta> origen_anotado=<si|no>
@@ -5657,9 +5747,8 @@ def anotar_origen_al_nacer(ficha_id, origen):
         elif not (_base.T_PERSONAS_ANOTACIONES or "").strip():
             motivo = "sin_tabla"
         else:
-            tabla = _base.T_PERSONAS_ANOTACIONES.strip()
-            cuerpo = {"ficha_id": ficha_id, "clase": "origen", "valor": origen, "dicho_el": _base.hoy_str(), "quien": ORIGEN_QUIEN, "cuando": _ahora_utc()}
-            rec = _base.nc("POST", f"/api/v2/tables/{tabla}/records", body=cuerpo)
+            esc = _origen_escritura(ficha_id, origen)
+            rec = _base.nc("POST", f"/api/v2/tables/{esc['tabla']}/records", body=esc["cuerpo"])
             nuevo = rec.get("Id") if isinstance(rec, dict) else None
             if isinstance(nuevo, bool) or not isinstance(nuevo, int):
                 motivo = "sin_renglon"
