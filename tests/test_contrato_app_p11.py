@@ -294,5 +294,58 @@ class ContratoConLaAnotacion(unittest.TestCase):
                 self.assertEqual((r["resultado"], r["difieren"]), ("coincide", []), r)
 
 
+
+class ContratoConLasDeEstado(unittest.TestCase):
+    """K1e y K2e (grupo e): resolver, reabrir, borrar y devolver. Igual que el grupo (d): la App los reconoce (K1e) y su comparación da
+    `coincide` entre lo que calcula el programa (cliente real de la App contra el servidor real del programa) y lo que la escritura del
+    programa mandó a NocoDB, capturado en el doble (K2e). Los escenarios de rechazo no escriben y no se comparan (lo cubre E3)."""
+
+    ENTORNO_E = {"NOCODB_T_MERCADEO_ENVIOS": doble_nocodb.T_MERCADEO_ENVIOS, "NOCODB_T_UNIONES_PERSONAS": doble_nocodb.T_UNIONES}
+
+    def setUp(self):
+        self.rama = os.environ.get("PERSONAS_APP_RAMA", "").strip()
+        if not self.rama:
+            self.skipTest("falta la variable PERSONAS_APP_RAMA: la rama de la App (registro) para el contrato. Sin ella no hay contrato real.")
+
+    def test_K1e_la_App_reconoce_los_cuatro_nombres_con_la_ruta_del_programa(self):
+        import test_calcular_grupo_e as ge  # noqa: E402
+        casos = [{"op": "ruta", "metodo": "POST", "ruta": ge.ruta_de(n, 3)} for n in ("resolver", "reabrir", "borrar", "devolver")]
+        respuestas = preguntar_a_la_app(self.rama, casos)
+        self.assertEqual([r["escritura"] for r in respuestas], ["resolver", "reabrir", "borrar", "devolver"])
+
+    def test_K2e_resolver_reabrir_borrar_y_devolver_coinciden_con_el_cliente_real_de_la_App(self):
+        import test_calcular_grupo_e as ge  # noqa: E402
+        casos, meta, nombres = [], [], set()
+        for nombre, ficha, pedido, etiqueta, kw in ge.escenarios():
+            if etiqueta.endswith("(rechazo)") or etiqueta == "reabrir sin marca (ya estaba)":
+                continue
+            with ge.Corrida(**kw) as w:
+                codigo_w, _ = ge.escribir(nombre, ficha, dict(pedido))
+                escritas = w.escrituras()
+            self.assertEqual(codigo_w, 200, etiqueta)
+            self.assertTrue(escritas, "la escritura no escribió (%s)" % etiqueta)
+            with tc.Servidor(extra=self.ENTORNO_E, tablas=ge.filas_de_la_corrida(**kw)) as s:
+                entorno = {"PERSONAS_BASE": "http://127.0.0.1:%d" % s.puerto, tc.VARIABLE_LLAVE: tc.LLAVE_CUENTA}
+                s.doble.pedidos.clear()
+                resp = llamar_cliente(self.rama, entorno, nombre, ge.cuerpo_del_calculo(nombre, ficha, dict(pedido)))
+                escrituras_c = [x for x in s.doble.pedidos if x["metodo"] in g.METODOS_ESCRITURA]
+                self.assertEqual(escrituras_c, [], "el cálculo mandó una escritura (%s)" % etiqueta)
+            self.assertTrue(resp.get("calculado"), "el cliente de la App no dio cálculo (%s): %r" % (etiqueta, resp))
+            casos.append({"op": "comparar", "nombre": nombre, "capturadas": _capturadas_de_e(escritas), "cuenta": resp["cuenta"]})
+            meta.append(etiqueta)
+            nombres.add(nombre)
+        self.assertEqual(nombres, {"resolver", "reabrir", "borrar", "devolver"}, "falta un nombre del grupo (e) con escritura")
+        for etiqueta, r in zip(meta, preguntar_a_la_app(self.rama, casos)):
+            with self.subTest(escenario=etiqueta):
+                self.assertEqual((r["resultado"], r["difieren"]), ("coincide", []), r)
+
+
+def _capturadas_de_e(escrituras):
+    """Lo que la App captura al escribir, como `_capturadas_de`, con las tablas del grupo (e) (quitadas y bandeja incluidas)."""
+    import test_calcular_grupo_e as ge  # noqa: E402
+    return [{"tabla": ge.NOMBRE_DE_TABLA[e["tabla"]], "metodo": e["metodo"], "enlace": None, "cuerpo": e["cuerpo"],
+             "columnas": [], "filas": 1, "confirmada": True} for e in escrituras]
+
+
 if __name__ == "__main__":
     unittest.main()

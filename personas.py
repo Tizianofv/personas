@@ -2658,6 +2658,15 @@ def calculo_de_escrituras(escrituras, codigo):
     return codigo, {"ok": True, "estado": "calculado", "escrituras": escrituras}
 
 
+def _nc_o_plan(solo_contar, planeados, metodo, tabla, body):
+    """Una escritura de NocoDB de los grupos (e) de P11-6 (resolver, reabrir, borrar, devolver). Sin `solo_contar` es la escritura de siempre.
+    Con `solo_contar` no sale a la red: lo que mandaría queda en `planeados`, en su orden, y la función sigue como si hubiera salido bien."""
+    if solo_contar:
+        planeados.append({"tabla": tabla, "metodo": metodo, "cuerpo": body})
+        return None
+    return _base.nc(metodo, f"/api/v2/tables/{tabla}/records", body=body)
+
+
 def recibir(dato, solo_contar=False, antes_de_escribir=None):
     """🔑 LA PUERTA: todo dato de una persona entra por aquí. Ver el bloque de arriba (las cuatro reglas y las dos formas de llegar).
 
@@ -2962,18 +2971,21 @@ def _por_resolver_filas_de_dato(fichas):
     return halladas
 
 
-def _por_resolver_devolver_datos(fichas):
+def _por_resolver_devolver_datos(fichas, solo_contar=False, planeados=None):
     """Pone en `pendiente` las filas de dato `por_resolver` de esas fichas y las vuelve a leer. Devuelve cuántas volvieron, o `None` si algo no se
-    pudo leer, escribir o confirmar (nunca dice que volvieron sin haberlo releído). Lo que se levante sube: la puerta del rojo (`_por_resolver_marcar_aviso`) lo trata."""
+    pudo leer, escribir o confirmar (nunca dice que volvieron sin haberlo releído). Lo que se levante sube: la puerta del rojo (`_por_resolver_marcar_aviso`) lo trata.
+    Con `solo_contar` (P11-6e) no escribe ni relee: pone en `planeados` lo que volvería a `pendiente` y devuelve cuántas filas son."""
     filas = _por_resolver_filas_de_dato(fichas)
     for i in sorted(filas):
-        _base.nc("PATCH", f"/api/v2/tables/{_por_resolver_tabla()}/records", body={"Id": i, "estado": "pendiente"})
+        _nc_o_plan(solo_contar, planeados, "PATCH", _por_resolver_tabla(), body={"Id": i, "estado": "pendiente"})
+    if solo_contar:
+        return len(filas)
     if filas and set(_por_resolver_filas_de_dato(fichas)) & set(filas):
         return None
     return len(filas)
 
 
-def _por_resolver_marcar_aviso(clave, quien, vale=None):
+def _por_resolver_marcar_aviso(clave, quien, vale=None, solo_contar=False, planeados=None):
     """Marca como resuelta la fila de aviso de la puerta con esa clave; devuelve `(código, datos)`.
     `vale` (opcional): función que dice si una fila de ese aviso es de lo que se hizo (la usa `marcar_aviso_de_la_union`); si alguna fila no vale, no se marca
     nada y contesta 409 `no_es_de_esta_union`. Sin `vale` se porta como siempre (el botón «Visto» / «Resuelto»)."""
@@ -3010,17 +3022,19 @@ def _por_resolver_marcar_aviso(clave, quien, vale=None):
         fichas = {n for f in abiertas if _por_resolver_aviso_es_rojo(f) for n in (f.get("ficha_id"), f.get("otra_ficha_id")) if isinstance(n, int) and not isinstance(n, bool)}
 
         def terminar():
-            volvieron = _por_resolver_devolver_datos(fichas) if fichas else 0
+            volvieron = _por_resolver_devolver_datos(fichas, solo_contar, planeados) if fichas else 0
             if volvieron is None:
                 return _por_resolver_sin_confirmar()
             try:
                 for f in abiertas:
-                    _base.nc("PATCH", base, body={"Id": f["Id"], "estado": "resuelto", "resuelto_por": quien, "resuelto_en": _ahora_utc()})
+                    _nc_o_plan(solo_contar, planeados, "PATCH", tabla, body={"Id": f["Id"], "estado": "resuelto", "resuelto_por": quien, "resuelto_en": _ahora_utc()})
             except _base.SoloLectura:
                 raise
             except Exception as e:                       # noqa: BLE001
                 print(f"[warn] por resolver: no se pudo escribir en la bandeja ({type(e).__name__})")
                 return _por_resolver_sin_confirmar()
+            if solo_contar:                              # (P11-6e) no se relee: lo que se planeó es lo que quedaría
+                return 200, {"ok": True, "estado": "resuelto", "ya_estaba": False, "clave": clave, "filas_de_dato": volvieron}
             try:
                 releidas = leer()
             except _base.SoloLectura:
@@ -3099,10 +3113,11 @@ def marcar_aviso_de_la_union(clave, modo, datos, quien):
     return dict({"clave": clave, "marcado": False, "motivo": "sin_bandeja" if codigo == 503 else "sin_confirmar"}, **({"datos_sin_saber": True} if sin_saber else {}))
 
 
-def portal_por_resolver_marcar(clave, quien, reabrir=False):
-    """Marca un renglón de «Por resolver» como resuelto, o con `reabrir` deshace la marca; devuelve `(código, datos)`."""
+def portal_por_resolver_marcar(clave, quien, reabrir=False, solo_contar=False, planeados=None):
+    """Marca un renglón de «Por resolver» como resuelto, o con `reabrir` deshace la marca; devuelve `(código, datos)`.
+    `solo_contar` (P11-6e): no escribe; lo que escribiría va a `planeados` y, si contesta 200, es lo que pasaría."""
     if not reabrir and isinstance(clave, str) and RE_CLAVE_AVISO.fullmatch(clave):
-        return _por_resolver_marcar_aviso(clave, quien)
+        return _por_resolver_marcar_aviso(clave, quien, solo_contar=solo_contar, planeados=planeados)
     if not isinstance(clave, str) or not RE_CLAVE_POR_RESOLVER.fullmatch(clave):
         return 400, {"ok": False, "error": "Falta el renglón que se quiere marcar."}
     tabla = _por_resolver_tabla()
@@ -3113,7 +3128,8 @@ def portal_por_resolver_marcar(clave, quien, reabrir=False):
         return 400, {"ok": False, "error": "No se pudo verificar quién marca."}
     queda = "abierto" if reabrir else "resuelto"
     with _POR_RESOLVER_LOCK:
-        invalidate_portal_personas()
+        if not solo_contar:
+            invalidate_portal_personas()
         grupo = next((g for g in por_resolver_grupos([p["publica"] for p in portal_personas_todas()]) if g["clave"] == clave), None)
         if grupo is None:
             return 409, {"ok": False, "estado": "ya_no_aplica",
@@ -3127,13 +3143,13 @@ def portal_por_resolver_marcar(clave, quien, reabrir=False):
         base = f"/api/v2/tables/{tabla}/records"
         try:
             if reabrir:
-                _base.nc("PATCH", base, body={"Id": fila["Id"], "estado": "por_resolver"})
+                _nc_o_plan(solo_contar, planeados, "PATCH", tabla, body={"Id": fila["Id"], "estado": "por_resolver"})
             else:
                 ahora = _ahora_utc()
                 if fila is not None:
-                    _base.nc("PATCH", base, body={"Id": fila["Id"], "estado": "resuelto", "resuelto_por": quien, "resuelto_en": ahora})
+                    _nc_o_plan(solo_contar, planeados, "PATCH", tabla, body={"Id": fila["Id"], "estado": "resuelto", "resuelto_por": quien, "resuelto_en": ahora})
                 else:
-                    _base.nc("POST", base, body={"clave": clave, "origen": POR_RESOLVER_ORIGEN, "estado": "resuelto",
+                    _nc_o_plan(solo_contar, planeados, "POST", tabla, body={"clave": clave, "origen": POR_RESOLVER_ORIGEN, "estado": "resuelto",
                                              "tipo_aviso": grupo["tipo"], "ficha_id": grupo["ids"][0], "otra_ficha_id": grupo["ids"][1],
                                              "resultado": json.dumps({"fichas": grupo["ids"]}), "resuelto_por": quien, "resuelto_en": ahora})
         except _base.SoloLectura:
@@ -3141,6 +3157,8 @@ def portal_por_resolver_marcar(clave, quien, reabrir=False):
         except Exception as e:                       # noqa: BLE001
             print(f"[warn] por resolver: no se pudo escribir en la bandeja ({type(e).__name__})")
             return _por_resolver_sin_confirmar()
+        if solo_contar:                                  # (P11-6e) lo que se planeó es lo que quedaría: no se relee
+            return 200, {"ok": True, "estado": queda, "ya_estaba": False, "clave": clave}
         estado_bandeja, marcas = _por_resolver_leer_marcas()
         releida = marcas.get(clave)
         if estado_bandeja != "ok" or releida is None:
@@ -3727,7 +3745,7 @@ def _quitar_cambio(rid, paradas=None):
             "error": _QUITAR_TEXTO_CAMBIO}
 
 
-def quitar_ficha(ficha_id, clave, quien):
+def quitar_ficha(ficha_id, clave, quien, solo_contar=False, planeados=None):
     """Borra (guarda aparte) la ficha `ficha_id`. `clave` identifica el intento: repetirlo con la misma clave no hace otro borrado y
     sigue donde se quedó. Devuelve `(código, datos)`. Pasos del diseño §5.3:
       0 `revisar_borrado`: cualquier parada frena SIN escribir (409 `paradas`); 404 si la ficha no existe.
@@ -3782,8 +3800,8 @@ def quitar_ficha(ficha_id, clave, quien):
                 cuerpo = {"clave": clave, "estado": "quitando", "ficha_id": qid, "antes": _union_json(antes),
                           "medido": _union_json(_quitar_medido(datos)), "creada_por": quien, "creada_en": _ahora_utc()}
                 tocado = True
-                _base.nc("POST", f"/api/v2/tables/{_base.T_PERSONAS_QUITADAS}/records", body=cuerpo)
-                rid = _quitar_confirmar_alta(clave, cuerpo)
+                _nc_o_plan(solo_contar, planeados, "POST", _base.T_PERSONAS_QUITADAS, body=cuerpo)
+                rid = PREVISTO_ID_BASE + 1 if solo_contar else _quitar_confirmar_alta(clave, cuerpo)
                 if rid is None:
                     return 502, {"ok": False, "estado": "sin_confirmar", "sin_confirmar": True, "motivo": "no_se_pudo_apuntar",
                                  "error": "No se pudo apuntar el borrado, así que la ficha no se tocó. Inténtalo otra vez."}
@@ -3798,7 +3816,12 @@ def quitar_ficha(ficha_id, clave, quien):
                     if codigo != 200 or not datos["puede"]:
                         return 409, _quitar_cambio(rid, datos.get("paradas") if codigo == 200 else None)
                     tocado = True
-                    _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS}/records", body=dict(_quitar_cuerpo_de_la_ficha(), Id=qid))
+                    _nc_o_plan(solo_contar, planeados, "PATCH", _base.T_PERSONAS, body=dict(_quitar_cuerpo_de_la_ficha(), Id=qid))
+            if solo_contar:
+                # (P11-6e) Solo el cálculo: las relecturas que siguen confirman lo que se acaba de planear; no se leen. Lo que falta es el paso 5.
+                if not ya_estaba:
+                    _nc_o_plan(True, planeados, "PATCH", _base.T_PERSONAS_QUITADAS, body={"Id": rid, "estado": "quitada"})
+                return 200, {"ok": True, "estado": "quitada", "ficha": qid, "quitada_id": rid, "ya_estaba": ya_estaba}
             if not _quitar_ficha_confirmada(qid):
                 return 502, _quitar_sin_confirmar(rid, "ficha_sin_confirmar")
             rr = _quitar_leer_registro(rid)
@@ -3818,7 +3841,8 @@ def quitar_ficha(ficha_id, clave, quien):
                 return 502, {"ok": False, "motivo": "no_se_pudo_comprobar", "error": "No se pudo leer la base para borrar. No se hizo nada. Inténtalo en un momento."}
             return 502, _quitar_sin_confirmar(rid, "no_termino")
         finally:
-            _union_tirar_caches()      # la cámara y las listas leen cachés: tienen que ver la ficha como quedó
+            if not solo_contar:        # (P11-6e) el cálculo no toca las cachés
+                _union_tirar_caches()      # la cámara y las listas leen cachés: tienen que ver la ficha como quedó
 
 
 def continuar_quitar(ficha_id):
@@ -3915,7 +3939,7 @@ def _devolver_sin_activo(qid, todos):
     return 409, {"ok": False, "motivo": "no_borrada", "error": "Esa ficha no está guardada aparte. No se hizo nada."}
 
 
-def devolver_ficha(ficha_id, quien):
+def devolver_ficha(ficha_id, quien, solo_contar=False, planeados=None):
     """Devuelve la ficha `ficha_id` a como la guardó su registro en `personas_quitadas`, con su mismo `Id`. Devuelve `(código, datos)`:
       0 Se buscan los registros de la ficha. Uno activo (`quitada`, `quitando` o `devolviendo`): se sigue con él. Ninguno: 200 `ya_estaba` si el
         último ya quedó `devuelta` y la ficha sigue como lo dejó la devolución; si no, 409 `no_borrada`. Más de uno activo: 409 `otra_operacion`.
@@ -3958,20 +3982,23 @@ def devolver_ficha(ficha_id, quien):
                     return 409, {"ok": False, "motivo": "ocupado", "de": ocupada, "error": _DEVOLVER_TEXTO_OCUPADO}
             if r["estado"] != "devolviendo":
                 tocado = True
-                _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS_QUITADAS}/records", body={"Id": rid, "estado": "devolviendo"})
-                rr = _quitar_leer_registro(rid)
-                if rr is None or rr.get("estado") != "devolviendo":
-                    return 502, _devolver_sin_confirmar(rid, "no_se_pudo_apuntar")
+                _nc_o_plan(solo_contar, planeados, "PATCH", _base.T_PERSONAS_QUITADAS, body={"Id": rid, "estado": "devolviendo"})
+                if not solo_contar:                      # (P11-6e) el cálculo no relee lo que planea
+                    rr = _quitar_leer_registro(rid)
+                    if rr is None or rr.get("estado") != "devolviendo":
+                        return 502, _devolver_sin_confirmar(rid, "no_se_pudo_apuntar")
             tocado = True
             if not ya:
-                _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS}/records", body=dict(_devolver_cuerpo_de_la_ficha(antes), Id=qid))
-            q2 = _union_leer_ficha(qid, list(UNION_COLUMNAS_QUE_SE_VACIAN) + ["unida_a", QUITAR_MARCA])
-            if q2 is None or not _devolver_restaurada(q2, antes):
-                return 502, _devolver_sin_confirmar(rid, "ficha_sin_confirmar")
-            _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS_QUITADAS}/records", body={"Id": rid, "estado": "devuelta", "devuelta_por": quien, "devuelta_en": _ahora_utc()})
-            rr = _quitar_leer_registro(rid)
-            if rr is None or rr.get("estado") != "devuelta":
-                return 502, _devolver_sin_confirmar(rid, "registro_sin_confirmar")
+                _nc_o_plan(solo_contar, planeados, "PATCH", _base.T_PERSONAS, body=dict(_devolver_cuerpo_de_la_ficha(antes), Id=qid))
+            if not solo_contar:
+                q2 = _union_leer_ficha(qid, list(UNION_COLUMNAS_QUE_SE_VACIAN) + ["unida_a", QUITAR_MARCA])
+                if q2 is None or not _devolver_restaurada(q2, antes):
+                    return 502, _devolver_sin_confirmar(rid, "ficha_sin_confirmar")
+            _nc_o_plan(solo_contar, planeados, "PATCH", _base.T_PERSONAS_QUITADAS, body={"Id": rid, "estado": "devuelta", "devuelta_por": quien, "devuelta_en": _ahora_utc()})
+            if not solo_contar:
+                rr = _quitar_leer_registro(rid)
+                if rr is None or rr.get("estado") != "devuelta":
+                    return 502, _devolver_sin_confirmar(rid, "registro_sin_confirmar")
             return 200, {"ok": True, "estado": "devuelta", "ficha": qid, "devuelta_id": rid, "ya_estaba": False}
         except _base.SoloLectura:
             raise
@@ -3981,7 +4008,8 @@ def devolver_ficha(ficha_id, quien):
                 return 502, {"ok": False, "motivo": "no_se_pudo_comprobar", "error": "No se pudo leer la base para devolver. No se hizo nada. Inténtalo en un momento."}
             return 502, _devolver_sin_confirmar(rid, "no_termino")
         finally:
-            _union_tirar_caches()      # la cámara y las listas leen cachés: tienen que ver la ficha como quedó
+            if not solo_contar:        # (P11-6e) el cálculo no toca las cachés
+                _union_tirar_caches()      # la cámara y las listas leen cachés: tienen que ver la ficha como quedó
 
 
 # ---------- LA LISTA «BORRADAS» (P6: lo que se puede devolver; no escribe) ----------

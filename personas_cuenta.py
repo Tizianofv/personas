@@ -45,7 +45,10 @@ CLAVE_RUTA = "ruta_de_la_escritura"
 
 # Columnas que salen del reloj (la App y el programa las escriben en momentos distintos): la App las compara solo por existencia.
 # La prueba `tests/test_contrato_app_p11.py` comprueba con dos relojes distintos que esta lista cubre todo lo que cambia.
-COLUMNAS_DEL_RELOJ = frozenset({"anotaciones.POST.cuando", "anotaciones.POST.dicho_el"})
+COLUMNAS_DEL_RELOJ = frozenset({"anotaciones.POST.cuando", "anotaciones.POST.dicho_el",
+                                # P11-6e: la hora de un borrado, una devolución y una marca de «Por resolver» (la escritura la pone con `_ahora_utc()`)
+                                "quitadas.POST.creada_en", "personas.PATCH.quitada_el", "quitadas.PATCH.devuelta_en",
+                                "bandeja.POST.resuelto_en", "bandeja.PATCH.resuelto_en"})
 
 # Nombre de la escritura -> (método, ruta). Los nombres y las rutas son los de `PERSONAS_PORTAL_ESCRITURAS` y
 # `PERSONAS_APRENDIZAJE_ESCRITURAS` de la App (`registro/panel_reenvio.py`, `3ffe870` y `cafe2a3`). La prueba de contrato los compara
@@ -63,6 +66,10 @@ RUTAS = {
     "permiso": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/permiso")),
     "baja": ("POST", re.compile(r"/api/servicio/mercadeo/baja")),
     "foto": ("POST", re.compile(r"/api/servicio/mercadeo/foto")),
+    "resolver": ("POST", re.compile(r"/api/portal-personas/por-resolver/resolver")),
+    "reabrir": ("POST", re.compile(r"/api/portal-personas/por-resolver/reabrir")),
+    "borrar": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/borrar")),
+    "devolver": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/devolver")),
 }
 
 
@@ -193,6 +200,43 @@ def _calc_foto(cuerpo, quien, _direccion):
     return _envuelto(lambda: _calculo_de_anotacion(personas.foto_de_natalia(cuerpo, solo_contar=True)))
 
 
+# ---------- P11-6, grupo (e): resolver y reabrir (la bandeja de «Por resolver', filas 4 y 5), borrar y devolver (filas 9 y 10). Cada función de
+# escritura corre con `solo_contar=True` y `planeados`: la decisión y los rechazos son los de la escritura; las escrituras que mandaría quedan
+# en `planeados`, en orden, y ninguna sale a NocoDB. Si la escritura contesta 200, el cálculo son esas escrituras; si no, su código y su cuerpo.
+
+
+def _calculo_de_planeados(funcion):
+    planeados = []
+    codigo, datos = funcion(planeados)
+    if codigo == 200:
+        return personas.calculo_de_escrituras(planeados, 200)
+    return codigo, datos
+
+
+def _calc_resolver(cuerpo, quien, _direccion):
+    clave = cuerpo.get("clave")
+    return _envuelto(lambda: _calculo_de_planeados(
+        lambda p: personas.portal_por_resolver_marcar(clave, quien, reabrir=False, solo_contar=True, planeados=p)))
+
+
+def _calc_reabrir(cuerpo, quien, _direccion):
+    clave = cuerpo.get("clave")
+    return _envuelto(lambda: _calculo_de_planeados(
+        lambda p: personas.portal_por_resolver_marcar(clave, quien, reabrir=True, solo_contar=True, planeados=p)))
+
+
+def _calc_borrar(cuerpo, quien, direccion):
+    pid, clave = int(direccion), cuerpo.get("clave")
+    return _envuelto(lambda: _calculo_de_planeados(
+        lambda p: personas.quitar_ficha(pid, clave, quien, solo_contar=True, planeados=p)))
+
+
+def _calc_devolver(cuerpo, quien, direccion):
+    pid = int(direccion)
+    return _envuelto(lambda: _calculo_de_planeados(
+        lambda p: personas.devolver_ficha(pid, quien, solo_contar=True, planeados=p)))
+
+
 # Cálculos registrados: nombre -> función `(cuerpo, quien, direccion) -> (codigo, cuerpo)`. Los nombres son los de `RUTAS`.
 CALCULOS = {
     "crear": _calc_crear,
@@ -205,6 +249,10 @@ CALCULOS = {
     "permiso": _calc_permiso,
     "baja": _calc_baja,
     "foto": _calc_foto,
+    "resolver": _calc_resolver,
+    "reabrir": _calc_reabrir,
+    "borrar": _calc_borrar,
+    "devolver": _calc_devolver,
 }
 
 
