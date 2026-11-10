@@ -32,7 +32,10 @@ import personas  # noqa: E402
 import personas_cuenta  # noqa: E402
 import escenarios_portal_escrituras as esc  # noqa: E402
 import test_calcular_cuenta as tc  # noqa: E402
+import doble_nocodb  # noqa: E402
 import personas_entrada  # noqa: E402
+import personas_escritura_rutas  # noqa: E402
+import personas_escrituras  # noqa: E402
 import test_calcular_grupo_a as g  # noqa: E402
 
 CLIENTE = RAIZ / "tests" / "cliente_app_calcular.py"
@@ -176,6 +179,43 @@ class ContratoConLaApp(unittest.TestCase):
             dos = personas_cuenta.calcular(nombre, g.cuerpo_del_calculo(nombre, dict(cuerpo)), g.QUIEN)
             self.assertEqual(c.escrituras(), [], "el cálculo escribió")
         self.assertEqual(uno, dos)
+
+
+class ContratoConLaCara(unittest.TestCase):
+    """K1c y K2c (grupo c): la cara (fila 17). La App la reconoce con su `escritura_de_personas_para_cuenta` y compara lo que el cálculo
+    del cliente real de la App dice con lo que la escritura del programa mandó a NocoDB (el PATCH de la columna de caras)."""
+
+    def setUp(self):
+        self.rama = os.environ.get("PERSONAS_APP_RAMA", "").strip()
+        if not self.rama:
+            self.skipTest("falta la variable PERSONAS_APP_RAMA: la rama de la App (registro) para el contrato. Sin ella no hay contrato real.")
+
+    def test_K1c_la_App_reconoce_la_cara_con_la_ruta_del_programa(self):
+        (r,) = preguntar_a_la_app(self.rama, [{"op": "ruta", "metodo": "POST", "ruta": "/api/personas/7/cara"}])
+        self.assertEqual(r["escritura"], "cara")
+
+    def test_K2c_la_cara_coincide_con_el_cliente_real_de_la_App(self):
+        import test_calcular_grupo_c as gc  # noqa: E402
+        casos, meta = [], []
+        for etiqueta, caras, pid, v in gc.ESCENARIOS:
+            with gc.Corrida(caras) as w:
+                codigo_w, _ = personas_escritura_rutas.cara(personas_escrituras, {"persona_id": pid, "vec": v})
+                escritas = [{"tabla": doble_nocodb.T_PERSONAS, "metodo": p["metodo"], "cuerpo": p["cuerpo"]}
+                            for p in w.doble.pedidos if p["metodo"] in g.METODOS_ESCRITURA]
+            self.assertEqual(codigo_w, 200, etiqueta)
+            self.assertEqual(len(escritas), 1, "la escritura no mandó un PATCH (%s)" % etiqueta)
+            with tc.Servidor(tablas={doble_nocodb.T_PERSONAS: gc.tablas_con(caras)}) as s:
+                entorno = {"PERSONAS_BASE": "http://127.0.0.1:%d" % s.puerto, tc.VARIABLE_LLAVE: tc.LLAVE_CUENTA}
+                s.doble.pedidos.clear()
+                resp = llamar_cliente(self.rama, entorno, "cara", gc.cuerpo_del_calculo(pid, v))
+                escrituras_c = [x for x in s.doble.pedidos if x["metodo"] in g.METODOS_ESCRITURA]
+                self.assertEqual(escrituras_c, [], "el cálculo de la cara mandó una escritura (%s)" % etiqueta)
+            self.assertTrue(resp.get("calculado"), "el cliente de la App no dio cálculo (%s): %r" % (etiqueta, resp))
+            casos.append({"op": "comparar", "nombre": "cara", "capturadas": _capturadas_de(escritas), "cuenta": resp["cuenta"]})
+            meta.append(etiqueta)
+        for etiqueta, r in zip(meta, preguntar_a_la_app(self.rama, casos)):
+            with self.subTest(escenario=etiqueta):
+                self.assertEqual((r["resultado"], r["difieren"]), ("coincide", []), r)
 
 
 class ContratoConLaEntrada(unittest.TestCase):

@@ -1442,23 +1442,35 @@ def _candado_de_ficha(ficha_id):
         return _FICHA_CANDADOS.setdefault(int(ficha_id), threading.Lock())
 
 
+def _cara_calculada(persona_id, vec):
+    """La cuenta de la cara, SIN candado y SIN escribir: lee la ficha EN VIVO y aplica sus guardas (guardada aparte, unida). Devuelve
+    `(ranuras, cuerpo)`: las ranuras que quedan y el cuerpo del PATCH de la columna de caras. Quien llama toma el candado de la ficha."""
+    fila = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records/{int(persona_id)}", query={"fields": f"Id,unida_a,quitada_el,{_base.CARA_COLUMNA}"})
+    if ficha_quitada(fila):
+        raise _base.FichaQuitada(persona_id)
+    if ficha_unida(fila):
+        raise _base.FichaUnida(persona_id)
+    ranuras = _base._caras_de_celda(fila.get(_base.CARA_COLUMNA)) + [tuple(vec)]
+    ranuras = ranuras[-_base.CARA_RANURAS:]
+    cuerpo = {"Id": persona_id, _base.CARA_COLUMNA: _base.CARA_SEPARADOR.join(_base._cara_a_base64(v) for v in ranuras)}
+    return ranuras, cuerpo
+
+
+def cara_calculada(persona_id, vec):
+    """LO QUE `escribir_cara` ESCRIBIRÍA, sin escribir (lo usa el cálculo del modo que solo cuenta, `personas_cuenta`). Toma el mismo
+    candado de la ficha y devuelve `(ranuras, cuerpo)`. No llama a ninguna escritura ni toca caché alguna."""
+    with _candado_de_ficha(persona_id):
+        return _cara_calculada(persona_id, vec)
+
+
 def escribir_cara(persona_id, vec):
     """La ÚNICA escritura de la columna de caras que sale de este módulo: lee las ranuras de esa ficha EN VIVO, bajo su candado,
     y escribe UNA sola columna (`_base.CARA_COLUMNA`). Si la ficha está unida (`_base.FichaUnida`) o guardada aparte (`_base.FichaQuitada`),
     no escribe. Devuelve la lista de ranuras que quedan; la caché la actualiza el que llama (`guardar_cara`, en `server.py`), fuera
     de este candado, como siempre."""
     with _candado_de_ficha(persona_id):      # la unión marca una ficha bajo este candado: entre leer la marca y escribir la cara no puede marcarla
-        fila = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records/{int(persona_id)}", query={"fields": f"Id,unida_a,quitada_el,{_base.CARA_COLUMNA}"})
-        if ficha_quitada(fila):
-            raise _base.FichaQuitada(persona_id)
-        if ficha_unida(fila):
-            raise _base.FichaUnida(persona_id)
-        ranuras = _base._caras_de_celda(fila.get(_base.CARA_COLUMNA)) + [tuple(vec)]
-        ranuras = ranuras[-_base.CARA_RANURAS:]
-        _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS}/records", body={
-            "Id": persona_id,
-            _base.CARA_COLUMNA: _base.CARA_SEPARADOR.join(_base._cara_a_base64(v) for v in ranuras),
-        })
+        ranuras, cuerpo = _cara_calculada(persona_id, vec)
+        _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS}/records", body=cuerpo)
     return ranuras
 
 

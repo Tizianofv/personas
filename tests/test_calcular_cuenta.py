@@ -177,7 +177,7 @@ class SinCalculos(unittest.TestCase):
         cls.s.__exit__(None, None, None)
 
     def test_C4_todo_nombre_contesta_404_sin_calculo(self):
-        for nombre in ["permiso", "resolver", "unir", "borrar", "cara", "no_existe", "Crear", "a", "a/b", ""]:
+        for nombre in ["permiso", "resolver", "unir", "borrar", "no_existe", "Crear", "a", "a/b", ""]:
             with self.subTest(nombre=nombre):
                 codigo, resp = self.s.pedir(RUTA % nombre, cabeceras=self.s.buena())
                 self.assertEqual((codigo, resp), (404, ERROR_SIN_CALCULO))
@@ -192,10 +192,11 @@ class SinCalculos(unittest.TestCase):
 
 
 class TablaDeCalculos(unittest.TestCase):
-    """C6: la tabla de cálculos tiene el grupo (a) de P11-6, con sus cinco nombres (cada grupo que se registre cambia esta prueba)."""
+    """C6: la tabla de cálculos tiene los grupos (a), (b) y (c) de P11-6 (cada grupo que se registre cambia esta prueba)."""
 
-    def test_C6_la_tabla_tiene_el_grupo_a_y_el_grupo_b(self):
-        self.assertEqual(set(personas_cuenta.CALCULOS), {"crear", "editar", "crear_checkin", "editar_checkin", "editar_aprendizaje", "entrada"})
+    def test_C6_la_tabla_tiene_los_grupos_a_b_y_c(self):
+        self.assertEqual(set(personas_cuenta.CALCULOS),
+                         {"crear", "editar", "crear_checkin", "editar_checkin", "editar_aprendizaje", "entrada", "cara"})
 
 
 class ContratoConElClienteDeLaApp(unittest.TestCase):

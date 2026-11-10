@@ -59,6 +59,7 @@ RUTAS = {
     "editar_checkin": ("PATCH", re.compile(r"/api/personas/" + _DIRECCION)),
     "editar_aprendizaje": ("POST", re.compile(r"/api/aprendizaje/fichas/" + _IDENTIDAD + r"/editar")),
     "entrada": ("POST", re.compile(r"/api/fichas/entrada")),
+    "cara": ("POST", re.compile(r"/api/personas/" + _DIRECCION + r"/cara")),
 }
 
 
@@ -139,6 +140,30 @@ def _calc_entrada(cuerpo, quien, _direccion):
     return personas_entrada.entrada_calculada(fila)
 
 
+# ---------- P11-6, grupo (c): la cara (fila 17). El cuerpo es `{"cara": <base64 de 128 float32>}`; la App la escribe en contar y la compara. ----------
+
+
+def _calc_cara(cuerpo, quien, direccion):
+    """Lo que la escritura de servicio de la cara (`personas_escritura_rutas.cara`) escribiría, sin el PATCH: `personas.cara_calculada`.
+    La cara llega en base64, como la manda la App; la ficha, de la ruta. Mismas guardas y mismos textos que la escritura: la prueba
+    `tests/test_calcular_grupo_c.py` los compara con ella, y con la escritura de la App no hay más contrato que el de `_contrato`."""
+    if set(cuerpo) != {"cara"}:
+        return 400, {"ok": False, "error": "El pedido de cara es {persona_id: entero, vec: [números]}."}
+    pid = int(direccion)
+    if pid < 1:
+        return 400, {"ok": False, "error": "El pedido de cara es {persona_id: entero, vec: [números]}."}
+    vec = _base._cara_desde_base64(cuerpo["cara"])
+    if vec is None:
+        return 400, {"ok": False, "error": "vec son %d números." % _base.CARA_DIMS}
+    try:
+        _ranuras, patch = personas.cara_calculada(pid, vec)
+    except (_base.FichaUnida, _base.FichaQuitada):
+        return 409, {"ok": False, "error": "La ficha está unida o guardada aparte: no admite cambio de cara. No se guardó."}
+    except Exception:  # noqa: BLE001 — como la escritura: cualquier fallo de la base es «no se guardó», sin su texto
+        return 502, {"ok": False, "error": "No se guardó. Personas no responde. Inténtalo en un momento."}
+    return 200, {"escrituras": [{"tabla": _base.T_PERSONAS, "metodo": "PATCH", "cuerpo": patch}]}
+
+
 # Cálculos registrados: nombre -> función `(cuerpo, quien, direccion) -> (codigo, cuerpo)`. Los nombres son los de `RUTAS`.
 CALCULOS = {
     "crear": _calc_crear,
@@ -146,6 +171,7 @@ CALCULOS = {
     "crear_checkin": _calc_crear_checkin,
     "editar_checkin": _calc_editar_checkin,
     "editar_aprendizaje": _calc_editar_aprendizaje,
+    "cara": _calc_cara,
     "entrada": _calc_entrada,
 }
 
