@@ -14,7 +14,7 @@ Qué garantiza y con qué prueba:
       base cae en lecturas (GET) a mitad, y si la base cae en escrituras (el cálculo no las llama).
   G3  RECHAZOS: en cada escenario que la escritura rechaza (un 400, 409, 422 o 502 previo a escribir), el cálculo devuelve el MISMO código
       y el MISMO cuerpo (mismo motivo y mismo texto), y no escribe.
-  G4  REGISTRO: `CALCULOS` tiene exactamente los cinco nombres del grupo (una prueba se rompe si uno se quita).
+  G4  REGISTRO: `CALCULOS` y `RUTAS` tienen los cinco nombres del grupo (una prueba se rompe si uno se quita; el grupo (b) va aparte).
 
 Lo que NO ve (declarado): la escritura de la App (`_nc_directo` de la App no se usa aquí); los hilos propios (reloj de Google y barrido al
 arrancar), y las escrituras de otros procesos. La dirección (`id` o `identidad`) va en el cuerpo del cálculo: la App tiene que mandarla así.
@@ -249,8 +249,8 @@ class GrupoA(unittest.TestCase):
                 self.assertEqual(c.escrituras(), [], "la guarda dejó pasar algo a NocoDB (%s)" % etiqueta)
 
     def test_G4_el_grupo_esta_registrado_con_sus_cinco_nombres(self):
-        self.assertEqual(set(personas_cuenta.CALCULOS), set(GRUPO_A))
-        self.assertEqual(set(personas_cuenta.RUTAS), set(GRUPO_A))
+        self.assertTrue(set(GRUPO_A) <= set(personas_cuenta.CALCULOS))          # el grupo (b), la entrada, se prueba en test_calcular_grupo_b
+        self.assertTrue(set(GRUPO_A) <= set(personas_cuenta.RUTAS))
 
     def test_G5_lo_que_sale_del_reloj_o_del_alta_va_en_sin_valor(self):
         """Dos corridas con relojes distintos: toda columna que cambia tiene que estar en `sin_valor` del cálculo (la App la compara solo

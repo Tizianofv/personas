@@ -18,6 +18,7 @@ Qué garantiza y con qué prueba (servidor real del programa, como proceso, cont
 La cuenta de pedidos la lleva el doble (`DobleEscrituras.pedidos`): cuenta los pedidos HTTP a NocoDB, de cualquier método, no solo las
 escrituras. No cuenta otras escrituras (archivos, procesos).
 """
+import copy
 import json
 import os
 import re
@@ -59,11 +60,14 @@ class Servidor:
     """El servidor real del programa (`reloj.comando_programa`, con el día fijado) contra el doble de NocoDB. Cada grupo de llave
     tiene un valor de prueba distinto, y `PERSONAS_CUENTA_LLAVE` el de este módulo, salvo que `extra` diga otra cosa."""
 
-    def __init__(self, extra=None):
+    def __init__(self, extra=None, tablas=None):
         self.extra = dict(extra or {})
+        self.tablas = dict(tablas or {})                 # tablas del doble que la prueba necesita (p. ej. la bandeja de la entrada)
 
     def __enter__(self):
         self.doble = doble_escrituras.DobleEscrituras()
+        for tabla, filas in self.tablas.items():
+            self.doble.tablas[tabla] = copy.deepcopy(filas)
         url_doble = self.doble.arrancar()
         self.puerto = esc._puerto_libre()
         self.llaves = {nombre: "llave-de-prueba-" + nombre.lower() for nombre in grupos_de_llave()}
@@ -190,8 +194,8 @@ class SinCalculos(unittest.TestCase):
 class TablaDeCalculos(unittest.TestCase):
     """C6: la tabla de cálculos tiene el grupo (a) de P11-6, con sus cinco nombres (cada grupo que se registre cambia esta prueba)."""
 
-    def test_C6_la_tabla_tiene_solo_el_grupo_a(self):
-        self.assertEqual(set(personas_cuenta.CALCULOS), {"crear", "editar", "crear_checkin", "editar_checkin", "editar_aprendizaje"})
+    def test_C6_la_tabla_tiene_el_grupo_a_y_el_grupo_b(self):
+        self.assertEqual(set(personas_cuenta.CALCULOS), {"crear", "editar", "crear_checkin", "editar_checkin", "editar_aprendizaje", "entrada"})
 
 
 class ContratoConElClienteDeLaApp(unittest.TestCase):

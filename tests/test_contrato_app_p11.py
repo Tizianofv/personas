@@ -32,6 +32,7 @@ import personas  # noqa: E402
 import personas_cuenta  # noqa: E402
 import escenarios_portal_escrituras as esc  # noqa: E402
 import test_calcular_cuenta as tc  # noqa: E402
+import personas_entrada  # noqa: E402
 import test_calcular_grupo_a as g  # noqa: E402
 
 CLIENTE = RAIZ / "tests" / "cliente_app_calcular.py"
@@ -175,6 +176,40 @@ class ContratoConLaApp(unittest.TestCase):
             dos = personas_cuenta.calcular(nombre, g.cuerpo_del_calculo(nombre, dict(cuerpo)), g.QUIEN)
             self.assertEqual(c.escrituras(), [], "el cálculo escribió")
         self.assertEqual(uno, dos)
+
+
+class ContratoConLaEntrada(unittest.TestCase):
+    """K2b (grupo b): la entrada de Natalia en modo contar. El cliente real de la App calcula `entrada` contra el servidor real del
+    programa (con la bandeja del escenario); la comparación de la App da `coincide` con lo que la entrada escribió en la bandeja."""
+
+    def setUp(self):
+        self.rama = os.environ.get("PERSONAS_APP_RAMA", "").strip()
+        if not self.rama:
+            self.skipTest("falta la variable PERSONAS_APP_RAMA: la rama de la App (registro) para el contrato. Sin ella no hay contrato real.")
+
+    def test_K2b_la_entrada_coincide_con_el_cliente_real(self):
+        import test_calcular_grupo_b as gb  # noqa: E402
+        casos, meta = [], []
+        for etiqueta, filas, n in gb.ESCENARIOS:
+            with gb.Corrida(filas) as w:
+                personas_entrada.entrada_fichas(n)
+                escritas = w.escrituras()
+            if not escritas:
+                continue
+            with tc.Servidor(tablas={gb.T_BANDEJA: filas}) as s:
+                entorno = {"PERSONAS_BASE": "http://127.0.0.1:%d" % s.puerto, tc.VARIABLE_LLAVE: tc.LLAVE_CUENTA}
+                s.doble.pedidos.clear()
+                resp = llamar_cliente(self.rama, entorno, "entrada", gb.cuerpo_del_calculo(n))
+                escrituras_c = [x for x in s.doble.pedidos if x["metodo"] in g.METODOS_ESCRITURA]
+                self.assertEqual(escrituras_c, [], "el cálculo de la entrada mandó una escritura (%s)" % etiqueta)
+            self.assertTrue(resp.get("calculado"), "el cliente de la App no dio cálculo (%s): %r" % (etiqueta, resp))
+            casos.append({"op": "comparar", "nombre": "entrada", "capturadas": [dict(e, enlace=None, columnas=[], filas=1, confirmada=True)
+                                                                             for e in escritas], "cuenta": resp["cuenta"]})
+            meta.append(etiqueta)
+        self.assertTrue(casos, "ningún escenario de la entrada escribe")
+        for etiqueta, r in zip(meta, preguntar_a_la_app(self.rama, casos)):
+            with self.subTest(escenario=etiqueta):
+                self.assertEqual((r["resultado"], r["difieren"]), ("coincide", []), r)
 
 
 if __name__ == "__main__":

@@ -32,6 +32,7 @@ import re
 
 import base as _base
 import personas
+import personas_entrada
 import personas_escrituras
 
 ERROR_SIN_CALCULO = {"error": "sin cálculo para esa escritura"}
@@ -57,6 +58,7 @@ RUTAS = {
     "crear_checkin": ("POST", re.compile(r"/api/personas")),
     "editar_checkin": ("PATCH", re.compile(r"/api/personas/" + _DIRECCION)),
     "editar_aprendizaje": ("POST", re.compile(r"/api/aprendizaje/fichas/" + _IDENTIDAD + r"/editar")),
+    "entrada": ("POST", re.compile(r"/api/fichas/entrada")),
 }
 
 
@@ -119,6 +121,24 @@ def _calculo_del_checkin(r, codigo):
     return personas.calculo_de_escrituras(r["_calculo"], codigo)
 
 
+# ---------- P11-6, grupo (b): la entrada de Natalia (fila 14). El cuerpo es `{"fila": n}`; la App la compara en su modo contar. ----------
+
+
+def _calc_entrada(cuerpo, quien, _direccion):
+    """Lo que la entrada (`entrada_fichas`, modo contar) mandaría a la bandeja: `personas_entrada.entrada_calculada`. Con el modo `escribir`
+    del programa no se calcula (escribir en las fichas no se predice aquí)."""
+    if set(cuerpo) != {"fila"}:
+        return 400, {"error": "pedido_ilegible"}
+    fila = cuerpo["fila"]
+    if not isinstance(fila, int) or isinstance(fila, bool) or fila < 1:
+        return 400, {"error": "pedido_ilegible"}
+    if not _base.T_BANDEJA_PERSONAS:
+        return 503, {"error": "sin_bandeja"}
+    if personas_entrada.entrada_modo() == personas_entrada.ENTRADA_MODO_ESCRIBIR:
+        return 409, {"error": "modo_escribir_no_se_calcula"}
+    return personas_entrada.entrada_calculada(fila)
+
+
 # Cálculos registrados: nombre -> función `(cuerpo, quien, direccion) -> (codigo, cuerpo)`. Los nombres son los de `RUTAS`.
 CALCULOS = {
     "crear": _calc_crear,
@@ -126,6 +146,7 @@ CALCULOS = {
     "crear_checkin": _calc_crear_checkin,
     "editar_checkin": _calc_editar_checkin,
     "editar_aprendizaje": _calc_editar_aprendizaje,
+    "entrada": _calc_entrada,
 }
 
 

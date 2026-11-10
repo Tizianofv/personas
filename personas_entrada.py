@@ -169,11 +169,13 @@ def _entrada_confirmado(r):
     return estado != "aplicado" or _entrada_id(r.get("ficha_id")) is not None
 
 
-def entrada_procesar(fila):
+def entrada_procesar(fila, solo_contar=False, mandaria=None):
     """Pasa una fila pendiente por la puerta y apunta el resultado en la misma fila; devuelve la fila apuntada. Contando (`entrada_modo`) no escribe
     ninguna ficha y la deja `contado`; escribiendo, la puerta y la unión sola escriben de verdad y la fila queda `aplicado` o `por_resolver`
     (`descartado` si la puerta la rechazó). Lo que no se confirma deja la fila `pendiente` y levanta `_EntradaSinConfirmar`."""
-    modo = entrada_modo()
+    # 🔑 `solo_contar` (P11-6, grupo b): recorre lo mismo que la entrada en modo contar, pero no escribe: lo que mandaría a la bandeja
+    # se añade a `mandaria` (tabla, método y cuerpo) y se devuelve la fila como si estuviera apuntada.
+    modo = "contar" if solo_contar else entrada_modo()
     escribe = modo == "escribir"
     if fila.get("estado") == ENTRADA_ESTADO_ESCRIBIENDO and not escribe:      # contar solo toca filas `pendiente`: una marcada no se cuenta ni se cambia
         _entrada_registrar(fila, ENTRADA_ESTADO_ESCRIBIENDO, {}, None, "escritura_a_medias", modo)
@@ -215,6 +217,9 @@ def entrada_procesar(fila):
         cambios["ficha_id"] = ficha_id
     if otra is not None:
         cambios["otra_ficha_id"] = otra
+    if solo_contar:
+        mandaria.append({"tabla": _base.T_BANDEJA_PERSONAS, "metodo": "PATCH", "cuerpo": dict(cambios, Id=fila["Id"])})
+        return dict(fila, **cambios)
     try:
         _base.nc("PATCH", f"/api/v2/tables/{_base.T_BANDEJA_PERSONAS}/records", body=dict(cambios, Id=fila["Id"]))
         if escribe:                                           # escribiendo, la fila no dice `aplicado` si al releerla no dice TODO lo que se escribió en ella (el `resultado` también)
@@ -280,6 +285,41 @@ def entrada_fichas(fila_id):
         return 502, {"error": "sin_confirmar"}
     except Exception as e:                                    # noqa: BLE001
         print("[ENTRADA-FICHAS] fila=%s estado=sin_confirmar fallo=%s" % (fila_id, _base._resumen_del_fallo(e)))
+        return 502, {"error": "sin_confirmar"}
+
+
+def entrada_calculada(fila_id):
+    """EL CÁLCULO DE LA ENTRADA (contar; P11-6, grupo b): lo que `entrada_fichas(fila_id)` mandaría a la bandeja, sin mandarlo. Recorre lo
+    mismo que la entrada: barre las pendientes (hasta el tope, en orden de Id) y luego la fila pedida si el barrido no la tocó. No toca el
+    cursor (`_ENTRADA_CURSOR` es de la App, otro proceso). Si el barrido llega al tope, el cursor de la App puede saltar filas: 409 `barrido_lleno`."""
+    mandaria = []
+    try:
+        lista = personas._entrada_lista_pendientes("pendiente", 0, ENTRADA_TOPE_BARRIDO)
+        filas = [f for f in ((lista.get("list") if isinstance(lista, dict) else None) or []) if isinstance(f, dict) and _entrada_id(f.get("Id")) is not None]
+        filas = sorted(filas, key=lambda f: f["Id"])[:ENTRADA_TOPE_BARRIDO]
+        if len(filas) >= ENTRADA_TOPE_BARRIDO:
+            return 409, {"error": "barrido_lleno"}
+        tocadas = set()
+        for pendiente in filas:
+            fila = personas._entrada_leer_fila(pendiente["Id"])
+            if fila is not None and fila.get("estado") == "pendiente":
+                try:
+                    entrada_procesar(fila, solo_contar=True, mandaria=mandaria)
+                except _EntradaSinConfirmar:
+                    pass                                  # como el barrido de la entrada: esa fila no sale, y sigue
+                tocadas.add(fila["Id"])
+        if fila_id not in tocadas:
+            fila = personas._entrada_leer_fila(fila_id)
+            if fila is None:
+                return 404, {"error": "fila_inexistente"}
+            if fila.get("estado") == ENTRADA_ESTADO_ESCRIBIENDO:
+                return 409, {"error": "escritura_a_medias"}
+            if fila.get("estado") == "pendiente":
+                entrada_procesar(fila, solo_contar=True, mandaria=mandaria)
+        return 200, {"ok": True, "estado": "calculado", "escrituras": mandaria}
+    except _EntradaSinConfirmar:
+        return 502, {"error": "sin_confirmar"}
+    except Exception:                                     # noqa: BLE001
         return 502, {"error": "sin_confirmar"}
 
 
