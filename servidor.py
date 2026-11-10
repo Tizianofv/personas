@@ -74,7 +74,13 @@ mira ANTES del cuerpo y de NocoDB: sin ella, con otra o con la variable vacía, 
 Escribe solo los 12 campos de `personas_memoria.MEMORIA_CAMPOS` (no identidad), con la puerta de la edición del portal
 (`personas.editar_memoria_de_natalia`). Respuestas y escrituras: `contrato_dorado/memoria.json`. Nadie la llama todavía (P8a-2).
 
-Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN,
+EL CÁLCULO DEL MODO QUE SOLO CUENTA (P11-5, `personas_cuenta.py`): `POST /calcular/<nombre>` con cabecera X-Personas-Cuenta-Llave
+(PERSONAS_CUENTA_LLAVE) y X-Personas-Cuenta-Quien (la identidad de quien pide, no vacía). La llave se mira ANTES del cuerpo y de NocoDB:
+sin ella, con otra (la de cualquier grupo incluida) o con la variable vacía: 401. Sin identidad: 400. Sin cálculos registrados, todo
+nombre contesta 404 `sin cálculo para esa escritura` (el cliente de la App lo lee como `sin_calculo`). Un cuerpo que no es un objeto
+JSON: 400 `pedido ilegible`. La ruta NUNCA escribe en NocoDB.
+
+Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN, PERSONAS_CUENTA_LLAVE,
 PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, PERSONAS_MERCADEO_LLAVE, PERSONAS_NATALIA_LLAVE, NOCODB_T_*, y para la ruta de
 tipo «D»: GOOGLE_CONTACTOS_CLIENT_ID, GOOGLE_CONTACTOS_CLIENT_SECRET, GOOGLE_CONTACTOS_REFRESH_TOKEN (las mismas de la App).
 """
@@ -86,6 +92,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import base
+import personas_cuenta
 import personas_entrada
 import personas_escritura_rutas
 import personas_escrituras
@@ -113,6 +120,13 @@ MERCADEO_RUTAS = {
 LLAVE_PERSONAS_NATALIA = os.environ.get("PERSONAS_NATALIA_LLAVE", "").strip()
 MEMORIA_RUTA = "/api/servicio/personas/memoria"
 ERROR_IDENTIDAD_NATALIA = {"error": "identidad de Natalia ausente (X-Personas-Natalia-Quien)"}
+# El cálculo del modo que solo cuenta (P11-5, `personas_cuenta.py`): llave propia, NO la del portal ni la de ningún otro grupo. Vacía, la
+# ruta nace cerrada (401). Es el cliente de la App (`panel_reenvio.calcular_personas`, App `3ffe870`) quien manda estas dos cabeceras.
+LLAVE_PERSONAS_CUENTA = os.environ.get("PERSONAS_CUENTA_LLAVE", "").strip()
+CALCULO_PREFIJO = "/calcular/"
+CABECERA_CUENTA_LLAVE = "X-Personas-Cuenta-Llave"
+CABECERA_CUENTA_QUIEN = "X-Personas-Cuenta-Quien"
+ERROR_IDENTIDAD_CUENTA = {"error": "identidad de cálculo ausente (X-Personas-Cuenta-Quien)"}
 
 ESCRITURA_RUTAS = {
     "/api/servicio/personas/cara": "cara",
@@ -297,6 +311,16 @@ class Manejador(BaseHTTPRequestHandler):
             if not lucy_llave_valida(self.headers.get("X-Personas-Entrada-Llave"), LLAVE_PERSONAS_ENTRADA):
                 return self._enviar(401, ERROR_LLAVE)
             codigo, cuerpo = personas_entrada.entrada_de_natalia(self._pedido())
+            return self._enviar(codigo, cuerpo)
+        if ruta.startswith(CALCULO_PREFIJO):
+            # P11-5: el cálculo del modo que solo cuenta. La llave se mira ANTES del cuerpo y de NocoDB; luego la identidad (quien no vacío).
+            # Sin cálculos registrados (`personas_cuenta.CALCULOS`), cualquier nombre contesta 404. Nada aquí escribe.
+            if not lucy_llave_valida(self.headers.get(CABECERA_CUENTA_LLAVE), LLAVE_PERSONAS_CUENTA):
+                return self._enviar(401, ERROR_LLAVE)
+            quien = quien_de_la_cabecera(self.headers.get(CABECERA_CUENTA_QUIEN))
+            if not quien:
+                return self._enviar(400, ERROR_IDENTIDAD_CUENTA)
+            codigo, cuerpo = personas_cuenta.calcular(ruta[len(CALCULO_PREFIJO):], self._pedido(), quien)
             return self._enviar(codigo, cuerpo)
         if ruta == MEMORIA_RUTA:
             # P8a-1: la llave de Natalia se mira ANTES del cuerpo y de NocoDB; luego la identidad (quien de la cabecera, no vacío).
