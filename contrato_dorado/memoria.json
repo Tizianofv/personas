@@ -2178,6 +2178,45 @@
       ]
     },
     {
+      "caidas": [],
+      "nombre": "fila_caida_502",
+      "pasos": [
+        {
+          "cuerpo": {
+            "base": {
+              "notas": ""
+            },
+            "cambios": {
+              "notas": "nota de prueba"
+            },
+            "id": 2
+          },
+          "llave": "natalia",
+          "pedidos": [
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {},
+              "ruta": "/api/v2/meta/tables/mhh7qqeru2ez8q1"
+            },
+            {
+              "cuerpo": null,
+              "metodo": "GET",
+              "query": {
+                "fields": "Id,notas,quitada_el"
+              },
+              "ruta": "/api/v2/tables/mhh7qqeru2ez8q1/records/2"
+            }
+          ],
+          "quien": "Natalia",
+          "respuesta": {
+            "error": "No se pudo leer la ficha en la base. No se guardó nada."
+          },
+          "status": 502
+        }
+      ]
+    },
+    {
       "caidas": [
         "PATCH"
       ],

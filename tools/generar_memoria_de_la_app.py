@@ -64,7 +64,7 @@ def main():
     for escenario in em.DORADOS:
         pasos = pasos_de_la_app(escenario)
         resultados = gpe.correr_escenario(copia, pasos, escenario.get("caidas", ()), escenario.get("caidas_una_vez", ()),
-                                          columnas_personas=em.COLUMNAS_MEMORIA)
+                                          columnas_personas=em.COLUMNAS_MEMORIA, caidas_fila=escenario.get("caidas_fila", ()))
         escenarios_foto.append({"nombre": escenario["nombre"], "caidas": list(escenario.get("caidas", ())), "pasos": [
             dict({"cuerpo": p["cuerpo"], "llave": "natalia", "quien": em.QUIEN}, **r) for p, r in zip(escenario["pasos"], resultados)]})
     foto = {

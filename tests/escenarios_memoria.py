@@ -100,7 +100,7 @@ def ejecutar(escenario, cwd):
     """Corre los pasos contra `servidor.py` del repo (`reloj.comando_programa`, con el día fijado) y el doble. Devuelve
     `(pasos, errores_del_doble)`. Cada paso lleva código, respuesta y los pedidos que llegaron al doble en ese paso."""
     doble = doble_escrituras.DobleEscrituras(caidas=escenario.get("caidas", ()), caidas_una_vez=escenario.get("caidas_una_vez", ()),
-                                             columnas_personas=COLUMNAS_MEMORIA)
+                                             columnas_personas=COLUMNAS_MEMORIA, caidas_fila=escenario.get("caidas_fila", ()))
     url_doble = doble.arrancar()
     puerto = esc._puerto_libre()
     entorno = dict(esc.ENTORNO_MINIMO)
@@ -153,6 +153,8 @@ DORADOS = [
     # Cumpleanos como texto (SingleLineText en el doble, tipo supuesto): la App lo guarda. El tipo real en la base no está medido.
     {"nombre": "cumpleanos_texto_200", "pasos": [_paso({"id": 2, "base": {"Cumpleanos": ""}, "cambios": {"Cumpleanos": "14/03"}})]},
     {"nombre": "lectura_caida_502", "caidas": ["GET"], "pasos": [_paso(CUERPO_BUENO)]},
+    # Solo la lectura de la fila cae (la metadata sigue): aquí el 502 sale de `filas`, no de la lectura de columnas.
+    {"nombre": "fila_caida_502", "caidas_fila": ["GET"], "pasos": [_paso(CUERPO_BUENO)]},
     {"nombre": "escritura_caida_502", "caidas": ["PATCH"], "pasos": [_paso(CUERPO_BUENO)]},
 ]
 

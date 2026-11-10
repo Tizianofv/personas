@@ -54,7 +54,8 @@ _METODOS_CON_CUERPO = ("POST", "PATCH", "PUT", "DELETE")
 
 
 class DobleEscrituras:
-    def __init__(self, caidas=(), caidas_una_vez=(), union=False, columnas_personas=()):
+    def __init__(self, caidas=(), caidas_una_vez=(), union=False, columnas_personas=(), caidas_fila=()):
+        self.caidas_fila = set(caidas_fila)
         self.tablas = {t: copy.deepcopy(filas) for t, filas in doble_nocodb.TABLAS.items()}
         self.meta = dict(doble_nocodb.COLUMNAS_META)
         self.union = union
@@ -130,6 +131,9 @@ class DobleEscrituras:
             self.pedidos.append({"metodo": metodo, "ruta": ruta, "query": dict(sorted(query.items())), "cuerpo": cuerpo})
             if metodo in self.caidas:
                 return 500, {"msg": "doble: la base no contesta"}
+            # `caidas_fila` (P8a-1): el método cae solo al leer UNA fila por Id (`/records/<id>`), no la metadata ni las listas.
+            if metodo in self.caidas_fila and re.fullmatch(r"/api/v2/tables/[^/]+/records/\d+", ruta):
+                return 500, {"msg": "doble: la base no contesta a esta fila"}
             if metodo in self.caidas_una_vez:
                 self.caidas_una_vez.discard(metodo)
                 return 500, {"msg": "doble: la base no contesta (una vez)"}
