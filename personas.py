@@ -1703,6 +1703,34 @@ def _guardar_edicion_de_persona(cuerpo, quien, editables, leer_filas, rastro, po
     return 200, salida
 
 
+def editar_memoria_de_natalia(cuerpo, quien, editables):
+    """P8a-1: la memoria de Natalia escribe en la ficha por el programa. La fila sale del `id` del cuerpo (la misma lectura que
+    `editar_persona_portal`) y la puerta es `_guardar_edicion_de_persona` con `editables` (los campos que no son de identidad, en
+    `personas_memoria.MEMORIA_CAMPOS`). Misma respuesta que `editar_persona_portal` de la App (`ficha` releída y `en_lista`):
+    la App no pasa `clave_envio` por esta ruta, así que no hay `una_vez`. Devuelve `(codigo, dict)`."""
+    if not isinstance(cuerpo, dict):
+        return 400, {"error": "pedido ilegible. " + FICHA_ERROR_SIN_ESCRIBIR}
+    pid = cuerpo.get("id")
+    if isinstance(pid, bool) or not isinstance(pid, int):
+        return 400, {"error": "falta el número de la ficha. " + FICHA_ERROR_SIN_ESCRIBIR}
+
+    def filas(cols):
+        try:
+            fila = _base.nc("GET", f"/api/v2/tables/{_base.T_PERSONAS}/records/{int(pid)}",
+                            query={"fields": ",".join(["Id"] + list(dict.fromkeys(cols)))})
+        except _base.ErrorDeNocodb as e:
+            if e.status == 404:
+                return []
+            raise
+        return [fila] if isinstance(fila, dict) and fila.get("Id") is not None else []
+
+    codigo, datos = _guardar_edicion_de_persona(cuerpo, quien, editables, filas, "MEMORIA-NATALIA-EDITADA", portal=True)
+    if codigo == 200 and datos.get("estado") in ("guardado", "sin_cambios"):
+        _portal_con_ficha_releida(datos, pid)
+        datos["en_lista"] = _portal_en_lista(pid, cuerpo)
+    return codigo, datos
+
+
 def editar_ficha_cliente(identidad, cuerpo, quien):
     """La ficha del Aprendizaje: la fila sale de la identidad (teléfono o BSUID) de la dirección."""
     return _guardar_edicion_de_persona(cuerpo, quien, FICHA_EDITABLES,

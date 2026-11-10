@@ -192,9 +192,11 @@ def candado_de_la_app_en_la_foto(copia):
     return candado.candado_de_la_app(ast.parse((copia / "server.py").read_text(encoding="utf-8")))
 
 
-def correr_escenario(copia, pasos, caidas, caidas_una_vez=(), union=False, entorno_extra=None):
-    """Corre los pasos de un escenario en la App y devuelve, por paso, `{status, respuesta, pedidos}`."""
-    doble = doble_escrituras.DobleEscrituras(caidas=caidas, caidas_una_vez=caidas_una_vez, union=union)
+def correr_escenario(copia, pasos, caidas, caidas_una_vez=(), union=False, entorno_extra=None, columnas_personas=()):
+    """Corre los pasos de un escenario en la App y devuelve, por paso, `{status, respuesta, pedidos}`. `columnas_personas` (P8a-1):
+    columnas extra de `personas` para el doble (vacío = el doble de siempre)."""
+    doble = doble_escrituras.DobleEscrituras(caidas=caidas, caidas_una_vez=caidas_una_vez, union=union,
+                                             columnas_personas=columnas_personas)
     url_doble = doble.arrancar()
     entorno = {
         "PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8",

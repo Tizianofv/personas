@@ -54,7 +54,7 @@ _METODOS_CON_CUERPO = ("POST", "PATCH", "PUT", "DELETE")
 
 
 class DobleEscrituras:
-    def __init__(self, caidas=(), caidas_una_vez=(), union=False):
+    def __init__(self, caidas=(), caidas_una_vez=(), union=False, columnas_personas=()):
         self.tablas = {t: copy.deepcopy(filas) for t, filas in doble_nocodb.TABLAS.items()}
         self.meta = dict(doble_nocodb.COLUMNAS_META)
         self.union = union
@@ -66,6 +66,15 @@ class DobleEscrituras:
                                                   + [{"title": "Id", "uidt": "Number", "system": True},
                                                      {"title": "CreatedAt", "uidt": "DateTime", "system": True},
                                                      {"title": "UpdatedAt", "uidt": "DateTime", "system": True}])
+        # `columnas_personas` (P8a-1): columnas de `personas` que no están en las filas del doble (la memoria de Natalia). Sin ellas, la
+        # App y el programa dicen «la columna no existe». Solo se agregan las que no están ya; las filas las tienen en `None`.
+        if columnas_personas:
+            existentes = {c["title"] for c in self.meta[doble_nocodb.T_PERSONAS]}
+            nuevas = [c for c in columnas_personas if c["title"] not in existentes]
+            self.meta[doble_nocodb.T_PERSONAS] = list(self.meta[doble_nocodb.T_PERSONAS]) + nuevas
+            for fila in self.tablas[doble_nocodb.T_PERSONAS]:
+                for c in nuevas:
+                    fila.setdefault(c["title"], None)
         self.caidas_una_vez = set(caidas_una_vez)     # métodos que fallan UNA sola vez (la siguiente vez contestan bien)
         self.pedidos = []
         self.errores = []

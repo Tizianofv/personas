@@ -68,8 +68,14 @@ con la cabecera X-Personas-Mercadeo-Llave (PERSONAS_MERCADEO_LLAVE), mirada ante
 escribe `anotar_permiso` / `anotar_foto`. Respuestas y escrituras: `contrato_dorado/mercadeo.json`. El reenvío desde la App NO está hecho.
 La App sigue atendiendo estas dos rutas; el programa no las ve.
 
+LA MEMORIA DE NATALIA (P8a-1, `personas_memoria.py`): `POST /api/servicio/personas/memoria` con `{"id", "base", "cambios"}`, cabecera
+X-Personas-Natalia-Llave (PERSONAS_NATALIA_LLAVE) y X-Personas-Natalia-Quien (la identidad; el `quien` del cuerpo no se lee). La llave se
+mira ANTES del cuerpo y de NocoDB: sin ella, con otra o con la variable vacía, 401 y cero pedidos. Sin identidad, 400 y cero pedidos.
+Escribe solo los 12 campos de `personas_memoria.MEMORIA_CAMPOS` (no identidad), con la puerta de la edición del portal
+(`personas.editar_memoria_de_natalia`). Respuestas y escrituras: `contrato_dorado/memoria.json`. Nadie la llama todavía (P8a-2).
+
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN,
-PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, PERSONAS_MERCADEO_LLAVE, NOCODB_T_*, y para la ruta de
+PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, PERSONAS_MERCADEO_LLAVE, PERSONAS_NATALIA_LLAVE, NOCODB_T_*, y para la ruta de
 tipo «D»: GOOGLE_CONTACTOS_CLIENT_ID, GOOGLE_CONTACTOS_CLIENT_SECRET, GOOGLE_CONTACTOS_REFRESH_TOKEN (las mismas de la App).
 """
 import hmac
@@ -84,6 +90,7 @@ import personas_entrada
 import personas_escritura_rutas
 import personas_escrituras
 import personas_lectura
+import personas_memoria
 import personas_mercadeo
 import personas_portal_escritura
 import personas_portal_lectura
@@ -102,6 +109,10 @@ MERCADEO_RUTAS = {
     "/api/servicio/personas/mercadeo/baja": personas_mercadeo.baja,
     "/api/servicio/personas/mercadeo/foto": personas_mercadeo.foto,
 }
+# La memoria de Natalia (P8a-1, `personas_memoria.py`): llave propia, NO la del portal ni la de la entrada. Vacía, la ruta nace cerrada (401).
+LLAVE_PERSONAS_NATALIA = os.environ.get("PERSONAS_NATALIA_LLAVE", "").strip()
+MEMORIA_RUTA = "/api/servicio/personas/memoria"
+ERROR_IDENTIDAD_NATALIA = {"error": "identidad de Natalia ausente (X-Personas-Natalia-Quien)"}
 
 ESCRITURA_RUTAS = {
     "/api/servicio/personas/cara": "cara",
@@ -286,6 +297,15 @@ class Manejador(BaseHTTPRequestHandler):
             if not lucy_llave_valida(self.headers.get("X-Personas-Entrada-Llave"), LLAVE_PERSONAS_ENTRADA):
                 return self._enviar(401, ERROR_LLAVE)
             codigo, cuerpo = personas_entrada.entrada_de_natalia(self._pedido())
+            return self._enviar(codigo, cuerpo)
+        if ruta == MEMORIA_RUTA:
+            # P8a-1: la llave de Natalia se mira ANTES del cuerpo y de NocoDB; luego la identidad (quien de la cabecera, no vacío).
+            if not lucy_llave_valida(self.headers.get("X-Personas-Natalia-Llave"), LLAVE_PERSONAS_NATALIA):
+                return self._enviar(401, ERROR_LLAVE)
+            quien = quien_de_la_cabecera(self.headers.get("X-Personas-Natalia-Quien"))
+            if not quien:
+                return self._enviar(400, ERROR_IDENTIDAD_NATALIA)
+            codigo, cuerpo = personas_memoria.editar(self._pedido(), quien)
             return self._enviar(codigo, cuerpo)
         if ruta in MERCADEO_RUTAS:
             # La llave de Mercadeo se mira ANTES de leer el cuerpo y antes de NocoDB. Sin ella, con otra (la de la entrada incluida) o con la variable vacía: 401.
