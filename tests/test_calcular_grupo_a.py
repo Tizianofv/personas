@@ -95,6 +95,45 @@ def _normalizar(escrituras, nueva_id):
     return salida
 
 
+NOMBRE_DE_TABLA = {doble_nocodb.T_PERSONAS: "personas", doble_nocodb.TABLA_ANOTACIONES: "anotaciones", doble_nocodb.T_BANDEJA: "bandeja"}
+AHORA_2 = "2026-11-10T13:37:00+00:00"
+FECHA_2 = "2026-11-11"
+
+
+def forma_app(escrituras):
+    """Lo que la App ve de estas escrituras (contrato de `panel_reenvio.calcular_personas`): una fila por registro, la tabla con su nombre
+    lógico, sin la columna `Id`. Es lo que el cálculo tiene que devolver en `escrituras`."""
+    filas = []
+    for e in escrituras:
+        registros = e["cuerpo"] if isinstance(e["cuerpo"], list) else [e["cuerpo"]]
+        for reg in registros:
+            filas.append({"tabla": NOMBRE_DE_TABLA[e["tabla"]], "metodo": e["metodo"], "enlace": None,
+                          "valores": {k: v for k, v in reg.items() if k != "Id"}})
+    return filas
+
+
+def ruta_de(nombre, cuerpo):
+    """La ruta que la App manda en `ruta_de_la_escritura`: las ids van en la ruta, no en el cuerpo."""
+    if nombre == "crear":
+        return "/api/portal-personas"
+    if nombre == "editar":
+        return "/api/portal-personas/%d/editar" % cuerpo["id"]
+    if nombre == "crear_checkin":
+        return "/api/personas"
+    if nombre == "editar_checkin":
+        return "/api/personas/%d" % cuerpo["id"]
+    if nombre == "editar_aprendizaje":
+        return "/api/aprendizaje/fichas/%s/editar" % cuerpo["identidad"]
+    raise AssertionError(nombre)
+
+
+def cuerpo_del_calculo(nombre, cuerpo):
+    """El cuerpo que manda la App al cálculo: el de la escritura SIN sus ids (van en la ruta), más `ruta_de_la_escritura`."""
+    quitar = ("identidad",) if nombre == "editar_aprendizaje" else ("id", "identidad")   # el `id` de la ficha del Aprendizaje va en el cuerpo
+    sin_ids = {k: v for k, v in cuerpo.items() if k not in quitar}
+    return dict(sin_ids, ruta_de_la_escritura=ruta_de(nombre, cuerpo))
+
+
 def _como_la_ruta(funcion):
     """Lo que la ruta hace con los errores de la escritura (`personas_cuenta._envuelto`): la escritura y el cálculo usan el mismo mapeo."""
     return personas_cuenta._envuelto(funcion)
@@ -147,12 +186,12 @@ def _pareja(testcase, nombre, cuerpo, etiqueta, **caidas_del_calculo):
         codigo_w, datos_w = escribir(nombre, dict(cuerpo))
         escrituras_w = _normalizar(w.escrituras(), nueva)
     with Corrida(**caidas_del_calculo) as c:
-        codigo_c, datos_c = personas_cuenta.calcular(nombre, dict(cuerpo), QUIEN)
+        codigo_c, datos_c = personas_cuenta.calcular(nombre, cuerpo_del_calculo(nombre, dict(cuerpo)), QUIEN)
         escrituras_c = c.escrituras()
     testcase.assertEqual(escrituras_c, [], "G2: el cálculo mandó escrituras (%s)" % etiqueta)
     if codigo_w in (200, 201) and codigo_c in (200, 201) and isinstance(datos_c, dict) and "escrituras" in datos_c:
         testcase.assertEqual(codigo_c, codigo_w, "G1: código distinto (%s)" % etiqueta)
-        testcase.assertEqual(datos_c["escrituras"], escrituras_w, "G1: el cálculo no dice lo que la escritura mandó (%s)" % etiqueta)
+        testcase.assertEqual(datos_c["escrituras"], forma_app(escrituras_w), "G1: el cálculo no dice lo que la escritura mandó (%s)" % etiqueta)
         return escrituras_w
     testcase.assertEqual((codigo_c, datos_c), (codigo_w, datos_w), "G3: el rechazo no es el mismo (%s)" % etiqueta)
     testcase.assertEqual(escrituras_w, [], "G3: la escritura rechazada escribió (%s)" % etiqueta)
@@ -195,6 +234,25 @@ class GrupoA(unittest.TestCase):
 
     def test_G4_el_grupo_esta_registrado_con_sus_cinco_nombres(self):
         self.assertEqual(set(personas_cuenta.CALCULOS), set(GRUPO_A))
+        self.assertEqual(set(personas_cuenta.RUTAS), set(GRUPO_A))
+
+    def test_G5_lo_que_sale_del_reloj_o_del_alta_va_en_sin_valor(self):
+        """Dos corridas con relojes distintos: toda columna que cambia tiene que estar en `sin_valor` del cálculo (la App la compara solo
+        por existencia). Y el número de una alta (`<nueva>`) también va en `sin_valor`."""
+        for nombre, cuerpo, etiqueta in ESCENARIOS:
+            with Corrida():
+                codigo_a, datos_a = personas_cuenta.calcular(nombre, cuerpo_del_calculo(nombre, dict(cuerpo)), QUIEN)
+            with Corrida(), mock.patch.object(personas, "_ahora_utc", lambda: AHORA_2), mock.patch.object(base, "hoy_str", lambda: FECHA_2):
+                codigo_b, datos_b = personas_cuenta.calcular(nombre, cuerpo_del_calculo(nombre, dict(cuerpo)), QUIEN)
+            if codigo_a not in (200, 201) or "escrituras" not in datos_a:
+                continue
+            self.assertEqual(codigo_a, codigo_b, etiqueta)
+            movidas = set()
+            for fa, fb in zip(datos_a["escrituras"], datos_b["escrituras"]):
+                for col in set(fa["valores"]) | set(fb["valores"]):
+                    if fa["valores"].get(col) != fb["valores"].get(col):
+                        movidas.add("%s.%s.%s" % (fa["tabla"], fa["metodo"], col))
+            self.assertLessEqual(movidas, set(datos_a["sin_valor"]), "columna que cambia con el reloj fuera de sin_valor (%s)" % etiqueta)
 
 
 if __name__ == "__main__":
