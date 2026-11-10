@@ -314,7 +314,8 @@ class Manejador(BaseHTTPRequestHandler):
             return self._enviar(codigo, cuerpo)
         if ruta.startswith(CALCULO_PREFIJO):
             # P11-5: el cálculo del modo que solo cuenta. La llave se mira ANTES del cuerpo y de NocoDB; luego la identidad (quien no vacío).
-            # Sin cálculos registrados (`personas_cuenta.CALCULOS`), cualquier nombre contesta 404. Nada aquí escribe.
+            # Sin cálculos registrados (`personas_cuenta.CALCULOS`), cualquier nombre contesta 404. Nada aquí manda pedidos de escritura
+            # a NocoDB (lo vigila `tests/test_calcular_cuenta.py`, que cuenta los pedidos HTTP al doble).
             if not lucy_llave_valida(self.headers.get(CABECERA_CUENTA_LLAVE), LLAVE_PERSONAS_CUENTA):
                 return self._enviar(401, ERROR_LLAVE)
             quien = quien_de_la_cabecera(self.headers.get(CABECERA_CUENTA_QUIEN))

@@ -11,9 +11,11 @@ Qué garantiza y con qué prueba (servidor real del programa, como proceso, cont
   C5  con variable vacía, ni la cabecera vacía ni una cabecera buena abren la ruta: 401 y cero pedidos.
   C6  `personas_cuenta.CALCULOS` está vacía. P11-6 la llena y cambia esta prueba.
   C7  contrato con el cliente real de la App (`panel_reenvio.calcular_personas`, App `3ffe870`): corre en un proceso aparte, con la
-      rama de la App que dice la variable `PERSONAS_APP_RAMA`. Sin esa variable la prueba se SALTA con su motivo escrito en la salida
-      (no es un salto callado). Nada de la App se toca: solo se importa su `panel_reenvio.py`.
-La cuenta de pedidos la lleva el doble (`DobleEscrituras.pedidos`): cuenta cualquier método, no solo las escrituras.
+      rama de la App que dice la variable `PERSONAS_APP_RAMA`. Sin esa variable C7 se SALTA: unittest muestra `OK (skipped=1)` y el
+      motivo solo sale con `-v`. Por eso la suite se corre con `PERSONAS_APP_RAMA` apuntando a la App (`registro-trabajos/p11-cliente`)
+      cuando se publica, y así C7 corre de verdad. Nada de la App se toca: solo se importa su `panel_reenvio.py`.
+La cuenta de pedidos la lleva el doble (`DobleEscrituras.pedidos`): cuenta los pedidos HTTP a NocoDB, de cualquier método, no solo las
+escrituras. No cuenta otras escrituras (archivos, procesos).
 """
 import json
 import os

@@ -7,9 +7,9 @@ La App le pide a este proceso lo que una escritura escribiría, SIN escribir, pa
 (P11-4). Esta pieza NO calcula nada todavía: `CALCULOS` está vacía, así que cualquier `<nombre>` contesta 404 (el cliente de la App,
 `panel_reenvio.calcular_personas`, lo lee como `sin_calculo`). P11-6 registra aquí, uno por uno, los cálculos de cada escritura.
 
-Reglas que valen para TODO cálculo (lo vigila `tests/test_calcular_cuenta.py`):
-  · un cálculo nunca escribe en NocoDB ni en nada: recibe la lectura y devuelve la forma de la escritura, sin mandar un solo pedido
-    de escritura (POST, PATCH, DELETE o PUT);
+Reglas que valen para TODO cálculo. La prueba `tests/test_calcular_cuenta.py` vigila solo una cosa: que no salga ningún pedido HTTP
+a NocoDB (el doble cuenta todos los métodos). No vigila otras escrituras (archivos, procesos ajenos, otros servicios).
+  · un cálculo nunca manda a NocoDB un pedido de escritura (POST, PATCH, DELETE o PUT): devuelve la forma de la escritura, sin mandarla;
   · la llave y la identidad las mira `servidor.py` ANTES de leer el cuerpo y antes de NocoDB;
   · el cuerpo que no es un objeto JSON se rechaza con 400 antes de buscar el cálculo, como las rutas hermanas.
 """
