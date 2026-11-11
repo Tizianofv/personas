@@ -4266,11 +4266,37 @@ def _union_de_la_ficha(filas, ficha_id):
     return sorted((u for u in filas if ficha_id in (int(u["queda_id"]), int(u["sobra_id"]))), key=lambda u: int(u["Id"]))
 
 
-def _union_escribir_ficha(ficha_id, cuerpo):
+class SinCalculoDeUnion(Exception):
+    """P11-6f: un camino de `unir` que el cálculo (`solo_contar`) no puede predecir con fidelidad. `motivo` es una clave fija. Se lanza
+    ANTES de escribir lo que no se sabe, o después de planear escrituras que la escritura de verdad sí haría: en ese caso la unión
+    ya habría movido cosas y el cálculo no las dice (`personas_cuenta._calc_unir` contesta «sin cálculo»)."""
+
+    def __init__(self, motivo):
+        super().__init__(motivo)
+        self.motivo = motivo
+
+
+def _union_nc(solo_contar, planeados, metodo, tabla, body):
+    """Una escritura de filas de `unir` (POST, PATCH o DELETE a `records`). Con `solo_contar` no sale a la red: queda en `planeados`, en orden."""
+    if solo_contar:
+        planeados.append({"tabla": tabla, "metodo": metodo, "cuerpo": body})
+        return None
+    return _base.nc(metodo, f"/api/v2/tables/{tabla}/records", body=body)
+
+
+def _enlace_nombre(enlace):
+    """El nombre `L_*` de la constante de `base` con ese id: es el que la App ve (`_nombre_de_enlace` de la App). Sin nombre, no se predice."""
+    nombres = sorted(n for n, v in vars(_base).items() if n.startswith("L_") and v and v == enlace)
+    if not nombres:
+        raise SinCalculoDeUnion("enlace_sin_nombre")
+    return "enlace:" + nombres[0]
+
+
+def _union_escribir_ficha(ficha_id, cuerpo, solo_contar=False, planeados=None):
     """El `PATCH` a `personas` de la unión. `credito` no se escribe."""
     if "credito" in cuerpo or "Id" in cuerpo:
         raise ValueError("la unión no escribe esa casilla")
-    _base.nc("PATCH", f"/api/v2/tables/{_base.T_PERSONAS}/records", body=dict(cuerpo, Id=int(ficha_id)))
+    _union_nc(solo_contar, planeados, "PATCH", _base.T_PERSONAS, dict(cuerpo, Id=int(ficha_id)))
 
 
 def _union_tirar_caches():
@@ -4281,14 +4307,29 @@ def _union_tirar_caches():
 
 # --- los pasos 2 a 5: mover lo que cuelga de la ficha que sobra ---
 
-def _union_ligar(tabla, enlace, registro, destinos):
-    """Liga `registro` de `tabla` con los `Id` de `destinos` por ese enlace (el `POST` de enlace de `hacer_checkin`)."""
+def _union_ligar(tabla, enlace, registro, destinos, solo_contar=False, planeados=None):
+    """Liga `registro` de `tabla` con los `Id` de `destinos` por ese enlace (el `POST` de enlace de `hacer_checkin`). Con `solo_contar`
+    queda en `planeados` con su registro y sus ligados (P11-6f), sin salir a la red."""
+    if solo_contar:
+        planeados.append({"tabla": tabla, "metodo": "POST", "enlace": _enlace_nombre(enlace), "registro": int(registro),
+                          "ligados": [int(d) for d in destinos]})
+        return
     _base.nc("POST", _base.nc_link_path(tabla, enlace, registro), body=[{"Id": d} for d in destinos])
 
 
-def _union_asegurar_enlace(tabla, enlace, registro, destino):
+def _union_desligar(tabla, enlace, registro, destinos, solo_contar=False, planeados=None):
+    """Quita el vínculo de `registro` con `destinos` (el `DELETE` que hace `nc_unlink`). Con `solo_contar` queda en `planeados` (P11-6f)."""
+    if solo_contar:
+        if destinos:
+            planeados.append({"tabla": tabla, "metodo": "DELETE", "enlace": _enlace_nombre(enlace), "registro": int(registro),
+                              "ligados": [int(d) for d in destinos]})
+        return
+    _base.nc_unlink(tabla, enlace, registro, destinos)
+
+
+def _union_asegurar_enlace(tabla, enlace, registro, destino, solo_contar=False, planeados=None):
     if destino not in _union_leer_enlace(tabla, enlace, registro):
-        _union_ligar(tabla, enlace, registro, [destino])
+        _union_ligar(tabla, enlace, registro, [destino], solo_contar, planeados)
 
 
 def _union_crear_asistencia(entrada, qid, titulo):
@@ -4304,8 +4345,10 @@ def _union_crear_asistencia(entrada, qid, titulo):
     return aid
 
 
-def _union_mover_asistencias(plan, qid, sid):
-    """Paso 2. Por cada asistencia del plan: si la que queda no tiene una en esa sesión se le crea, y después se borra la de la que sobra."""
+def _union_mover_asistencias(plan, qid, sid, solo_contar=False, planeados=None):
+    """Paso 2. Por cada asistencia del plan: si la que queda no tiene una en esa sesión se le crea, y después se borra la de la que sobra.
+    Con `solo_contar` (P11-6f): crear una asistencia nueva no se predice (su `Id` lo asigna la base y es el registro de sus enlaces): se
+    levanta `SinCalculoDeUnion`. Lo demás queda en `planeados`."""
     de_s = {}
     for a in _union_asistencias_de(sid):
         de_s.setdefault(a["sesion_id"], []).append(a)
@@ -4319,17 +4362,19 @@ def _union_mover_asistencias(plan, qid, sid):
         if not de_s.get(ses):
             continue
         if not de_q.get(ses):
+            if solo_contar:
+                raise SinCalculoDeUnion("asistencia_nueva")
             de_q[ses] = [{"Id": _union_crear_asistencia(e, qid, plan["titulo_q"])}]
         elif e["accion"] == "mover":
             aid = de_q[ses][0]["Id"]
-            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_PERSONA, aid, qid)
-            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_SESION, aid, ses)
+            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_PERSONA, aid, qid, solo_contar, planeados)
+            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_SESION, aid, ses, solo_contar, planeados)
         for a in de_s[ses]:
-            _base.nc("DELETE", f"/api/v2/tables/{_base.T_ASISTENCIAS}/records", body={"Id": a["Id"]})
+            _union_nc(solo_contar, planeados, "DELETE", _base.T_ASISTENCIAS, {"Id": a["Id"]})
         de_s[ses] = []
 
 
-def _union_mover_enlaces(plan_ids, tabla, enlace_del_registro, enlace_de_la_ficha, qid, sid):
+def _union_mover_enlaces(plan_ids, tabla, enlace_del_registro, enlace_de_la_ficha, qid, sid, solo_contar=False, planeados=None):
     """Pasos 3 y 4. Cada registro de `plan_ids` se liga a `qid` desde su lado y se desliga de `sid`."""
     if not plan_ids:
         return
@@ -4337,35 +4382,38 @@ def _union_mover_enlaces(plan_ids, tabla, enlace_del_registro, enlace_de_la_fich
     de_q = _union_leer_enlace(_base.T_PERSONAS, enlace_de_la_ficha, qid)
     for r in plan_ids:
         if r not in de_q:
-            _union_ligar(tabla, enlace_del_registro, r, [qid])
+            _union_ligar(tabla, enlace_del_registro, r, [qid], solo_contar, planeados)
         if r in de_s:
-            _base.nc_unlink(tabla, enlace_del_registro, r, [sid])
+            _union_desligar(tabla, enlace_del_registro, r, [sid], solo_contar, planeados)
 
 
-def _union_mover_sesiones(plan, qid, sid):
-    _union_mover_enlaces(_union_ids(plan, "sesiones"), _base.T_SESIONES, _base.L_MUSICOS, _base.L_PERSONA_SESIONES, qid, sid)
+def _union_mover_sesiones(plan, qid, sid, solo_contar=False, planeados=None):
+    _union_mover_enlaces(_union_ids(plan, "sesiones"), _base.T_SESIONES, _base.L_MUSICOS, _base.L_PERSONA_SESIONES, qid, sid,
+                         solo_contar, planeados)
 
 
-def _union_mover_proyectos_y_pagos(plan, qid, sid):
+def _union_mover_proyectos_y_pagos(plan, qid, sid, solo_contar=False, planeados=None):
     """Paso 4. Los proyectos se mueven desde el lado del proyecto; los pagos, desde el lado de la ficha."""
-    _union_mover_enlaces(_union_ids(plan, "proyectos"), _base.T_PROYECTOS, _base.L_PROY_MIEMBROS, _base.L_PERSONA_PROYECTOS, qid, sid)
+    _union_mover_enlaces(_union_ids(plan, "proyectos"), _base.T_PROYECTOS, _base.L_PROY_MIEMBROS, _base.L_PERSONA_PROYECTOS, qid, sid,
+                         solo_contar, planeados)
     pagos = _union_ids(plan, "pagos")
     if pagos:
         de_s = _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, sid)
         de_q = _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, qid)
         nuevos = [p for p in pagos if p not in de_q]
         if nuevos:
-            _union_ligar(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, qid, nuevos)
+            _union_ligar(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, qid, nuevos, solo_contar, planeados)
         quitar = [p for p in pagos if p in de_s]
         if quitar:
-            _base.nc_unlink(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, sid, quitar)
+            _union_desligar(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, sid, quitar, solo_contar, planeados)
 
 
 # --- los pasos 6 y 7: escribir las dos fichas ---
 
-def _union_marcar(antes, qid, sid):
+def _union_marcar(antes, qid, sid, solo_contar=False, planeados=None):
     """Pasos 6 y 7, bajo los candados. Se relee cada ficha: si una casilla que la unión usa cambió respecto al plan, se para.
-    Si no, se escribe la que queda (paso 6) y se vacía y se marca la que sobra (paso 7). Lo ya escrito no se vuelve a escribir."""
+    Si no, se escribe la que queda (paso 6) y se vacía y se marca la que sobra (paso 7). Lo ya escrito no se vuelve a escribir.
+    Con `solo_contar` (P11-6f) las lecturas son las mismas, y los dos PATCH quedan en `planeados`; no se tiran cachés."""
     cols_q = list(antes["queda"])
     cols_s = list(dict.fromkeys(list(UNION_COLUMNAS_QUE_SE_VACIAN) + list(antes["lee_de_sobra"])))
     with _FICHA_TELEFONO_LOCK, _candado_de_ficha(min(qid, sid)), _candado_de_ficha(max(qid, sid)):
@@ -4387,14 +4435,15 @@ def _union_marcar(antes, qid, sid):
                 raise _union_no(409, "cambio_mientras_unias", "Una de las dos fichas cambió mientras unías. No se siguió.", casillas=sorted(set(cambio)))
             cuerpo_q = {c: d["despues"] for c, d in antes["queda"].items() if not _union_mismo(c, q.get(c), d["despues"])}
             if cuerpo_q:
-                _union_escribir_ficha(qid, cuerpo_q)
+                _union_escribir_ficha(qid, cuerpo_q, solo_contar, planeados)
             cuerpo_s = {c: None for c in UNION_COLUMNAS_QUE_SE_VACIAN if _union_texto(s.get(c)) != ""}
             if not ficha_unida(s):
                 cuerpo_s["unida_a"] = qid
             if cuerpo_s:
-                _union_escribir_ficha(sid, cuerpo_s)
+                _union_escribir_ficha(sid, cuerpo_s, solo_contar, planeados)
         finally:
-            _union_tirar_caches()      # la cámara lee las caras de una caché: tiene que verlas como quedaron
+            if not solo_contar:       # (P11-6f) el cálculo no tira cachés
+                _union_tirar_caches()      # la cámara lee las caras de una caché: tiene que verlas como quedaron
 
 
 # --- el paso 8: volver a leer y cerrar ---
@@ -4423,9 +4472,14 @@ def _union_verificar(plan, antes, qid, sid):
     return mal
 
 
-def _union_cerrar(u, plan, antes, qid, sid):
-    """Paso 8. Vuelve a leer las dos fichas y lo que cuelga; solo si todo cuadra pone la unión en `unida`, y vuelve a leer el registro."""
+def _union_cerrar(u, plan, antes, qid, sid, solo_contar=False, planeados=None):
+    """Paso 8. Vuelve a leer las dos fichas y lo que cuelga; solo si todo cuadra pone la unión en `unida`, y vuelve a leer el registro.
+    Con `solo_contar` (P11-6f) no relee: lo que se planeó se da por bueno (como en P11-6e), y solo queda en `planeados` el PATCH de `unida`."""
     uid = int(u["Id"])
+    if solo_contar:
+        _union_nc(True, planeados, "PATCH", _base.T_UNIONES_PERSONAS, {"Id": uid, "estado": "unida", "terminada_en": _ahora_utc()})
+        return 200, {"ok": True, "estado": "unida", "union_id": uid, "queda": qid, "sobra": sid,
+                     "movido": {k: len(plan[k]) for k in ("asistencias", "sesiones", "proyectos", "pagos")}}
     mal = _union_verificar(plan, antes, qid, sid)
     if mal:
         print(f"[warn] unión: lo releído no cuadra ({','.join(mal)})")
@@ -4439,8 +4493,11 @@ def _union_cerrar(u, plan, antes, qid, sid):
                  "movido": {k: len(plan[k]) for k in ("asistencias", "sesiones", "proyectos", "pagos")}}
 
 
-def _union_correr(u):
-    """Pasos 2 a 8 de la unión del registro `u`, desde el plan guardado. Devuelve `(código, datos)`; sirve para empezar y para terminar."""
+def _union_correr(u, solo_contar=False, planeados=None):
+    """Pasos 2 a 8 de la unión del registro `u`, desde el plan guardado. Devuelve `(código, datos)`; sirve para empezar y para terminar.
+    Con `solo_contar` (P11-6f) no escribe: las escrituras quedan en `planeados`, en orden. Tras los movimientos planeados la ficha que
+    sobra queda sin nada (el plan se armó con todo lo que colgaba), así que no se relee lo que quedó: se usa esa lista vacía, y con ella
+    el plan no cambia y la pasada es la única. Cualquier parada o fallo DESPUÉS de planear escrituras no se predice: `SinCalculoDeUnion`."""
     uid = int(u["Id"])
     try:
         qid, sid = int(u["queda_id"]), int(u["sobra_id"])
@@ -4452,33 +4509,48 @@ def _union_correr(u):
         return _union_sin_confirmar(uid, "registro_ilegible", "El registro de esta unión no se puede leer. No se tocó nada.")
     try:
         for _ in range(UNION_PASADAS):
-            _union_mover_asistencias(plan, qid, sid)
-            _union_mover_sesiones(plan, qid, sid)
-            _union_mover_proyectos_y_pagos(plan, qid, sid)
-            lo = _union_lo_de_sobra(sid)
+            _union_mover_asistencias(plan, qid, sid, solo_contar, planeados)
+            _union_mover_sesiones(plan, qid, sid, solo_contar, planeados)
+            _union_mover_proyectos_y_pagos(plan, qid, sid, solo_contar, planeados)
+            if solo_contar:
+                lo = {"asistencias": [], "sesiones": [], "proyectos": [], "pagos": [], "inscripciones": []}
+            else:
+                lo = _union_lo_de_sobra(sid)
             if _union_completar_plan(plan, lo, lambda: _union_asistencias_de(qid), _union_enlaces_de(qid)):
-                _base.nc("PATCH", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records", body={"Id": uid, "plan": _union_json(plan)})
+                _union_nc(solo_contar, planeados, "PATCH", _base.T_UNIONES_PERSONAS, {"Id": uid, "plan": _union_json(plan)})
             if not _union_queda_algo(lo):
                 break
         else:
             return _union_sin_confirmar(uid, "no_termino", "A la ficha que sobra le siguen llegando cosas. Inténtalo de nuevo en un momento.")
-        _union_marcar(antes, qid, sid)
-        return _union_cerrar(u, plan, antes, qid, sid)
+        _union_marcar(antes, qid, sid, solo_contar, planeados)
+        return _union_cerrar(u, plan, antes, qid, sid, solo_contar, planeados)
+    except SinCalculoDeUnion:
+        raise
     except _UnionParada as p:
+        if solo_contar:
+            raise SinCalculoDeUnion("parada_despues_de_planear")
         return p.codigo, dict(p.datos, union_id=uid, puede_terminar=False)
     except Exception as e:                                   # noqa: BLE001
+        if solo_contar:
+            raise SinCalculoDeUnion("fallo_despues_de_planear")
         print(f"[warn] unión: no se terminó ({type(e).__name__})")
         return _union_sin_confirmar(uid, "no_termino")
     finally:
-        _union_tirar_caches()
+        if not solo_contar:          # (P11-6f) el cálculo no tira cachés
+            _union_tirar_caches()
 
 
 # --- las dos entradas ---
 
+def _union_cuerpo_del_registro(clave, qid, sid, plan, antes, quien):
+    """La fila del registro de la unión, tal como la escribe `_union_apuntar` (P11-6f: la usa también el cálculo, sin escribirla)."""
+    return {"clave": clave, "estado": "en_curso", "queda_id": qid, "sobra_id": sid, "plan": _union_json(plan), "antes": _union_json(antes),
+            "creada_por": quien, "creada_en": _ahora_utc()}
+
+
 def _union_apuntar(clave, qid, sid, plan, antes, quien):
     """Paso 1. Escribe la fila del registro y la vuelve a leer por su clave; si no se confirma, se para sin haber movido nada."""
-    cuerpo = {"clave": clave, "estado": "en_curso", "queda_id": qid, "sobra_id": sid, "plan": _union_json(plan), "antes": _union_json(antes),
-              "creada_por": quien, "creada_en": _ahora_utc()}
+    cuerpo = _union_cuerpo_del_registro(clave, qid, sid, plan, antes, quien)
     try:
         _base.nc("POST", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records", body=cuerpo)
     except _base.SoloLectura:
@@ -4530,7 +4602,7 @@ def _union_planear(id_a, id_b, resoluciones, queda_visto=None):
     return qid, sid, plan, antes
 
 
-def unir_fichas(id_a, id_b, resoluciones, clave, quien, queda_visto=None):
+def unir_fichas(id_a, id_b, resoluciones, clave, quien, queda_visto=None, solo_contar=False, planeados=None):
     """Une las fichas `id_a` e `id_b`. Devuelve `(código, datos)`. Quién queda lo decide el servidor (`union_quien_queda`), y las
     casillas que chocan las vuelve a calcular con las fichas leídas ahora: `resoluciones` es `{casilla: opción}` (en teléfonos y correos,
     la lista de los que se quedan, el primero principal). `clave` identifica el intento: repetirlo no hace otra unión.
@@ -4552,17 +4624,26 @@ def unir_fichas(id_a, id_b, resoluciones, clave, quien, queda_visto=None):
                                  "queda": int(u["queda_id"]), "sobra": int(u["sobra_id"])}
                 if u.get("estado") != "en_curso":
                     return 409, {"ok": False, "motivo": "union_en_otro_estado", "error": "Esa unión ya no se puede terminar.", "union_id": int(u["Id"])}
+                if solo_contar:                              # (P11-6f) terminar una unión a medias no es `unir`: no se predice aquí
+                    raise SinCalculoDeUnion("union_a_medias")
                 return _union_correr(u)
             qid, sid, plan, antes = _union_planear(id_a, id_b, resoluciones, queda_visto)
-            u = _union_apuntar(clave, qid, sid, plan, antes, quien)
+            if solo_contar:
+                # (P11-6f) el registro no se escribe ni se vuelve a leer: su `Id` es el previsto, y se planea su alta tal como la escribe `_union_apuntar`
+                u = {"Id": PREVISTO_ID_BASE, "queda_id": qid, "sobra_id": sid, "plan": _union_json(plan), "antes": _union_json(antes)}
+                _union_nc(True, planeados, "POST", _base.T_UNIONES_PERSONAS, _union_cuerpo_del_registro(clave, qid, sid, plan, antes, quien))
+            else:
+                u = _union_apuntar(clave, qid, sid, plan, antes, quien)
         except _UnionParada as p:
             return p.codigo, p.datos
         except _base.SoloLectura:
             raise
+        except SinCalculoDeUnion:
+            raise
         except Exception as e:                               # noqa: BLE001
             print(f"[warn] unión: no se pudo comprobar ({type(e).__name__})")
             return 502, {"ok": False, "motivo": "no_se_pudo_comprobar", "error": "No se pudo leer la base para unir. No se hizo nada. Inténtalo en un momento."}
-        return _union_correr(u)
+        return _union_correr(u, solo_contar, planeados)
 
 
 def continuar_union(ficha_id):

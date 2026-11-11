@@ -177,7 +177,8 @@ class SinCalculos(unittest.TestCase):
         cls.s.__exit__(None, None, None)
 
     def test_C4_todo_nombre_contesta_404_sin_calculo(self):
-        for nombre in ["unir", "continuar", "deshacer", "no_existe", "Crear", "a", "a/b", ""]:
+        # «unir» tiene cálculo desde P11-6 grupo (f): ya no está aquí (`test_calcular_grupo_f`)
+        for nombre in ["continuar", "deshacer", "no_existe", "Crear", "a", "a/b", ""]:
             with self.subTest(nombre=nombre):
                 codigo, resp = self.s.pedir(RUTA % nombre, cabeceras=self.s.buena())
                 self.assertEqual((codigo, resp), (404, ERROR_SIN_CALCULO))
@@ -224,7 +225,7 @@ class ContratoConElClienteDeLaApp(unittest.TestCase):
             buena = {"PERSONAS_BASE": base, VARIABLE_LLAVE: LLAVE_CUENTA}
             fallo = {"calculado": False, "cuenta": None}
             casos = [
-                ("sin_calculo_con_identidad_utf8", buena, "unir", CUERPO, QUIEN,   # «unir» no tiene cálculo (grupo (f) de P11-6, pendiente)
+                ("sin_calculo_con_identidad_utf8", buena, "continuar", CUERPO, QUIEN,   # «continuar» no tiene cálculo (grupo (f) de P11-6, va aparte)
                  dict(fallo, motivo="sin_calculo")),
                 ("llave_rechazada", dict(buena, **{VARIABLE_LLAVE: "llave-equivocada-de-prueba"}), "crear", CUERPO, QUIEN,
                  dict(fallo, motivo="llave_rechazada")),

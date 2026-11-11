@@ -54,8 +54,14 @@ _METODOS_CON_CUERPO = ("POST", "PATCH", "PUT", "DELETE")
 
 
 class DobleEscrituras:
-    def __init__(self, caidas=(), caidas_una_vez=(), union=False, columnas_personas=(), caidas_fila=()):
+    def __init__(self, caidas=(), caidas_una_vez=(), union=False, columnas_personas=(), caidas_fila=(), enlaces=None, parejas=None):
         self.caidas_fila = set(caidas_fila)
+        # `enlaces` (P11-6f, `unir`): {(tabla, enlace, registro): [Id ligados]} de partida. Un POST de enlace liga, un DELETE desliga, y el
+        # GET los devuelve: así un movimiento de enlaces de la unión se ve de verdad. Sin `enlaces`, los enlaces salen vacíos como antes.
+        self.enlaces = {tuple(k): set(v) for k, v in (enlaces or {}).items()}
+        # `parejas` (P11-6f): {(tabla, enlace): (tabla, enlace)} de los enlaces que NocoDB guarda en sus dos lados. Un POST o un DELETE
+        # de uno también liga o desliga su pareja (el lado de la otra tabla), como la base real.
+        self.parejas = dict(parejas or {})
         self.tablas = {t: copy.deepcopy(filas) for t, filas in doble_nocodb.TABLAS.items()}
         self.meta = dict(doble_nocodb.COLUMNAS_META)
         self.union = union
@@ -144,10 +150,28 @@ class DobleEscrituras:
                         self.errores.append("metadatos de tabla desconocida: %s" % ruta)
                         return 404, {"msg": "doble: tabla desconocida"}
                     return 200, {"id": meta.group(1), "columns": self.meta.get(meta.group(1), [])}
-            if metodo == "GET" and re.fullmatch(r"/api/v2/tables/([^/]+)/links/([^/]+)/records/(\d+)", ruta):
-                # Enlaces VACÍOS en TODOS los modos (parte 5: `revisar_borrado` los lee y la ficha del doble no tiene nada enlazado).
-                # En el modo de unión, cada lista sale vacía (ver la docstring).
-                return 200, {"list": [], "pageInfo": {"totalRows": 0, "page": 1, "pageSize": 200, "isLastPage": True}}
+            enlace = re.fullmatch(r"/api/v2/tables/([^/]+)/links/([^/]+)/records/(\d+)", ruta)
+            if metodo in ("POST", "DELETE") and enlace:
+                # P11-6f: un enlace se liga (POST) o se desliga (DELETE) con una lista de {"Id": n}; lo que quede es lo que el GET devuelve.
+                registro = int(enlace.group(3))
+                conjunto = self.enlaces.setdefault((enlace.group(1), enlace.group(2), registro), set())
+                ids = [f.get("Id") for f in (cuerpo if isinstance(cuerpo, list) else [cuerpo]) if isinstance(f, dict)]
+                if metodo == "POST":
+                    conjunto.update(ids)
+                else:
+                    conjunto.difference_update(ids)
+                pareja = self.parejas.get((enlace.group(1), enlace.group(2)))
+                for i in ids:
+                    if pareja:
+                        lado = self.enlaces.setdefault((pareja[0], pareja[1], i), set())
+                        lado.add(registro) if metodo == "POST" else lado.discard(registro)
+                return 200, {}
+            if metodo == "GET" and enlace:
+                # Enlaces VACÍOS si el doble no tiene nada de partida (parte 5: `revisar_borrado` los lee y la ficha del doble no tiene nada
+                # enlazado). Con `enlaces`, cada lista sale con lo que tiene (P11-6f).
+                ligados = sorted(self.enlaces.get((enlace.group(1), enlace.group(2), int(enlace.group(3))), set()))
+                return 200, {"list": [{"Id": i} for i in ligados], "pageInfo": {"totalRows": len(ligados), "page": 1, "pageSize": 200,
+                                                                              "isLastPage": True}}
             m = re.fullmatch(r"/api/v2/tables/([^/]+)/records(?:/(\d+))?", ruta)
             if not m or m.group(1) not in self.tablas:
                 self.errores.append("tabla o ruta desconocida: %s %s" % (metodo, ruta))
@@ -196,6 +220,11 @@ class DobleEscrituras:
                     self.tablas[tabla].append(fila)
                     salida.append(dict(fila))
                 return 200, salida if isinstance(cuerpo, list) else salida[0]
+            if metodo == "DELETE" and id_ruta is None:
+                # P11-6f: la unión quita asistencias de la ficha que sobra (un DELETE de filas por su Id, en una lista o una sola fila)
+                ids = {f.get("Id") for f in (cuerpo if isinstance(cuerpo, list) else [cuerpo]) if isinstance(f, dict)}
+                self.tablas[tabla] = [f for f in self.tablas[tabla] if f.get("Id") not in ids]
+                return 200, {}
             self.errores.append("método no soportado en el doble de escrituras: %s %s" % (metodo, ruta))
             return 405, {"msg": "doble: método no soportado"}
 

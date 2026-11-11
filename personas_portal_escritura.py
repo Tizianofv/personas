@@ -121,8 +121,9 @@ def _con_el_aviso_marcado(aviso, modo, estado, codigo, datos, quien):
     return datos
 
 
-def _unir(ficha, cuerpo, quien):
-    """Copia del bloque `mu` de `portal_personas_post` de la App (`594ec12`)."""
+def _unir(ficha, cuerpo, quien, solo_contar=False, planeados=None):
+    """Copia del bloque `mu` de `portal_personas_post` de la App (`594ec12`). Con `solo_contar` (P11-6f, el cálculo de `unir`) no escribe:
+    las escrituras quedan en `planeados`. Un pedido con aviso de «Por resolver» marca además la bandeja: eso no se calcula (`SinCalculoDeUnion`)."""
     otra = cuerpo.get("otra") if isinstance(cuerpo, dict) else None
     otra = int(otra) if isinstance(otra, str) and re.fullmatch(r"\d{1,9}", otra) else otra
     resoluciones = cuerpo.get("resoluciones") if isinstance(cuerpo, dict) else None
@@ -134,6 +135,12 @@ def _unir(ficha, cuerpo, quien):
     aviso, mal = personas.aviso_del_pedido(cuerpo)
     if mal:
         return 400, {"ok": False, "error": mal}
+    if solo_contar:
+        if aviso:
+            raise personas.SinCalculoDeUnion("aviso_de_por_resolver")
+        codigo, datos = personas.unir_fichas(ficha, otra, resoluciones, cuerpo.get("clave"), quien, queda_visto=visto,
+                                             solo_contar=True, planeados=planeados)
+        return codigo, datos
     codigo, datos = personas.unir_fichas(ficha, otra, resoluciones, cuerpo.get("clave"), quien, queda_visto=visto)
     return codigo, _con_el_aviso_marcado(aviso, "unir", "unida", codigo, datos, quien)
 

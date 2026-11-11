@@ -36,6 +36,7 @@ import base as _base
 import personas
 import personas_entrada
 import personas_escrituras
+import personas_portal_escritura
 
 ERROR_SIN_CALCULO = {"error": "sin cálculo para esa escritura"}
 ERROR_PEDIDO_ILEGIBLE = {"error": "pedido ilegible. No se calculó nada."}
@@ -50,7 +51,9 @@ CLAVE_RUTA = "ruta_de_la_escritura"
 COLUMNAS_DEL_RELOJ = frozenset({"anotaciones.POST.cuando", "anotaciones.POST.dicho_el",
                                 # P11-6e: la hora de un borrado, una devolución y una marca de «Por resolver» (la escritura la pone con `_ahora_utc()`)
                                 "quitadas.POST.creada_en", "personas.PATCH.quitada_el", "quitadas.PATCH.devuelta_en",
-                                "bandeja.POST.resuelto_en", "bandeja.PATCH.resuelto_en"})
+                                "bandeja.POST.resuelto_en", "bandeja.PATCH.resuelto_en",
+                                # P11-6f: la hora en que `unir` abre el registro de la unión y la hora en que la marca «unida»
+                                "uniones.POST.creada_en", "uniones.PATCH.terminada_en"})
 
 # Nombre de la escritura -> (método, ruta). Los nombres y las rutas son los de `PERSONAS_PORTAL_ESCRITURAS` y
 # `PERSONAS_APRENDIZAJE_ESCRITURAS` de la App (`registro/panel_reenvio.py`, `3ffe870` y `cafe2a3`). La prueba de contrato los compara
@@ -72,6 +75,7 @@ RUTAS = {
     "reabrir": ("POST", re.compile(r"/api/portal-personas/por-resolver/reabrir")),
     "borrar": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/borrar")),
     "devolver": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/devolver")),
+    "unir": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/unir")),
 }
 
 
@@ -239,8 +243,36 @@ def _calc_devolver(cuerpo, quien, direccion):
         lambda p: personas.devolver_ficha(pid, quien, solo_contar=True, planeados=p)))
 
 
+# ---------- P11-6, grupo (f): unir (fila 6). Solo `unir`; `continuar` y `deshacer` van en encargos aparte.
+# `unir_fichas` corre con `solo_contar=True` y `planeados`: la decisión, las lecturas y los rechazos son los de la unión; las escrituras
+# (la fila del registro, los movimientos de asistencias y de enlaces una persona por pedido, y las dos fichas) quedan en `planeados`, en orden.
+# Lo que NO se predice (la base lo decide al escribir): crear una asistencia nueva (su Id es el registro de sus enlaces), una unión que
+# había quedado a medias, un aviso de «Por resolver» (marca la bandeja) y una parada o un fallo después de planear. Esos contestan 404
+# «sin cálculo», y la App los lee como `sin_calculo`.
+
+
+def _calc_unir(cuerpo, quien, direccion):
+    ficha = int(direccion)
+
+    def calcular():
+        try:
+            return _calculo_de_planeados_de_union(lambda p: personas_portal_escritura._unir(ficha, cuerpo, quien, solo_contar=True, planeados=p))
+        except personas.SinCalculoDeUnion:
+            return 404, dict(ERROR_SIN_CALCULO)
+    return _envuelto(calcular)
+
+
+def _calculo_de_planeados_de_union(funcion):
+    planeados = []
+    codigo, datos = funcion(planeados)
+    if codigo == 200:
+        return personas.calculo_de_escrituras(planeados, 200)
+    return codigo, datos
+
+
 # Cálculos registrados: nombre -> función `(cuerpo, quien, direccion) -> (codigo, cuerpo)`. Los nombres son los de `RUTAS`.
 CALCULOS = {
+    "unir": _calc_unir,
     "crear": _calc_crear,
     "editar": _calc_editar,
     "crear_checkin": _calc_crear_checkin,
@@ -263,7 +295,9 @@ def _nombre_logico(tabla_id):
     es un error del cálculo: la App la contaría como `escribio_fuera_de_la_captura`, y no hay forma honesta de calcularla."""
     tablas = {_base.T_PERSONAS: "personas", _base.T_PERSONAS_ANOTACIONES: "anotaciones", _base.T_BANDEJA_PERSONAS: "bandeja",
               _base.T_UNIONES_PERSONAS: "uniones", _base.T_PERSONAS_QUITADAS: "quitadas", _base.T_ASISTENCIAS: "asistencias",
-              _base.T_MERCADEO_ENVIOS: "mercadeo_envios"}
+              _base.T_MERCADEO_ENVIOS: "mercadeo_envios",
+              # P11-6f: solo los enlaces que `unir` escribe desde estas tablas (la App las nombra así en la captura de enlaces)
+              _base.T_SESIONES: "sesiones", _base.T_PROYECTOS: "proyectos"}
     nombre = tablas.get(tabla_id) if tabla_id else None
     if nombre is None:
         raise RuntimeError("tabla de Personas sin nombre lógico")
@@ -276,6 +310,12 @@ def _en_forma_de_la_app(escrituras):
     filas, sin_valor = [], set()
     for e in escrituras:
         tabla, metodo = _nombre_logico(e["tabla"]), str(e["metodo"]).strip().upper()
+        if e.get("enlace"):
+            # P11-6f: un enlace (`enlace:L_…`) va con UNA fila por pedido, su registro y sus ligados, como lo compara la App (regla única).
+            # Sin `Id` en los valores de un registro, sin `sin_valor`: su `registro` es el Id de la ruta, que el cálculo ya conoce.
+            filas.append({"tabla": tabla, "metodo": metodo, "enlace": e["enlace"],
+                          "valores": {"registro": e["registro"], "ligados": sorted(e["ligados"])}})
+            continue
         cuerpo = e.get("cuerpo")
         registros = cuerpo if isinstance(cuerpo, list) else [cuerpo]
         if metodo == "POST":
