@@ -53,6 +53,9 @@ _QUERY_PERMITIDA = {"fields", "where", "limit", "offset", "sort"}
 _METODOS_CON_CUERPO = ("POST", "PATCH", "PUT", "DELETE")
 
 
+TOPE_PARAR_S = 10   # tope de `DobleEscrituras.parar()`: ver ahí
+
+
 class DobleEscrituras:
     def __init__(self, caidas=(), caidas_una_vez=(), union=False, columnas_personas=(), caidas_fila=(), enlaces=None, parejas=None):
         self.caidas_fila = set(caidas_fila)
@@ -280,6 +283,12 @@ class DobleEscrituras:
         return "http://127.0.0.1:%d" % self.servidor.server_address[1]
 
     def parar(self):
+        """Apaga el servidor. `shutdown()` de socketserver espera SIN TOPE a que `serve_forever` termine: se corre en un hilo con tope de
+        `TOPE_PARAR_S` segundos; si no termina, la prueba sale roja con un mensaje (no se queda esperando)."""
         if self.servidor:
-            self.servidor.shutdown()
+            fin = threading.Thread(target=self.servidor.shutdown, daemon=True)
+            fin.start()
+            fin.join(TOPE_PARAR_S)
+            if fin.is_alive():
+                raise AssertionError("el doble de NocoDB no se apagó en %d s (serve_forever no terminó)" % TOPE_PARAR_S)
             self.servidor.server_close()

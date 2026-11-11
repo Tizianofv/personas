@@ -353,8 +353,9 @@ def _validar_proveedores(cuerpo, pid):
 
 
 def _calc_editar_proveedores(cuerpo, quien, direccion):
-    """`editar` por una ruta de Proveedores: la validación de la App y, si pasa, el mismo cálculo que `editar` del portal (la ficha es la
-    de la ruta; el cuerpo solo lleva `cambios`, `base` y `clave_envio`, y `clave_envio` no se usa al escribir)."""
+    """`editar` por una ruta de Proveedores: primero la validación de la App (`_validar_proveedores`: solo `Precio_referencia`, `id` igual
+    al de la ruta, columna numérica) y, si pasa, el mismo cálculo que `editar` del portal. El cuerpo lleva `id`, `cambios`, `base` y
+    `clave_envio`: el `id` se valida aquí; `clave_envio` la lee el candado de la ruta (`personas_portal_escritura`), que el cálculo no usa."""
     pid = int(direccion)
     rechazo = _validar_proveedores(cuerpo, pid)
     if rechazo is not None:

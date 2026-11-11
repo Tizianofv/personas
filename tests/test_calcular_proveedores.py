@@ -227,9 +227,12 @@ def _driver_de_la_app():
     return texto
 
 
+TOPE_APP_S = 240   # tope de UNA App en vivo (arranque y una petición). Pasado el tope, la prueba sale roja; nunca espera sin fin.
+
+
 def _app(doble, ruta, cuerpo):
     """Una petición POST a la App (un proceso por petición, como la foto): `(codigo, respuesta, escrituras)`. Las escrituras son las del
-    doble de la App en esa petición."""
+    doble de la App en esa petición. Si la App no contesta en `TOPE_APP_S`, `subprocess.run` mata el proceso y aquí sale un AssertionError."""
     antes = len(doble.pedidos)
     entrada = json.dumps({"ruta": ruta, "quien": QUIEN, "metodo": "POST",
                           "datos_b64": base64.b64encode(json.dumps(cuerpo, ensure_ascii=False).encode("utf-8")).decode("ascii")}) + "\n"
@@ -238,18 +241,22 @@ def _app(doble, ruta, cuerpo):
                "NOCODB_T_PERSONAS_ANOTACIONES": esc.ENTORNO_BASE["NOCODB_T_PERSONAS_ANOTACIONES"],
                "NOCODB_T_PERSONAS_QUITADAS": esc.ENTORNO_BASE["NOCODB_T_PERSONAS_QUITADAS"],
                "NOCODB_T_BANDEJA_PERSONAS": esc.ENTORNO_BASE["NOCODB_T_BANDEJA_PERSONAS"]}
-    proceso = subprocess.run([sys.executable, "-I", "-B", "-c", _driver_de_la_app()], cwd=RAMA, env=entorno, input=entrada,
-                             capture_output=True, text=True, encoding="utf-8", timeout=300)
+    try:
+        proceso = subprocess.run([sys.executable, "-I", "-B", "-c", _driver_de_la_app()], cwd=RAMA, env=entorno, input=entrada,
+                                 capture_output=True, text=True, encoding="utf-8", timeout=TOPE_APP_S)
+    except subprocess.TimeoutExpired:
+        raise AssertionError("la App en vivo no contestó en %d s a %s (cuerpo %s); el proceso se mató" % (TOPE_APP_S, ruta, cuerpo))
     lineas = [l for l in proceso.stdout.splitlines() if l.startswith("PASO ")]
     if proceso.returncode != 0 or len(lineas) != 1:
-        raise AssertionError("la App no contestó (%s): %s" % (proceso.returncode, proceso.stderr[-600:]))
+        raise AssertionError("la App no contestó (%s) a %s: %s" % (proceso.returncode, ruta, proceso.stderr[-600:]))
     dato = json.loads(lineas[0][len("PASO "):])
     return dato["status"], esc.normalizar(dato["respuesta"]), _escrituras_de(doble.pedidos[antes:])
 
 
 @unittest.skipUnless(RAMA, "falta PERSONAS_APP_RAMA: sin la App no hay contraste en vivo (G4)")
 class ContratoConLaApp(unittest.TestCase):
-    """G4: las constantes y los patrones de la App (lectura con `ast`), y la App en vivo contra el cálculo."""
+    """G4: las constantes y los patrones de la App (lectura con `ast`), y la App en vivo contra el cálculo. Sin `subTest` en las
+    pruebas en vivo: la primera diferencia o el primer tope corta la prueba, con el cuerpo y la ruta en el mensaje."""
 
     def _constantes(self, archivo):
         arbol = ast.parse((Path(RAMA) / archivo).read_text(encoding="utf-8"))
@@ -283,39 +290,38 @@ class ContratoConLaApp(unittest.TestCase):
         rechaza: el mismo código y cuerpo, y ninguna escritura. Si la App escribe: el cálculo dice esas mismas escrituras."""
         for nombre, cuerpo in CUERPOS.items():
             for ruta in RUTAS:
-                with self.subTest(cuerpo=nombre, ruta=ruta):
-                    doble_app = doble_escrituras.DobleEscrituras(columnas_personas=[COLUMNA])
-                    doble_app.url = doble_app.arrancar()
-                    try:
-                        _sembrar(doble_app, cuerpo)
-                        codigo_app, datos_app, escrituras_app = _app(doble_app, ruta, dict(cuerpo))
-                    finally:
-                        doble_app.parar()
-                    with _Sembrada(cuerpo, columnas_personas=[COLUMNA]) as c:
-                        codigo_c, datos_c = personas_cuenta.calcular("editar", _cuerpo_del_calculo(ruta, cuerpo), QUIEN)
-                        escrituras_c = c.escrituras()
-                    self.assertEqual(escrituras_c, [], "G2")
-                    if codigo_app == 200:
-                        self.assertEqual(codigo_c, 200, "G1 contra la App: código")
-                        self.assertEqual(datos_c["escrituras"], forma_app(escrituras_app), "G1 contra la App")
-                    else:
-                        self.assertEqual(escrituras_app, [], "la App rechazó y escribió")
-                        self.assertEqual((codigo_c, datos_c), (codigo_app, datos_app), "G3 contra la App")
+                etiqueta = "cuerpo=%s ruta=%s" % (nombre, ruta)
+                doble_app = doble_escrituras.DobleEscrituras(columnas_personas=[COLUMNA])
+                doble_app.url = doble_app.arrancar()
+                try:
+                    _sembrar(doble_app, cuerpo)
+                    codigo_app, datos_app, escrituras_app = _app(doble_app, ruta, dict(cuerpo))
+                finally:
+                    doble_app.parar()
+                with _Sembrada(cuerpo, columnas_personas=[COLUMNA]) as c:
+                    codigo_c, datos_c = personas_cuenta.calcular("editar", _cuerpo_del_calculo(ruta, cuerpo), QUIEN)
+                    escrituras_c = c.escrituras()
+                self.assertEqual(escrituras_c, [], "G2 (%s)" % etiqueta)
+                if codigo_app == 200:
+                    self.assertEqual(codigo_c, 200, "G1 contra la App: código (%s)" % etiqueta)
+                    self.assertEqual(datos_c["escrituras"], forma_app(escrituras_app), "G1 contra la App (%s)" % etiqueta)
+                else:
+                    self.assertEqual(escrituras_app, [], "la App rechazó y escribió (%s)" % etiqueta)
+                    self.assertEqual((codigo_c, datos_c), (codigo_app, datos_app), "G3 contra la App (%s)" % etiqueta)
 
     def test_la_app_sin_columna_de_precio_da_lo_mismo_que_el_calculo(self):
         for ruta in RUTAS:
-            with self.subTest(ruta=ruta):
-                doble_app = doble_escrituras.DobleEscrituras(columnas_personas=())
-                doble_app.url = doble_app.arrancar()
-                try:
-                    codigo_app, datos_app, escrituras_app = _app(doble_app, ruta, dict(CUERPOS["precio_nuevo"]))
-                finally:
-                    doble_app.parar()
-                with Corrida(columnas_personas=()) as c:
-                    codigo_c, datos_c = personas_cuenta.calcular("editar", _cuerpo_del_calculo(ruta, CUERPOS["precio_nuevo"]), QUIEN)
-                self.assertEqual(escrituras_app, [])
-                self.assertEqual((codigo_c, datos_c), (codigo_app, datos_app))
-                self.assertEqual(c.escrituras(), [])
+            doble_app = doble_escrituras.DobleEscrituras(columnas_personas=())
+            doble_app.url = doble_app.arrancar()
+            try:
+                codigo_app, datos_app, escrituras_app = _app(doble_app, ruta, dict(CUERPOS["precio_nuevo"]))
+            finally:
+                doble_app.parar()
+            with Corrida(columnas_personas=()) as c:
+                codigo_c, datos_c = personas_cuenta.calcular("editar", _cuerpo_del_calculo(ruta, CUERPOS["precio_nuevo"]), QUIEN)
+            self.assertEqual(escrituras_app, [], "la App sin columna escribió (%s)" % ruta)
+            self.assertEqual((codigo_c, datos_c), (codigo_app, datos_app), "sin columna (%s)" % ruta)
+            self.assertEqual(c.escrituras(), [], "el cálculo sin columna escribió (%s)" % ruta)
 
 
 if __name__ == "__main__":
