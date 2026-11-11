@@ -53,7 +53,9 @@ COLUMNAS_DEL_RELOJ = frozenset({"anotaciones.POST.cuando", "anotaciones.POST.dic
                                 "quitadas.POST.creada_en", "personas.PATCH.quitada_el", "quitadas.PATCH.devuelta_en",
                                 "bandeja.POST.resuelto_en", "bandeja.PATCH.resuelto_en",
                                 # P11-6f: la hora en que `unir` abre el registro de la unión y la hora en que la marca «unida»
-                                "uniones.POST.creada_en", "uniones.PATCH.terminada_en"})
+                                "uniones.POST.creada_en", "uniones.PATCH.terminada_en",
+                                # P11-6f (deshacer): la hora en que la unión queda deshecha (`_deshacer_correr` la pone con `_ahora_utc()`)
+                                "uniones.PATCH.deshecha_en"})
 
 # Nombre de la escritura -> (método, ruta). Los nombres y las rutas son los de `PERSONAS_PORTAL_ESCRITURAS` y
 # `PERSONAS_APRENDIZAJE_ESCRITURAS` de la App (`registro/panel_reenvio.py`, `3ffe870` y `cafe2a3`). La prueba de contrato los compara
@@ -77,6 +79,7 @@ RUTAS = {
     "devolver": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/devolver")),
     "unir": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/unir")),
     "continuar": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/unir/continuar")),
+    "deshacer": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/unir/deshacer")),
 }
 
 
@@ -244,7 +247,7 @@ def _calc_devolver(cuerpo, quien, direccion):
         lambda p: personas.devolver_ficha(pid, quien, solo_contar=True, planeados=p)))
 
 
-# ---------- P11-6, grupo (f): unir (fila 6) y continuar (fila 7). `deshacer` va en su encargo aparte.
+# ---------- P11-6, grupo (f): unir (fila 6), continuar (fila 7) y deshacer (fila 8). Los tres corren con `solo_contar=True` y `planeados`.
 # `unir_fichas` corre con `solo_contar=True` y `planeados`: la decisión, las lecturas y los rechazos son los de la unión; las escrituras
 # (la fila del registro, los movimientos de asistencias y de enlaces una persona por pedido, y las dos fichas) quedan en `planeados`, en orden.
 # Lo que NO se predice (la base lo decide al escribir): crear una asistencia nueva (su Id es el registro de sus enlaces), una unión que
@@ -252,6 +255,9 @@ def _calc_devolver(cuerpo, quien, direccion):
 # «sin cálculo», y la App los lee como `sin_calculo`.
 # `continuar` (P11-6f, fila 7) usa la misma `_union_correr`: lee el registro en curso y no escribe la fila del registro. Además, si la ficha
 # que sobra tiene algo fuera del plan guardado, contesta «sin cálculo» (`plan_incompleto`), porque la unión haría una pasada más.
+# `deshacer` (P11-6f, fila 8) usa `_deshacer_correr`. Tampoco se predice: crear una asistencia en la ficha que sobró (`asistencia_nueva`,
+# el mismo motivo que `unir`), un aviso de «Por resolver», y una parada o un fallo después de planear. Lo que cambia respecto de `unir`:
+# no hay plan incompleto (el deshacer no arma plan) y la verificación de su paso e no se hace al calcular (ver `_deshacer_correr`).
 
 
 def _calc_unir(cuerpo, quien, direccion):
@@ -276,6 +282,17 @@ def _calc_continuar(cuerpo, quien, direccion):
     return _envuelto(calcular)
 
 
+def _calc_deshacer(cuerpo, quien, direccion):
+    ficha = int(direccion)
+
+    def calcular():
+        try:
+            return _calculo_de_planeados_de_union(lambda p: personas_portal_escritura._deshacer(ficha, cuerpo, quien, solo_contar=True, planeados=p))
+        except personas.SinCalculoDeUnion:
+            return 404, dict(ERROR_SIN_CALCULO)
+    return _envuelto(calcular)
+
+
 def _calculo_de_planeados_de_union(funcion):
     planeados = []
     codigo, datos = funcion(planeados)
@@ -288,6 +305,7 @@ def _calculo_de_planeados_de_union(funcion):
 CALCULOS = {
     "unir": _calc_unir,
     "continuar": _calc_continuar,
+    "deshacer": _calc_deshacer,
     "crear": _calc_crear,
     "editar": _calc_editar,
     "crear_checkin": _calc_crear_checkin,

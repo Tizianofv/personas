@@ -160,8 +160,10 @@ def _continuar(ficha, cuerpo, quien, solo_contar=False, planeados=None):
     return codigo, _con_el_aviso_marcado(aviso, "unir", "unida", codigo, datos, quien)
 
 
-def _deshacer(ficha, cuerpo, quien):
-    """Copia del bloque `md` de `portal_personas_post` de la App (`594ec12`)."""
+def _deshacer(ficha, cuerpo, quien, solo_contar=False, planeados=None):
+    """Copia del bloque `md` de `portal_personas_post` de la App (`594ec12`). Con `solo_contar` (P11-6f, el cálculo de `deshacer`) no escribe:
+    las escrituras quedan en `planeados`. Un pedido con aviso de «Por resolver» que salga bien marca además la bandeja: eso no se calcula
+    (`SinCalculoDeUnion`), igual que en `unir`. Un aviso que no sale bien (un rechazo) no marca nada, y ese rechazo sí se predice."""
     visto = cuerpo.get("union") if isinstance(cuerpo, dict) else None
     if visto is not None and (isinstance(visto, bool) or not isinstance(visto, int) or not 0 < visto < 10 ** 9):
         return 400, {"ok": False, "error": "El pedido para deshacer no está completo: `union` tiene que ser el número de una unión."}
@@ -171,7 +173,11 @@ def _deshacer(ficha, cuerpo, quien):
     aviso, mal = personas.aviso_del_pedido(cuerpo)
     if mal:
         return 400, {"ok": False, "error": mal}
-    codigo, datos = personas.deshacer_union(ficha, quien, union_visto=visto, sobra_esperada=esperada)
+    codigo, datos = personas.deshacer_union(ficha, quien, union_visto=visto, sobra_esperada=esperada, solo_contar=solo_contar, planeados=planeados)
+    if solo_contar:
+        if aviso and codigo == 200:
+            raise personas.SinCalculoDeUnion("aviso_de_por_resolver")
+        return codigo, datos
     return codigo, _con_el_aviso_marcado(aviso, "deshacer", "deshecha", codigo, datos, quien)
 
 

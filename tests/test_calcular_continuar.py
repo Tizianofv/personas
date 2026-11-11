@@ -16,7 +16,7 @@ Qué garantiza y con qué prueba:
   F4  SIN CÁLCULO: aviso de «Por resolver», asistencia nueva, plan que no está al día y parada después de planear: 404 y cero escrituras.
   F5  FIJADO A MANO: las escrituras esperadas de un caso están escritas aquí a mano; ni la unión ni el cálculo las fijan.
   F6  NINGUNA CACHÉ al calcular (la escritura de verdad sí tira las cachés: control).
-  F7  REGISTRO: `continuar` está en `CALCULOS` y en `RUTAS`; `deshacer` no tiene cálculo; la ruta de `unir` se rechaza con 400 para `continuar`.
+  F7  REGISTRO: `continuar` está en `CALCULOS` y en `RUTAS`; `deshacer` también (su prueba: `test_calcular_deshacer`); la ruta de `unir` se rechaza con 400 para `continuar`.
 
 Lo que NO ve (declarado): la unión de la App en vivo; una caída de NocoDB en mitad de `continuar` (el cálculo supone que cada escritura se
 confirma); una verificación final que no cuadra (`no_cuadra`: el cálculo no relee al cerrar, como en `unir`); el reloj de NocoDB (se fija).
@@ -38,6 +38,7 @@ import personas  # noqa: E402
 import personas_cuenta  # noqa: E402
 import personas_portal_escritura  # noqa: E402
 import test_calcular_grupo_f as gf  # noqa: E402  (las corridas de `unir` y sus escenarios; misma forma de comparar)
+import test_calcular_deshacer as gd  # noqa: E402  (los escenarios de `deshacer`, con su corrida)
 
 QUIEN = gf.QUIEN
 AHORA = gf.AHORA
@@ -164,7 +165,8 @@ CASOS_CONTINUAR = [
 
 # Los escenarios de `unir` se toman de `test_calcular_grupo_f` (no se repiten aquí).
 CASOS_POR_NOMBRE = {"unir": [_caso_de_unir(e) for e in gf.ESCENARIOS],
-                    "continuar": CASOS_CONTINUAR}
+                    "continuar": CASOS_CONTINUAR,
+                    "deshacer": gd.CASOS_DESHACER}
 # Los nombres del grupo salen de lo real: `RUTAS` (la ruta que casa con `/unir`) y `CALCULOS` (lo que tiene cálculo).
 GRUPO_F = sorted(n for n in personas_cuenta.CALCULOS if "/unir" in personas_cuenta.RUTAS[n][1].pattern)
 
@@ -188,7 +190,7 @@ class ContinuarGrupoF(unittest.TestCase):
                         self.assertEqual(datos_c["sin_valor"], ["uniones.PATCH.terminada_en"])
 
     def test_F2_cero_escrituras_al_calcular_en_todo_el_grupo(self):
-        self.assertEqual(GRUPO_F, ["continuar", "unir"], "el grupo cambió: esta prueba y CASOS_POR_NOMBRE tienen que cubrir el nombre nuevo")
+        self.assertEqual(GRUPO_F, ["continuar", "deshacer", "unir"], "el grupo cambió: esta prueba y CASOS_POR_NOMBRE tienen que cubrir el nombre nuevo")
         for nombre in GRUPO_F:
             self.assertTrue(CASOS_POR_NOMBRE[nombre], "el grupo %s no tiene escenarios" % nombre)
             for caso in CASOS_POR_NOMBRE[nombre]:
@@ -259,7 +261,7 @@ class ContinuarGrupoF(unittest.TestCase):
     def test_F7_registro(self):
         self.assertIn("continuar", personas_cuenta.CALCULOS)
         self.assertIn("continuar", personas_cuenta.RUTAS)
-        self.assertNotIn("deshacer", personas_cuenta.CALCULOS, "deshacer va en su encargo aparte")
+        self.assertIn("deshacer", personas_cuenta.CALCULOS)     # su prueba: test_calcular_deshacer
         codigo, datos = personas_cuenta.calcular("continuar", {"ruta_de_la_escritura": RUTA_UNIR}, QUIEN)
         self.assertEqual((codigo, datos), (400, personas_cuenta.ERROR_RUTA_AJENA))
 

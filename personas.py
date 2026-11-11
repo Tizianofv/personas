@@ -4267,9 +4267,10 @@ def _union_de_la_ficha(filas, ficha_id):
 
 
 class SinCalculoDeUnion(Exception):
-    """P11-6f: un camino de `unir` que el cálculo (`solo_contar`) no puede predecir con fidelidad. `motivo` es una clave fija. Se lanza
-    ANTES de escribir lo que no se sabe, o después de planear escrituras que la escritura de verdad sí haría: en ese caso la unión
-    ya habría movido cosas y el cálculo no las dice (`personas_cuenta._calc_unir` contesta «sin cálculo»)."""
+    """P11-6f: un camino de `unir`, `continuar` o `deshacer` que el cálculo (`solo_contar`) no puede predecir con fidelidad. `motivo` es una
+    clave fija. Se lanza ANTES de escribir lo que no se sabe, o después de planear escrituras que la escritura de verdad sí haría: en ese
+    caso la unión ya habría movido cosas y el cálculo no las dice (`personas_cuenta._calc_unir`, `_calc_continuar` y `_calc_deshacer`
+    contestan «sin cálculo»)."""
 
     def __init__(self, motivo):
         super().__init__(motivo)
@@ -4724,9 +4725,10 @@ def union_que_se_puede_deshacer(ficha_id):
     return None if u is None else {"id": int(u["Id"]), "estado": u["estado"], "queda": _union_numero(u.get("queda_id")), "sobra": _union_numero(u.get("sobra_id"))}
 
 
-def _deshacer_queda(antes, qid):
+def _deshacer_queda(antes, qid, solo_contar=False, planeados=None):
     """Paso a. Cada casilla que la unión cambió en la ficha que quedó vuelve a lo que tenía, si sigue como la unión la dejó.
-    Devuelve `(no_devuelto, rechazadas, contactos)`: las que cambiaron después, y los teléfonos y correos que tiene ahora."""
+    Devuelve `(no_devuelto, rechazadas, contactos)`: las que cambiaron después, y los teléfonos y correos que tiene ahora.
+    Con `solo_contar` (P11-6f) el `PATCH` queda en `planeados` y no sale a la red."""
     contactos = [c for cols in UNION_GRUPOS.values() for c in cols]
     q = _union_leer_ficha(qid, list(dict.fromkeys(list(antes["queda"]) + contactos)) + ["unida_a"])
     if q is None:
@@ -4742,13 +4744,15 @@ def _deshacer_queda(antes, qid):
         else:
             no.append({"casilla": c, "ficha": "queda", "por_que": "cambio_despues"})
     if cuerpo:
-        _union_escribir_ficha(qid, cuerpo)
+        _union_escribir_ficha(qid, cuerpo, solo_contar, planeados)
     return no, {n["casilla"] for n in no}, {c: cuerpo[c] if c in cuerpo else q.get(c) for c in contactos}
 
 
-def _deshacer_sobra(antes, qid, sid, rechazadas, contactos_de_q):
+def _deshacer_sobra(antes, qid, sid, rechazadas, contactos_de_q, solo_contar=False, planeados=None):
     """Paso b. La ficha que sobró recupera sus casillas y se le quita la marca. Un teléfono o correo que no pudo salir de la ficha que quedó
-    no se le devuelve (quedaría en las dos); una casilla que ya tiene otro valor no se pisa. Devuelve lo que no se devolvió."""
+    no se le devuelve (quedaría en las dos); una casilla que ya tiene otro valor no se pisa. Devuelve lo que no se devolvió.
+    Con `solo_contar` (P11-6f) el `PATCH` queda en `planeados`. Si la ficha que sobró está unida a otra, para (409) y eso es después de planear
+    el paso a (ver `_deshacer_correr`)."""
     s = _union_leer_ficha(sid, list(UNION_COLUMNAS_QUE_SE_VACIAN) + ["unida_a"])
     if s is None:
         raise _union_no(409, "ficha_desaparecio", "Una de las dos fichas ya no está en la base.")
@@ -4771,13 +4775,16 @@ def _deshacer_sobra(antes, qid, sid, rechazadas, contactos_de_q):
     if ficha_unida(s):
         cuerpo["unida_a"] = None
     if cuerpo:
-        _union_escribir_ficha(sid, cuerpo)
+        _union_escribir_ficha(sid, cuerpo, solo_contar, planeados)
     return no
 
 
-def _deshacer_asistencias(plan, qid, sid):
+def _deshacer_asistencias(plan, qid, sid, solo_contar=False, planeados=None):
     """Paso c. Por cada asistencia del plan: si la que sobró no tiene una en esa sesión se le crea, y después, si la unión se la había traído
-    (`mover`), se borra la de la que quedó."""
+    (`mover`), se borra la de la que quedó.
+    Con `solo_contar` (P11-6f): crear una asistencia en la que sobró no se predice (su `Id` lo asigna la base y es el registro de sus enlaces):
+    se levanta `SinCalculoDeUnion("asistencia_nueva")`, el mismo motivo que `unir` usa para la asistencia nueva de la que queda. Lo demás
+    (los enlaces de una asistencia que ya está, y el `DELETE` de la que quedó) queda en `planeados`."""
     de_s, de_q = {}, {}
     for destino, ficha in ((de_s, sid), (de_q, qid)):
         for a in _union_asistencias_de(ficha):
@@ -4785,42 +4792,46 @@ def _deshacer_asistencias(plan, qid, sid):
     for e in plan["asistencias"]:
         ses = e["sesion"]
         if not de_s.get(ses):
+            if solo_contar:
+                raise SinCalculoDeUnion("asistencia_nueva")
             de_s[ses] = [{"Id": _union_crear_asistencia(e, sid, e.get("titulo"))}]
         else:
             aid = de_s[ses][0]["Id"]
-            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_PERSONA, aid, sid)
-            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_SESION, aid, ses)
+            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_PERSONA, aid, sid, solo_contar, planeados)
+            _union_asegurar_enlace(_base.T_ASISTENCIAS, _base.L_ASIS_SESION, aid, ses, solo_contar, planeados)
         if e["accion"] == "mover":
             for a in de_q.get(ses, []):
-                _base.nc("DELETE", f"/api/v2/tables/{_base.T_ASISTENCIAS}/records", body={"Id": a["Id"]})
+                _union_nc(solo_contar, planeados, "DELETE", _base.T_ASISTENCIAS, {"Id": a["Id"]})
             de_q[ses] = []
 
 
-def _deshacer_enlaces(entradas, tabla, enlace_del_registro, enlace_de_la_ficha, qid, sid):
-    """Paso d, sesiones y proyectos. Cada registro del plan se liga otra vez a la que sobró y, si la unión se lo había traído, se desliga de la que quedó."""
+def _deshacer_enlaces(entradas, tabla, enlace_del_registro, enlace_de_la_ficha, qid, sid, solo_contar=False, planeados=None):
+    """Paso d, sesiones y proyectos. Cada registro del plan se liga otra vez a la que sobró y, si la unión se lo había traído, se desliga de la que quedó.
+    Con `solo_contar` (P11-6f) cada POST y cada DELETE de enlace quedan en `planeados`, en su orden (una fila por pedido)."""
     if not entradas:
         return
     de_s = _union_leer_enlace(_base.T_PERSONAS, enlace_de_la_ficha, sid)
     de_q = _union_leer_enlace(_base.T_PERSONAS, enlace_de_la_ficha, qid)
     for e in entradas:
         if e["id"] not in de_s:
-            _union_ligar(tabla, enlace_del_registro, e["id"], [sid])
+            _union_ligar(tabla, enlace_del_registro, e["id"], [sid], solo_contar, planeados)
         if e["accion"] == "mover" and e["id"] in de_q:
-            _base.nc_unlink(tabla, enlace_del_registro, e["id"], [qid])
+            _union_desligar(tabla, enlace_del_registro, e["id"], [qid], solo_contar, planeados)
 
 
-def _deshacer_pagos(plan, qid, sid):
-    """Paso d, pagos: se ligan a la que sobró y se desligan de la que quedó desde el lado de la ficha, una llamada cada uno."""
+def _deshacer_pagos(plan, qid, sid, solo_contar=False, planeados=None):
+    """Paso d, pagos: se ligan a la que sobró y se desligan de la que quedó desde el lado de la ficha, una llamada cada uno.
+    Con `solo_contar` (P11-6f) cada pedido queda en `planeados`."""
     if not plan["pagos"]:
         return
     de_s = _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, sid)
     de_q = _union_leer_enlace(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, qid)
     volver = [e["id"] for e in plan["pagos"] if e["id"] not in de_s]
     if volver:
-        _union_ligar(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, sid, volver)
+        _union_ligar(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, sid, volver, solo_contar, planeados)
     quitar = [e["id"] for e in plan["pagos"] if e["accion"] == "mover" and e["id"] in de_q]
     if quitar:
-        _base.nc_unlink(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, qid, quitar)
+        _union_desligar(_base.T_PERSONAS, _base.L_PERSONA_PAGOS, qid, quitar, solo_contar, planeados)
 
 
 def _deshacer_verificar(plan, antes, qid, sid, no):
@@ -4851,8 +4862,14 @@ def _deshacer_verificar(plan, antes, qid, sid, no):
     return mal
 
 
-def _deshacer_correr(u, quien):
-    """Deshace el registro `u` (`unida`, a medias o `deshaciendo`), de los pasos a a e. Devuelve `(código, datos)`; sirve para empezar y para seguir."""
+def _deshacer_correr(u, quien, solo_contar=False, planeados=None):
+    """Deshace el registro `u` (`unida`, a medias o `deshaciendo`), de los pasos a a e. Devuelve `(código, datos)`; sirve para empezar y para seguir.
+
+    Con `solo_contar` (P11-6f, el cálculo de `deshacer`) no escribe: cada escritura queda en `planeados`, en orden, y no sale a la red. Bajo
+    el mismo supuesto que `unir` (cada escritura se confirma), el cálculo no vuelve a leer lo que acaba de planear: no lee el `deshaciendo`
+    (lo da por puesto), no hace la verificación del paso e y no relee el `deshecha`. No tira cachés. Un rechazo o una excepción DESPUÉS de
+    planear (`planeados` con algo) no se predice: `SinCalculoDeUnion`. Con `planeados` vacío, la unión de verdad tampoco escribió nada,
+    así que se contesta lo mismo que ella (los rechazos de antes de planear, y el 502 `no_se_deshizo` de una excepción de lectura)."""
     uid = int(u["Id"])
     try:
         qid, sid = int(u["queda_id"]), int(u["sobra_id"])
@@ -4869,47 +4886,61 @@ def _deshacer_correr(u, quien):
         if ficha_unida(marca):
             raise _union_no(409, "queda_unida", "La ficha que quedó se unió después a otra. Primero hay que deshacer esa unión.")
         if u.get("estado") != "deshaciendo":
-            _base.nc("PATCH", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records", body={"Id": uid, "estado": "deshaciendo"})
-            if (_base.nc("GET", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records/{uid}") or {}).get("estado") != "deshaciendo":
+            _union_nc(solo_contar, planeados, "PATCH", _base.T_UNIONES_PERSONAS, {"Id": uid, "estado": "deshaciendo"})
+            if not solo_contar and (_base.nc("GET", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records/{uid}") or {}).get("estado") != "deshaciendo":
                 return _deshacer_sin_confirmar(uid, "deshacer_no_se_pudo_apuntar", "No se pudo apuntar que se iba a deshacer, así que no se tocó nada.")
         with _FICHA_TELEFONO_LOCK, _candado_de_ficha(min(qid, sid)), _candado_de_ficha(max(qid, sid)):
             try:
-                no, rechazadas, contactos = _deshacer_queda(antes, qid)
-                no += _deshacer_sobra(antes, qid, sid, rechazadas, contactos)
+                no, rechazadas, contactos = _deshacer_queda(antes, qid, solo_contar, planeados)
+                no += _deshacer_sobra(antes, qid, sid, rechazadas, contactos, solo_contar, planeados)
             finally:
-                _union_tirar_caches()      # la cámara lee las caras de una caché: tiene que verlas como quedaron
+                if not solo_contar:       # (P11-6f) el cálculo no tira cachés
+                    _union_tirar_caches()      # la cámara lee las caras de una caché: tiene que verlas como quedaron
         with _candado_de_ficha(min(qid, sid)), _candado_de_ficha(max(qid, sid)):
-            _deshacer_asistencias(plan, qid, sid)
-            _deshacer_enlaces(plan["sesiones"], _base.T_SESIONES, _base.L_MUSICOS, _base.L_PERSONA_SESIONES, qid, sid)
-            _deshacer_enlaces(plan["proyectos"], _base.T_PROYECTOS, _base.L_PROY_MIEMBROS, _base.L_PERSONA_PROYECTOS, qid, sid)
-            _deshacer_pagos(plan, qid, sid)
-        mal = _deshacer_verificar(plan, antes, qid, sid, no)
-        if mal:
-            print(f"[warn] unión: lo releído al deshacer no cuadra ({','.join(mal)})")
-            return _deshacer_sin_confirmar(uid, "deshacer_no_cuadra", "Se escribió, pero al volver a leer las fichas algo no cuadra. NO la des por deshecha: "
-                                                                       "vuelve a pulsar «Deshacer la unión» o mira las dos fichas.")
-        _base.nc("PATCH", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records", body={"Id": uid, "estado": "deshecha", "deshecha_por": quien, "deshecha_en": _ahora_utc()})
-        releida = _base.nc("GET", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records/{uid}")
-        if not isinstance(releida, dict) or releida.get("estado") != "deshecha":
-            return _deshacer_sin_confirmar(uid, "deshacer_registro_sin_confirmar")
+            _deshacer_asistencias(plan, qid, sid, solo_contar, planeados)
+            _deshacer_enlaces(plan["sesiones"], _base.T_SESIONES, _base.L_MUSICOS, _base.L_PERSONA_SESIONES, qid, sid, solo_contar, planeados)
+            _deshacer_enlaces(plan["proyectos"], _base.T_PROYECTOS, _base.L_PROY_MIEMBROS, _base.L_PERSONA_PROYECTOS, qid, sid, solo_contar, planeados)
+            _deshacer_pagos(plan, qid, sid, solo_contar, planeados)
+        if not solo_contar:           # (P11-6f) el cálculo no verifica: lo planeado se da por bueno (ver la nota de arriba)
+            mal = _deshacer_verificar(plan, antes, qid, sid, no)
+            if mal:
+                print(f"[warn] unión: lo releído al deshacer no cuadra ({','.join(mal)})")
+                return _deshacer_sin_confirmar(uid, "deshacer_no_cuadra", "Se escribió, pero al volver a leer las fichas algo no cuadra. NO la des por deshecha: "
+                                                                           "vuelve a pulsar «Deshacer la unión» o mira las dos fichas.")
+        _union_nc(solo_contar, planeados, "PATCH", _base.T_UNIONES_PERSONAS, {"Id": uid, "estado": "deshecha", "deshecha_por": quien, "deshecha_en": _ahora_utc()})
+        if not solo_contar:
+            releida = _base.nc("GET", f"/api/v2/tables/{_base.T_UNIONES_PERSONAS}/records/{uid}")
+            if not isinstance(releida, dict) or releida.get("estado") != "deshecha":
+                return _deshacer_sin_confirmar(uid, "deshacer_registro_sin_confirmar")
         return 200, dict({"ok": True, "estado": "deshecha", "union_id": uid, "queda": qid, "sobra": sid,
                           "sobra_nombre": _union_texto(antes["sobra"]["nombre"]["antes"]), "no_devuelto": no,
                           "devuelto": {k: len(plan[k]) for k in ("asistencias", "sesiones", "proyectos", "pagos")}},
-                         **_deshacer_apunte(u, qid, sid, quien))
+                         **_deshacer_apunte(u, qid, sid, quien, solo_contar, planeados))
+    except SinCalculoDeUnion:
+        raise
     except _UnionParada as p:
+        # Con `solo_contar`: si algo ya está planeado, la unión de verdad ya habría escrito y no se predice (`parada_despues_de_planear`, el
+        # motivo que `unir` y `continuar` usan para su parada después de planear). Con `planeados` vacío, no escribió nada: se contesta igual.
+        if solo_contar and planeados:
+            raise SinCalculoDeUnion("parada_despues_de_planear")
         return p.codigo, dict(p.datos, union_id=uid, puede_deshacer=False)
     except Exception as e:                                   # noqa: BLE001
+        # Con `solo_contar`: igual que la parada, con algo planeado es `fallo_despues_de_planear`. Con `planeados` vacío, el 502 de la unión de verdad.
+        if solo_contar and planeados:
+            raise SinCalculoDeUnion("fallo_despues_de_planear")
         print(f"[warn] unión: no se terminó de deshacer ({type(e).__name__})")
         return _deshacer_sin_confirmar(uid, "no_se_deshizo")
     finally:
-        _union_tirar_caches()
+        if not solo_contar:          # (P11-6f) el cálculo no tira cachés
+            _union_tirar_caches()
 
 
-def deshacer_union(ficha_id, quien, union_visto=None, sobra_esperada=None):
+def deshacer_union(ficha_id, quien, union_visto=None, sobra_esperada=None, solo_contar=False, planeados=None):
     """Deshace la unión de `ficha_id` (la que quedó, o cualquiera de las dos si la unión está a medias). Devuelve `(código, datos)`.
     `union_visto` (opcional): el `Id` de la unión que quien llama vio; si la que toca deshacer es otra, no hace nada; si ya está deshecha, lo dice.
     `sobra_esperada` (opcional): la ficha que tiene que haber sobrado en esa unión (la usa el renglón de «Por resolver», que solo puede deshacer la unión de SU
-    aviso); si la unión que toca es con otra ficha, no hace nada, no apunta nada y contesta 409 `no_es_la_union_del_aviso`."""
+    aviso); si la unión que toca es con otra ficha, no hace nada, no apunta nada y contesta 409 `no_es_la_union_del_aviso`.
+    `solo_contar` y `planeados` (P11-6f, el cálculo de `deshacer`): no escribe; las escrituras quedan en `planeados`. Ver `_deshacer_correr`."""
     if not _base.T_UNIONES_PERSONAS:
         return 503, {"ok": False, "motivo": "sin_registro", "error": "No se puede deshacer ahora: falta conectar el registro de uniones. No se hizo nada."}
     with _UNION_LOCK:
@@ -4923,7 +4954,7 @@ def deshacer_union(ficha_id, quien, union_visto=None, sobra_esperada=None):
                     if sobra_esperada is not None and so != sobra_esperada:
                         return _deshacer_no_es_del_aviso()
                     return 200, dict({"ok": True, "estado": "deshecha", "ya_estaba": True, "union_id": union_visto, "queda": q, "sobra": so},
-                                     **_deshacer_apunte(visto, q, so, quien))      # si la respuesta anterior se perdió antes del apunte, este pedido lo termina
+                                     **_deshacer_apunte(visto, q, so, quien, solo_contar, planeados))      # si la respuesta anterior se perdió antes del apunte, este pedido lo termina
                 if visto is None or u is None or int(u["Id"]) != union_visto:
                     return 409, {"ok": False, "motivo": "no_es_esa_union", "error": "La unión que se iba a deshacer ya no es la que toca. No se hizo nada."}
             if sobra_esperada is not None and u is not None and _union_numero(u.get("sobra_id")) != sobra_esperada:
@@ -4935,7 +4966,7 @@ def deshacer_union(ficha_id, quien, union_visto=None, sobra_esperada=None):
         except Exception as e:                               # noqa: BLE001
             print(f"[warn] unión: no se pudo leer el registro para deshacer ({type(e).__name__})")
             return 502, {"ok": False, "motivo": "no_se_pudo_comprobar", "error": "No se pudo leer el registro de uniones. No se hizo nada. Inténtalo en un momento."}
-        return _deshacer_correr(u, quien)
+        return _deshacer_correr(u, quien, solo_contar, planeados)
 
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -4963,13 +4994,17 @@ def no_son_la_misma(id_a, id_b):
     return bool(ya["list"])
 
 
-def apuntar_no_son_la_misma(id_a, id_b, quien):
-    """Apunta en la bandeja que las fichas `id_a` e `id_b` no son la misma persona; devuelve si quedó apuntado."""
+def apuntar_no_son_la_misma(id_a, id_b, quien, solo_contar=False, planeados=None):
+    """Apunta en la bandeja que las fichas `id_a` e `id_b` no son la misma persona; devuelve si quedó apuntado.
+    Con `solo_contar` (P11-6f) el `POST` de la bandeja queda en `planeados` y la respuesta es True: el apunte no se vuelve a leer (lo planeado
+    se da por bueno, como en el resto del cálculo de `deshacer`). Si la bandeja ya lo tiene, no planea nada y lo dice como la unión de verdad."""
     try:
         if not no_son_la_misma(id_a, id_b):
-            _base.nc("POST", f"/api/v2/tables/{_base.T_BANDEJA_PERSONAS}/records",
-                 body={"clave": _no_son_la_misma_clave(id_a, id_b), "origen": NO_SON_LA_MISMA_ORIGEN, "estado": "no_son_la_misma",
+            _union_nc(solo_contar, planeados, "POST", _base.T_BANDEJA_PERSONAS,
+                      {"clave": _no_son_la_misma_clave(id_a, id_b), "origen": NO_SON_LA_MISMA_ORIGEN, "estado": "no_son_la_misma",
                        "ficha_id": min(int(id_a), int(id_b)), "otra_ficha_id": max(int(id_a), int(id_b)), "resuelto_por": quien})
+            if solo_contar:
+                return True
         return no_son_la_misma(id_a, id_b)
     except _base.SoloLectura:
         raise
@@ -4983,14 +5018,15 @@ def _union_la_hizo_la_puerta(registro):
     return isinstance(registro, dict) and registro.get("creada_por") in tuple(UNION_SOLA_QUIEN.values()) + (UNION_SOLA_QUIEN_SIN_PRUEBA,)
 
 
-def _deshacer_apunte(registro, qid, sid, quien):
+def _deshacer_apunte(registro, qid, sid, quien, solo_contar=False, planeados=None):
     """Al deshacer una unión: si la hizo la puerta, apunta «no son la misma» (la puerta no vuelve a unirlas) y dice si quedó apuntado
-    (`{"no_son_la_misma": True|False}`, nunca True sin haberlo releído). Si no la hizo la puerta, no hace nada y no dice nada (`{}`)."""
+    (`{"no_son_la_misma": True|False}`, nunca True sin haberlo releído). Si no la hizo la puerta, no hace nada y no dice nada (`{}`).
+    Con `solo_contar` (P11-6f) el apunte queda en `planeados` (ver `apuntar_no_son_la_misma`)."""
     if not _union_la_hizo_la_puerta(registro):
         return {}
     if not (isinstance(qid, int) and isinstance(sid, int)):
         return {"no_son_la_misma": False}
-    return {"no_son_la_misma": apuntar_no_son_la_misma(qid, sid, quien) is True}
+    return {"no_son_la_misma": apuntar_no_son_la_misma(qid, sid, quien, solo_contar, planeados) is True}
 
 
 def _union_sola_clave(E, id_a, id_b):

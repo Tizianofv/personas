@@ -177,8 +177,8 @@ class SinCalculos(unittest.TestCase):
         cls.s.__exit__(None, None, None)
 
     def test_C4_todo_nombre_contesta_404_sin_calculo(self):
-        # «unir» y «continuar» tienen cálculo desde P11-6 grupo (f): ya no están aquí (`test_calcular_grupo_f`, `test_calcular_continuar`)
-        for nombre in ["deshacer", "no_existe", "Crear", "a", "a/b", ""]:
+        # «unir», «continuar» y «deshacer» tienen cálculo desde P11-6 grupo (f): ya no están aquí (`test_calcular_grupo_f`, `test_calcular_continuar`, `test_calcular_deshacer`)
+        for nombre in ["no_existe", "Crear", "a", "a/b", ""]:
             with self.subTest(nombre=nombre):
                 codigo, resp = self.s.pedir(RUTA % nombre, cabeceras=self.s.buena())
                 self.assertEqual((codigo, resp), (404, ERROR_SIN_CALCULO))
@@ -198,7 +198,9 @@ class TablaDeCalculos(unittest.TestCase):
     def test_C6_la_tabla_tiene_los_nombres_de_los_grupos_a_a_f(self):
         self.assertEqual(set(personas_cuenta.CALCULOS),
                          {"crear", "editar", "crear_checkin", "editar_checkin", "editar_aprendizaje", "entrada", "cara",
-                          "permiso", "baja", "foto", "resolver", "reabrir", "borrar", "devolver", "unir", "continuar"})
+                          "permiso", "baja", "foto", "resolver", "reabrir", "borrar", "devolver", "unir", "continuar", "deshacer"})
+        # y ningún nombre de `RUTAS` se queda sin cálculo (la lista de arriba sale de lo que hay: esto lo compara con las rutas)
+        self.assertEqual(set(personas_cuenta.CALCULOS), set(personas_cuenta.RUTAS))
 
 
 class ContratoConElClienteDeLaApp(unittest.TestCase):
@@ -225,7 +227,7 @@ class ContratoConElClienteDeLaApp(unittest.TestCase):
             buena = {"PERSONAS_BASE": base, VARIABLE_LLAVE: LLAVE_CUENTA}
             fallo = {"calculado": False, "cuenta": None}
             casos = [
-                ("sin_calculo_con_identidad_utf8", buena, "deshacer", CUERPO, QUIEN,   # «deshacer» no tiene cálculo (grupo (f) de P11-6, va aparte)
+                ("sin_calculo_con_identidad_utf8", buena, "no_existe", CUERPO, QUIEN,   # «no_existe» no tiene cálculo (ningún nombre así está en RUTAS)
                  dict(fallo, motivo="sin_calculo")),
                 ("llave_rechazada", dict(buena, **{VARIABLE_LLAVE: "llave-equivocada-de-prueba"}), "crear", CUERPO, QUIEN,
                  dict(fallo, motivo="llave_rechazada")),

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """P11-6, GRUPO (f), `unir` (fila 6): el cálculo de la unión (`personas_cuenta.CALCULOS["unir"]`). `continuar` (fila 7) va en
-`tests/test_calcular_continuar.py`; `deshacer` no tiene cálculo (encargo aparte).
+`tests/test_calcular_continuar.py`; `deshacer` (fila 8) va en `tests/test_calcular_deshacer.py`.
 
 La App compara `unir` en su modo contar (`registro/server.py`, `escritura_de_personas_para_cuenta`, nombre `unir`). El programa calcula
 con `personas.unir_fichas(..., solo_contar=True, planeados=...)`: la misma decisión, las mismas lecturas y los mismos rechazos que la
@@ -16,7 +16,7 @@ Qué garantiza y con qué prueba:
   F4  SIN CÁLCULO: un camino que no se predice (asistencia nueva, unión a medias, aviso de «Por resolver», parada o fallo después de
       planear) contesta 404 «sin cálculo» y no escribe.
   F5  REGISTRO: `unir` está en `CALCULOS` y en `RUTAS`; la ruta de `continuar` se rechaza con 400 (ruta ajena) para `unir`; `deshacer`
-      sigue sin cálculo.
+      también tiene cálculo (su prueba: `test_calcular_deshacer`).
   F6  NINGUNA CACHÉ: el cálculo no invalida `personas`, `portal` ni `caras` (la unión sí lo hace, y eso no cambia).
 
 Lo que NO ve (declarado): la unión de la App en vivo (la comparación de la App con NocoDB real no se corre aquí); una caída de NocoDB
@@ -50,7 +50,8 @@ RUTA = "/api/portal-personas/11/unir"
 METODOS_ESCRITURA = ("POST", "PATCH", "PUT", "DELETE")
 T_U = doble_escrituras.T_UNIONES
 NOMBRE_DE_TABLA = {base.T_PERSONAS: "personas", base.T_ASISTENCIAS: "asistencias", T_U: "uniones",
-                   base.T_SESIONES: "sesiones", base.T_PROYECTOS: "proyectos"}
+                   base.T_SESIONES: "sesiones", base.T_PROYECTOS: "proyectos",
+                   doble_nocodb.T_BANDEJA: "bandeja"}      # (deshacer, P11-6f: el apunte de la puerta)
 NOMBRE_DE_ENLACE = {valor: "enlace:" + nombre for nombre, valor in vars(base).items()
                     if nombre.startswith("L_") and isinstance(valor, str) and valor}
 RE_ENLACE = re.compile(r"/api/v2/tables/([^/]+)/links/([^/]+)/records/(\d+)")
@@ -218,7 +219,7 @@ class GrupoF(unittest.TestCase):
         self.assertIn("unir", personas_cuenta.CALCULOS)
         self.assertIn("unir", personas_cuenta.RUTAS)
         self.assertIn("continuar", personas_cuenta.CALCULOS)     # su prueba: test_calcular_continuar
-        self.assertNotIn("deshacer", personas_cuenta.CALCULOS, "deshacer va en su encargo aparte")
+        self.assertIn("deshacer", personas_cuenta.CALCULOS)     # su prueba: test_calcular_deshacer
         codigo, datos = personas_cuenta.calcular("unir", {"otra": 12, "clave": CLAVE,
                                                          "ruta_de_la_escritura": RUTA + "/continuar"}, QUIEN)
         self.assertEqual((codigo, datos), (400, personas_cuenta.ERROR_RUTA_AJENA))
