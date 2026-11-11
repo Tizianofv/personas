@@ -198,7 +198,7 @@ class TablaDeCalculos(unittest.TestCase):
     def test_C6_la_tabla_tiene_los_grupos_a_b_c_y_d(self):
         self.assertEqual(set(personas_cuenta.CALCULOS),
                          {"crear", "editar", "crear_checkin", "editar_checkin", "editar_aprendizaje", "entrada", "cara",
-                          "permiso", "baja", "foto", "resolver", "reabrir", "borrar", "devolver"})
+                          "permiso", "baja", "foto", "resolver", "reabrir", "borrar", "devolver", "unir"})
 
 
 class ContratoConElClienteDeLaApp(unittest.TestCase):
