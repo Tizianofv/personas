@@ -14,11 +14,11 @@ Qué garantiza y con qué prueba:
   B4  BARRIDO LLENO: con el tope lleno el cálculo contesta 409 y no escribe (la App puede saltar filas por su cursor).
   B5  REGISTRO: `entrada` está en `CALCULOS` y `RUTAS`.
 Lo que NO ve (declarado): el cursor de la App (su proceso); la rama de unión en contar (`_union_sola_decidir`, con `solo_contar`), que
-ningún escenario de aquí recorre; y la App escribiendo en modo escribir (el cálculo no lo predice). Cada proceso lee su propio
-`FICHAS_ENTRADA_MODO`: con la App en `escribir` y el programa en otro modo, la comparación daría `no_coincide` siempre.
+ningún escenario de aquí recorre. El modo `escribir` (que antes daba 409 aquí) tiene su prueba en `tests/test_calcular_entrada_escribir.py`
+(P11-entrada-escribir). Cada proceso lee su propio `FICHAS_ENTRADA_MODO`: con la App en `escribir` y el programa en otro modo, la comparación
+daría `no_coincide` siempre.
 """
 import copy
-import os
 import sys
 import unittest
 from pathlib import Path
@@ -124,7 +124,7 @@ class EntradaPareja(unittest.TestCase):
                 self.assertEqual((codigo_c, codigo_w), (esperado, esperado))
                 self.assertEqual(escritas, [], "B3: la entrada escribió en un rechazo")
 
-    def test_B3b_pedido_ilegible_sin_bandeja_y_modo_escribir(self):
+    def test_B3b_pedido_ilegible_y_sin_bandeja(self):
         filas = [fila(1, origen="mensaje", telefono_meta="18095550207", nombre="Entrada Cinco")]
         casos = [({"fila": 1, "otra": 2}, 400), ({"fila": 0}, 400), ({"fila": True}, 400)]
         with Corrida(filas) as c:
@@ -138,9 +138,6 @@ class EntradaPareja(unittest.TestCase):
             codigo, _ = personas_cuenta.calcular("entrada", cuerpo_del_calculo(1), QUIEN)
             self.assertEqual(codigo, 503)
             self.assertEqual(personas_entrada.entrada_de_natalia({"fila": 1})[0], 503)
-        with Corrida(filas), mock.patch.dict(os.environ, {"FICHAS_ENTRADA_MODO": "escribir"}):
-            codigo, _ = personas_cuenta.calcular("entrada", cuerpo_del_calculo(1), QUIEN)
-            self.assertEqual(codigo, 409, "con el modo escribir del programa no se calcula")
 
     def test_B4_barrido_lleno_contesta_409_y_no_escribe(self):
         filas = [fila(i, origen="mensaje", telefono_meta="1809555%04d" % i, nombre="Entrada %d" % i)

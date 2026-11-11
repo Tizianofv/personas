@@ -156,8 +156,8 @@ def _calculo_del_checkin(r, codigo):
 
 
 def _calc_entrada(cuerpo, quien, _direccion):
-    """Lo que la entrada (`entrada_fichas`, modo contar) mandaría a la bandeja: `personas_entrada.entrada_calculada`. Con el modo `escribir`
-    del programa no se calcula (escribir en las fichas no se predice aquí)."""
+    """Lo que la entrada mandaría con el modo del programa, sin mandarlo: en `contar`, `personas_entrada.entrada_calculada` (solo el PATCH de la
+    bandeja); en `escribir`, `entrada_calculada_escribir` (la marca, la puerta, la ficha, su origen y el PATCH final; P11-entrada-escribir)."""
     if set(cuerpo) != {"fila"}:
         return 400, {"error": "pedido_ilegible"}
     fila = cuerpo["fila"]
@@ -166,7 +166,7 @@ def _calc_entrada(cuerpo, quien, _direccion):
     if not _base.T_BANDEJA_PERSONAS:
         return 503, {"error": "sin_bandeja"}
     if personas_entrada.entrada_modo() == personas_entrada.ENTRADA_MODO_ESCRIBIR:
-        return 409, {"error": "modo_escribir_no_se_calcula"}
+        return personas_entrada.entrada_calculada_escribir(fila)
     return personas_entrada.entrada_calculada(fila)
 
 

@@ -2442,7 +2442,7 @@ def _puerta_bandeja_mandaria(E, r, avisos, accion):
     return out
 
 
-def _puerta_recibir(E, solo_contar, antes_de_escribir):
+def _puerta_recibir(E, solo_contar, antes_de_escribir, planeados=None):
     L, pantalla, fid = E["L"], E["pantalla"], E["ficha_id"]
     # Las CLASES de valor que este pedido trae con valor (una casilla vacía no choca con nada). `lee_la_ficha`: una pantalla edita una
     # ficha que ya existe; se lee, traiga o no casillas de identidad, para saber si está unida a otra y cómo está su casilla hermana.
@@ -2526,6 +2526,8 @@ def _puerta_recibir(E, solo_contar, antes_de_escribir):
         if not (plan["escribir"] or E["otros"] or (pantalla and fid is not None)):
             return r
         metodo, cuerpo = _puerta_escritura_personas(plan, E)
+        if planeados is not None:                    # P11-entrada-escribir: el cálculo del modo escribir no escribe; lo planea (ver `_puerta_planear_escritura`)
+            return _puerta_planear_escritura(E, r, plan, metodo, cuerpo, planeados)
         try:
             rec = _base.nc(metodo, f"/api/v2/tables/{_base.T_PERSONAS}/records", body=cuerpo)
         except _base.SoloLectura:
@@ -2606,6 +2608,22 @@ def _puerta_clave_de_aviso(a, E):
     valor = "|".join(str(L[c][1]) for c in ("id_whatsapp", "telefono_meta", "telefono_dicho", "nombre", "correo") if L[c][0] == "valor")
     crudo = "|".join([a["tipo"], str(a.get("ficha_id")), str(a.get("otra_ficha_id")), valor])
     return "aviso-" + hashlib.sha256(crudo.encode("utf-8")).hexdigest()[:40]
+
+
+def _puerta_planear_escritura(E, r, plan, metodo, cuerpo, planeados):
+    """P11-entrada-escribir: la escritura de la ficha que `_puerta_recibir` haría en el modo escribir, SIN escribirla. Lo que mandaría va a
+    `planeados`, en su orden: el POST o el PATCH de la ficha y, si nace, su renglón de origen (`_origen_escritura`, con el marcador
+    `CALCULO_FICHA_NUEVA` donde iría el número que asigna la base). No relee: lo que se relee es lo escrito, y aquí no se escribe. Un alta
+    con aviso levanta `SinCalculoDeEntrada` (el aviso lleva el número nuevo en su respuesta)."""
+    planeados.append({"tabla": _base.T_PERSONAS, "metodo": metodo, "cuerpo": cuerpo})
+    if plan["crear"]:
+        if r["avisos"]:
+            raise SinCalculoDeEntrada("alta_con_aviso")
+        plan["ficha_id"] = r["ficha_id"] = CALCULO_FICHA_NUEVA
+        r["accion"] = "creada"
+        if (_base.T_PERSONAS_ANOTACIONES or "").strip():
+            planeados.append(_origen_escritura(CALCULO_FICHA_NUEVA, E["origen"]))
+    return r
 
 
 def _puerta_apuntar_en_bandeja(E, r):
@@ -4266,6 +4284,16 @@ def _union_de_la_ficha(filas, ficha_id):
     return sorted((u for u in filas if ficha_id in (int(u["queda_id"]), int(u["sobra_id"]))), key=lambda u: int(u["Id"]))
 
 
+class SinCalculoDeEntrada(Exception):
+    """P11-entrada-escribir: un camino de la entrada en el modo escribir que el cálculo (`planeados`) no puede predecir sin escribir: una unión
+    empezada, un aviso (la unión o la fila de aviso se escribirían con números que la base asigna), o un alta con aviso. `motivo` es una
+    clave fija. Se lanza ANTES de planear lo que no se sabe; `personas_entrada.entrada_calculada_escribir` lo convierte en 409."""
+
+    def __init__(self, motivo):
+        super().__init__(motivo)
+        self.motivo = motivo
+
+
 class SinCalculoDeUnion(Exception):
     """P11-6f: un camino de `unir`, `continuar` o `deshacer` que el cálculo (`solo_contar`) no puede predecir con fidelidad. `motivo` es una
     clave fija. Se lanza ANTES de escribir lo que no se sabe, o después de planear escrituras que la escritura de verdad sí haría: en ese
@@ -5157,8 +5185,21 @@ def _union_sola_sin_lo_ajeno(dato, E, r, id_b):
     return r
 
 
-def recibir_y_unir(dato, solo_contar=False):
-    """Pasa `dato` de un sistema por la puerta y une solas las dos fichas cuando la puerta dice que son la misma persona; con `solo_contar` no escribe."""
+def _recibir_planeado(E, planeados):
+    """`recibir_y_unir` en el modo escribir SIN escribir (P11-entrada-escribir): lo que mandaría la puerta va a `planeados`, en su orden.
+    Lo que no se predice sin escribir levanta `SinCalculoDeEntrada`: una unión empezada (la escritura la terminaría antes de pasar el dato)
+    y todo aviso (la unión o la fila de aviso se escribirían). Sin avisos, `_union_sola_responder` no escribe nada (`_puerta_apuntar_en_bandeja`)."""
+    if _union_sola_empezada(E) is not None:
+        raise SinCalculoDeEntrada("union_empezada")
+    r = _puerta_recibir(E, False, None, planeados=planeados)
+    if r["avisos"]:
+        raise SinCalculoDeEntrada("aviso")
+    return r
+
+
+def recibir_y_unir(dato, solo_contar=False, planeados=None):
+    """Pasa `dato` de un sistema por la puerta y une solas las dos fichas cuando la puerta dice que son la misma persona; con `solo_contar` no escribe.
+    Con `planeados` (una lista) tampoco escribe: planea en ella lo que escribiría en el modo escribir (`_recibir_planeado`)."""
     if isinstance(dato, dict) and dato.get("otros"):
         return _union_sola_rechazo(dato, "dato_de_sistema_con_otros")
     if isinstance(dato, dict) and dato.get("pantalla"):
@@ -5167,6 +5208,8 @@ def recibir_y_unir(dato, solo_contar=False):
         E = _puerta_leer_entrada(dato)
     except _PuertaIlegible as e:
         return _union_sola_rechazo(dato, str(e))
+    if planeados is not None:
+        return _recibir_planeado(E, planeados)
     empezada = None if solo_contar else _union_sola_empezada(E)
     if empezada is not None:                                 # un corte dejó la unión empezada o sin su aviso: se termina antes de pasar el dato
         u = _union_sola_unir(E, empezada[0], empezada[1], empezada[2])

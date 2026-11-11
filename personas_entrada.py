@@ -323,6 +323,69 @@ def entrada_calculada(fila_id):
         return 502, {"error": "sin_confirmar"}
 
 
+def _entrada_planear_escribir(fila, mandaria):
+    """Lo que `entrada_procesar` (modo escribir) mandaría para una fila pendiente o marcada, SIN mandarlo (P11-entrada-escribir): la marca
+    `escribiendo` si la fila no la lleva, lo que la puerta escribiría (`recibir_y_unir(planeados=...)`) y el PATCH final, en ese orden. No
+    relee ni comprueba lo releído (no se escribió nada): lo que la escritura confirmaría se da por escrito. Un resultado que la escritura
+    dejaría sin confirmar, o cualquier aviso, levanta `personas.SinCalculoDeEntrada`."""
+    if fila.get("estado") != ENTRADA_ESTADO_ESCRIBIENDO:
+        mandaria.append({"tabla": _base.T_BANDEJA_PERSONAS, "metodo": "PATCH", "cuerpo": {"Id": fila["Id"], "estado": ENTRADA_ESTADO_ESCRIBIENDO}})
+        fila = dict(fila, estado=ENTRADA_ESTADO_ESCRIBIENDO)
+    if fila.get("origen") in _base.ENTRADA_ORIGENES:
+        r = personas.recibir_y_unir(_entrada_dato(fila), planeados=mandaria)
+    else:
+        r = {"estado": "rechazado", "accion": "no_tocada", "caso": "ninguna:origen_desconocido", "valores": {}, "avisos": []}
+    estado = "descartado" if r.get("estado") == "rechazado" else r.get("estado")
+    if estado not in ("descartado", "aplicado"):
+        raise personas.SinCalculoDeEntrada("estado_no_predecible")
+    resumen = _entrada_resumen(r, "escribir")
+    ficha = r.get("ficha_id")
+    ficha_id = personas.CALCULO_FICHA_NUEVA if ficha == personas.CALCULO_FICHA_NUEVA else _entrada_id(ficha)
+    if ficha_id is None and estado == "aplicado":
+        raise personas.SinCalculoDeEntrada("aplicado_sin_ficha")
+    cambios = {"estado": estado, "resultado": json.dumps(resumen, sort_keys=True, ensure_ascii=True)}
+    if ficha_id is not None:
+        cambios["ficha_id"] = ficha_id
+    mandaria.append({"tabla": _base.T_BANDEJA_PERSONAS, "metodo": "PATCH", "cuerpo": dict(cambios, Id=fila["Id"])})
+
+
+def entrada_calculada_escribir(fila_id):
+    """EL CÁLCULO DE LA ENTRADA CON EL MODO `escribir` (P11-entrada-escribir): lo que `entrada_fichas(fila_id)` escribiría con esta bandeja, sin
+    escribir nada. Recorre lo mismo que el barrido de la entrada (las `pendiente` y las marcadas `escribiendo`, hasta el tope, en orden de Id)
+    y luego la fila pedida si el barrido no la tocó. Solo predice lo que puede: UNA fila procesada, sin unión empezada ni aviso
+    (`personas.SinCalculoDeEntrada` → 409 `no_se_calcula_en_escribir`). Dos o más filas procesadas → 409 `varias_filas_no_se_calculan`: la
+    segunda vería lo que la primera escribió, y el cálculo no lo ve. Cursor 0, como `entrada_calculada`."""
+    try:
+        filas = []
+        for estado in ("pendiente", ENTRADA_ESTADO_ESCRIBIENDO):
+            lista = personas._entrada_lista_pendientes(estado, 0, ENTRADA_TOPE_BARRIDO)
+            filas += [f for f in ((lista.get("list") if isinstance(lista, dict) else None) or []) if isinstance(f, dict) and _entrada_id(f.get("Id")) is not None]
+        filas = sorted(filas, key=lambda f: f["Id"])[:ENTRADA_TOPE_BARRIDO]
+        if len(filas) >= ENTRADA_TOPE_BARRIDO:
+            return 409, {"error": "barrido_lleno"}
+        procesadas = []
+        for pendiente in filas:
+            fila = personas._entrada_leer_fila(pendiente["Id"])
+            if fila is not None and fila.get("estado") in ("pendiente", ENTRADA_ESTADO_ESCRIBIENDO):
+                procesadas.append(fila["Id"])
+        if fila_id not in procesadas:
+            fila = personas._entrada_leer_fila(fila_id)
+            if fila is None:
+                return 404, {"error": "fila_inexistente"}
+            if fila.get("estado") in ("pendiente", ENTRADA_ESTADO_ESCRIBIENDO):
+                procesadas.append(fila_id)
+        if len(procesadas) > 1:
+            return 409, {"error": "varias_filas_no_se_calculan"}
+        mandaria = []
+        for id_fila in procesadas:
+            _entrada_planear_escribir(personas._entrada_leer_fila(id_fila), mandaria)
+        return 200, {"ok": True, "estado": "calculado", "escrituras": mandaria}
+    except personas.SinCalculoDeEntrada:
+        return 409, {"error": "no_se_calcula_en_escribir"}
+    except Exception:                                     # noqa: BLE001
+        return 502, {"error": "sin_confirmar"}
+
+
 def entrada_de_natalia(pedido):
     """`POST /api/servicio/personas/entrada`, después de la llave (que mira `servidor.py`). Devuelve `(código, cuerpo)`.
 
