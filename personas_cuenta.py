@@ -27,7 +27,8 @@ a NocoDB (el doble cuenta todos los métodos). No vigila otras escrituras (archi
   · un cálculo nunca manda a NocoDB un pedido de escritura (POST, PATCH, DELETE o PUT): devuelve la forma de la escritura, sin mandarla;
   · la llave y la identidad las mira `servidor.py` ANTES de leer el cuerpo y antes de NocoDB;
   · el cuerpo que no es un objeto JSON se rechaza con 400 antes de buscar el cálculo, como las rutas hermanas;
-  · la ruta de la escritura tiene que ser la de su nombre (`RUTAS`); si no, 400 y no se calcula nada.
+  · la ruta de la escritura tiene que ser la de su nombre (`RUTAS`), o una de las rutas adicionales de ese nombre (`RUTAS_ALTERNAS`,
+    hoy solo «editar» con las dos rutas de Proveedores); si no, 400 y no se calcula nada.
 """
 
 import re
@@ -80,6 +81,15 @@ RUTAS = {
     "unir": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/unir")),
     "continuar": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/unir/continuar")),
     "deshacer": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/unir/deshacer")),
+}
+
+# P11-proveedores: la App nombra «editar» también a las dos rutas de Proveedores (`registro/server.py` 11547-11548,
+# `escritura_de_personas_para_cuenta`). Son rutas ADICIONALES del mismo nombre: `RUTAS` (la del portal) no cambia. Los patrones son
+# los de la App (`registro/proveedores.py` PROVEEDORES_RUTA y `registro/personas.py` PERSONAS_PRECIO_REFERENCIA_PATRON); la prueba
+# `tests/test_calcular_proveedores.py` los compara con esa lectura.
+RUTAS_ALTERNAS = {
+    "editar": (re.compile(r"/api/proveedores/" + _DIRECCION + r"/editar"),
+               re.compile(r"/api/personas/" + _DIRECCION + r"/precio-referencia")),
 }
 
 
@@ -301,6 +311,57 @@ def _calculo_de_planeados_de_union(funcion):
     return codigo, datos
 
 
+# ---------- P11-proveedores: las dos rutas de Proveedores que la App nombra «editar» (`RUTAS_ALTERNAS`). ----------
+#
+# Antes de escribir, la App valida el cuerpo con `proveedores_validar` (`registro/proveedores.py` 119) y solo después escribe (o reenvía al
+# programa). Esta misma regla va aquí, con las mismas palabras y los mismos códigos, y el cálculo la aplica antes de llamar a `editar`. Así
+# el cuerpo que la App rechaza da el mismo rechazo y no escribe; el que la App acepta cae en el camino de `editar` del portal, que es lo que
+# el programa escribe (medido el 11-nov-2026: ver el mapa, «P11-proveedores medición previa»). La escritura del portal no cambia.
+#
+# Fuente: esta copia es la del programa. La prueba `tests/test_calcular_proveedores.py` la compara, constante por constante, con la de la App
+# (leída con `PERSONAS_APP_RAMA`; sin esa variable, la comparación se salta y la prueba lo dice).
+PROVEEDORES_EDITABLES = {"Precio_referencia": "Precio de referencia"}
+PROVEEDORES_SIN_COLUMNA = ("La base todavía no tiene la columna «Precio de referencia» en personas, o no es un número: "
+                           "no se guardó nada. Avisa a Tiziano antes de repetirlo.")
+_FICHA_ERROR_SIN_ESCRIBIR = "No se guardó nada."   # = `personas.FICHA_ERROR_SIN_ESCRIBIR` (la App también lo usa en la validación)
+
+
+def _validar_proveedores(cuerpo, pid):
+    """Las guardas de `proveedores_validar` de la App que NO escriben: `None` si el pedido puede seguir, o `(codigo, dict)` con el error.
+    Lo único que toca la red es la lectura de la forma de la columna (`formas_de_ficha`, un GET). Mismo orden que la App."""
+    if not isinstance(cuerpo, dict):
+        return 400, {"error": "pedido ilegible. " + _FICHA_ERROR_SIN_ESCRIBIR}
+    cambios = cuerpo.get("cambios")
+    if not isinstance(cambios, dict) or not cambios:
+        return 400, {"error": "no hay nada que guardar. " + _FICHA_ERROR_SIN_ESCRIBIR}
+    fuera = sorted(str(c) for c in cambios if c not in PROVEEDORES_EDITABLES)
+    if fuera:
+        return 400, {"error": "esos campos no se pueden escribir desde aquí: %s. %s" % (", ".join(fuera), _FICHA_ERROR_SIN_ESCRIBIR),
+                     "campos_rechazados": fuera}
+    ident = cuerpo.get("id")
+    if isinstance(ident, bool) or not isinstance(ident, int) or ident != pid:
+        return 400, {"error": "el número de la ficha no coincide con el de la dirección. " + _FICHA_ERROR_SIN_ESCRIBIR}
+    try:
+        formas, _ = personas.formas_de_ficha(PROVEEDORES_EDITABLES, multiples=False)
+    except _base.SoloLectura:
+        raise
+    except Exception:  # noqa: BLE001 — como la App: un fallo de lectura es 502 con este texto, sin el suyo
+        return 502, {"error": "No se pudo leer cómo es la tabla de personas. " + _FICHA_ERROR_SIN_ESCRIBIR}
+    if formas.get("Precio_referencia", {}).get("tipo") != "numero":
+        return 502, {"error": PROVEEDORES_SIN_COLUMNA, "estado": "no_guardado"}
+    return None
+
+
+def _calc_editar_proveedores(cuerpo, quien, direccion):
+    """`editar` por una ruta de Proveedores: la validación de la App y, si pasa, el mismo cálculo que `editar` del portal (la ficha es la
+    de la ruta; el cuerpo solo lleva `cambios`, `base` y `clave_envio`, y `clave_envio` no se usa al escribir)."""
+    pid = int(direccion)
+    rechazo = _validar_proveedores(cuerpo, pid)
+    if rechazo is not None:
+        return rechazo
+    return _calc_editar(cuerpo, quien, direccion)
+
+
 # Cálculos registrados: nombre -> función `(cuerpo, quien, direccion) -> (codigo, cuerpo)`. Los nombres son los de `RUTAS`.
 CALCULOS = {
     "unir": _calc_unir,
@@ -386,6 +447,13 @@ def calcular(nombre, cuerpo, quien):
     cuerpo = {k: v for k, v in cuerpo.items() if k != CLAVE_RUTA}
     verbo, patron = RUTAS[nombre]
     m = patron.fullmatch(ruta) if isinstance(ruta, str) else None
+    if m is None and isinstance(ruta, str) and nombre in RUTAS_ALTERNAS:
+        # P11-proveedores: la ruta es una de las de Proveedores que la App nombra igual (`RUTAS_ALTERNAS`): la misma validación de la App
+        for alterna in RUTAS_ALTERNAS[nombre]:
+            m = alterna.fullmatch(ruta)
+            if m is not None:
+                funcion = _calc_editar_proveedores
+                break
     if m is None:
         return 400, dict(ERROR_RUTA_AJENA)
     direccion = m.group(1) if m.groups() else None
