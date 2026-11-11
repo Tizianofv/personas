@@ -123,6 +123,16 @@ class EntradaEscribir(unittest.TestCase):
                     codigo, datos = personas_cuenta.calcular("entrada", cuerpo_del_calculo(1), QUIEN)
                     self.assertEqual((codigo, datos), (409, {"error": "no_se_calcula_en_escribir"}))
                     self.assertEqual(c.escrituras(), [], "E2: el cálculo escribió con un aviso")
+        # Un aviso INFORMATIVO (`mismo_nombre`) con la ficha 2 sin nombre: la entrada la completa (`aplicado`) y escribe además la fila del aviso
+        # (un POST en la bandeja, medido con el doble). Aquí el estado no frena: lo frena la guarda de avisos de `_recibir_planeado`.
+        informativo = [fila(1, origen="mensaje", telefono_meta="18097770002", nombre="Persona de prueba 1")]
+        with mock.patch.dict(os.environ, MODO), Corrida(informativo) as c:
+            for ficha in c.doble.tablas[base.T_PERSONAS]:
+                if ficha.get("Id") == 2:
+                    ficha["nombre"] = None
+            codigo, datos = personas_cuenta.calcular("entrada", cuerpo_del_calculo(1), QUIEN)
+            self.assertEqual((codigo, datos), (409, {"error": "no_se_calcula_en_escribir"}))
+            self.assertEqual(c.escrituras(), [], "E2: el cálculo escribió con un aviso informativo")
         # Dos filas que procesa la misma llamada: la segunda vería lo que la primera escribió.
         dos = [fila(1, origen="mensaje", telefono_meta="18095550211", nombre="Entrada Once"),
                fila(2, origen="mensaje", telefono_meta="18095550212", nombre="Entrada Doce")]
