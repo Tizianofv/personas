@@ -10,7 +10,7 @@ Qué garantiza y con qué prueba (servidor real del programa, como proceso, cont
   C4  con llave, identidad y cuerpo buenos, un `<nombre>` SIN cálculo registrado contesta 404 `sin cálculo` y cero pedidos. (P11-6a
       registró el grupo (a): sus nombres ya no están en esta lista; los demás grupos siguen en 404 hasta registrarse.)
   C5  con variable vacía, ni la cabecera vacía ni una cabecera buena abren la ruta: 401 y cero pedidos.
-  C6  `personas_cuenta.CALCULOS` tiene el grupo (a) de P11-6 (sus cinco nombres) y nada más. Cada grupo que se registre cambia esta prueba.
+  C6  `personas_cuenta.CALCULOS` tiene los nombres de los grupos (a) a (f) de P11-6 y nada más. Cada grupo que se registre cambia esta prueba.
   C7  contrato con el cliente real de la App (`panel_reenvio.calcular_personas`, App `3ffe870`): corre en un proceso aparte, con la
       rama de la App que dice la variable `PERSONAS_APP_RAMA`. Sin esa variable C7 se SALTA: unittest muestra `OK (skipped=1)` y el
       motivo solo sale con `-v`. Por eso la suite se corre con `PERSONAS_APP_RAMA` apuntando a la App (`registro-trabajos/p11-cliente`)
@@ -177,8 +177,8 @@ class SinCalculos(unittest.TestCase):
         cls.s.__exit__(None, None, None)
 
     def test_C4_todo_nombre_contesta_404_sin_calculo(self):
-        # «unir» tiene cálculo desde P11-6 grupo (f): ya no está aquí (`test_calcular_grupo_f`)
-        for nombre in ["continuar", "deshacer", "no_existe", "Crear", "a", "a/b", ""]:
+        # «unir» y «continuar» tienen cálculo desde P11-6 grupo (f): ya no están aquí (`test_calcular_grupo_f`, `test_calcular_continuar`)
+        for nombre in ["deshacer", "no_existe", "Crear", "a", "a/b", ""]:
             with self.subTest(nombre=nombre):
                 codigo, resp = self.s.pedir(RUTA % nombre, cabeceras=self.s.buena())
                 self.assertEqual((codigo, resp), (404, ERROR_SIN_CALCULO))
@@ -193,12 +193,12 @@ class SinCalculos(unittest.TestCase):
 
 
 class TablaDeCalculos(unittest.TestCase):
-    """C6: la tabla de cálculos tiene los grupos (a), (b), (c) y (d) de P11-6 (cada grupo que se registre cambia esta prueba)."""
+    """C6: la tabla de cálculos tiene los grupos (a) a (f) de P11-6 (cada grupo que se registre cambia esta prueba)."""
 
-    def test_C6_la_tabla_tiene_los_grupos_a_b_c_y_d(self):
+    def test_C6_la_tabla_tiene_los_nombres_de_los_grupos_a_a_f(self):
         self.assertEqual(set(personas_cuenta.CALCULOS),
                          {"crear", "editar", "crear_checkin", "editar_checkin", "editar_aprendizaje", "entrada", "cara",
-                          "permiso", "baja", "foto", "resolver", "reabrir", "borrar", "devolver", "unir"})
+                          "permiso", "baja", "foto", "resolver", "reabrir", "borrar", "devolver", "unir", "continuar"})
 
 
 class ContratoConElClienteDeLaApp(unittest.TestCase):
@@ -225,7 +225,7 @@ class ContratoConElClienteDeLaApp(unittest.TestCase):
             buena = {"PERSONAS_BASE": base, VARIABLE_LLAVE: LLAVE_CUENTA}
             fallo = {"calculado": False, "cuenta": None}
             casos = [
-                ("sin_calculo_con_identidad_utf8", buena, "continuar", CUERPO, QUIEN,   # «continuar» no tiene cálculo (grupo (f) de P11-6, va aparte)
+                ("sin_calculo_con_identidad_utf8", buena, "deshacer", CUERPO, QUIEN,   # «deshacer» no tiene cálculo (grupo (f) de P11-6, va aparte)
                  dict(fallo, motivo="sin_calculo")),
                 ("llave_rechazada", dict(buena, **{VARIABLE_LLAVE: "llave-equivocada-de-prueba"}), "crear", CUERPO, QUIEN,
                  dict(fallo, motivo="llave_rechazada")),

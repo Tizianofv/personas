@@ -4493,6 +4493,17 @@ def _union_cerrar(u, plan, antes, qid, sid, solo_contar=False, planeados=None):
                  "movido": {k: len(plan[k]) for k in ("asistencias", "sesiones", "proyectos", "pagos")}}
 
 
+def _union_plan_al_dia(plan, qid, sid):
+    """P11-6f (`continuar`): el cálculo supone que la ficha que sobra no tiene nada fuera del plan guardado. Si lo tiene, la unión de verdad lo
+    agrega después de mover y hace una pasada más (con su `PATCH` del plan), y eso no se predice: `SinCalculoDeUnion("plan_incompleto")`.
+    Solo lee: `_union_completar_plan` corre sobre una copia. En `unir` no debe saltar: su plan se armó con estas mismas lecturas, y las
+    pruebas de `unir` (`test_calcular_grupo_f`) lo confirman. Si la lectura falla aquí, sale por el `except` de `_union_correr` como
+    `fallo_despues_de_planear`, aunque todavía no se haya planeado nada: así es también en `unir`, y el cálculo no lo contesta como 502."""
+    lo = _union_lo_de_sobra(sid)
+    if _union_completar_plan(json.loads(_union_json(plan)), lo, lambda: _union_asistencias_de(qid), _union_enlaces_de(qid)):
+        raise SinCalculoDeUnion("plan_incompleto")
+
+
 def _union_correr(u, solo_contar=False, planeados=None):
     """Pasos 2 a 8 de la unión del registro `u`, desde el plan guardado. Devuelve `(código, datos)`; sirve para empezar y para terminar.
     Con `solo_contar` (P11-6f) no escribe: las escrituras quedan en `planeados`, en orden. Tras los movimientos planeados la ficha que
@@ -4508,6 +4519,8 @@ def _union_correr(u, solo_contar=False, planeados=None):
     except (KeyError, TypeError, ValueError):
         return _union_sin_confirmar(uid, "registro_ilegible", "El registro de esta unión no se puede leer. No se tocó nada.")
     try:
+        if solo_contar:
+            _union_plan_al_dia(plan, qid, sid)
         for _ in range(UNION_PASADAS):
             _union_mover_asistencias(plan, qid, sid, solo_contar, planeados)
             _union_mover_sesiones(plan, qid, sid, solo_contar, planeados)
@@ -4646,8 +4659,9 @@ def unir_fichas(id_a, id_b, resoluciones, clave, quien, queda_visto=None, solo_c
         return _union_correr(u, solo_contar, planeados)
 
 
-def continuar_union(ficha_id):
-    """Termina la unión sin terminar de la ficha `ficha_id` (sea la que queda o la que sobra). Devuelve `(código, datos)`."""
+def continuar_union(ficha_id, solo_contar=False, planeados=None):
+    """Termina la unión sin terminar de la ficha `ficha_id` (sea la que queda o la que sobra). Devuelve `(código, datos)`.
+    Con `solo_contar` (P11-6f, el cálculo de `continuar`) no escribe: es `_union_correr` con las mismas lecturas y los mismos rechazos."""
     if not _base.T_UNIONES_PERSONAS:
         return 503, {"ok": False, "motivo": "sin_registro", "error": "No se puede unir ahora: falta conectar el registro de uniones. No se hizo nada."}
     with _UNION_LOCK:
@@ -4660,7 +4674,7 @@ def continuar_union(ficha_id):
             return 502, {"ok": False, "motivo": "no_se_pudo_comprobar", "error": "No se pudo leer el registro de uniones. Inténtalo en un momento."}
         if not mias:
             return 404, {"ok": False, "motivo": "sin_union_en_curso", "error": "Esta ficha no tiene una unión sin terminar."}
-        return _union_correr(mias[0])
+        return _union_correr(mias[0], solo_contar, planeados)
 
 
 # ---------- LA UNIÓN: deshacer ----------

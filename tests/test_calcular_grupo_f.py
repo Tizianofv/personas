@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-"""P11-6, GRUPO (f), solo `unir` (fila 6): el cálculo de la unión (`personas_cuenta.CALCULOS["unir"]`).
+"""P11-6, GRUPO (f), `unir` (fila 6): el cálculo de la unión (`personas_cuenta.CALCULOS["unir"]`). `continuar` (fila 7) va en
+`tests/test_calcular_continuar.py`; `deshacer` no tiene cálculo (encargo aparte).
 
 La App compara `unir` en su modo contar (`registro/server.py`, `escritura_de_personas_para_cuenta`, nombre `unir`). El programa calcula
 con `personas.unir_fichas(..., solo_contar=True, planeados=...)`: la misma decisión, las mismas lecturas y los mismos rechazos que la
 unión; las escrituras que mandaría (la fila del registro, los movimientos de asistencias y de enlaces UNA persona por pedido, y las dos
-fichas) quedan en `planeados`, en orden. `continuar` y `deshacer` NO están aquí (encargo aparte).
+fichas) quedan en `planeados`, en orden.
 
 Qué garantiza y con qué prueba:
   F1  PAREJA: en cada escenario que la unión escribe, el cálculo dice EXACTAMENTE lo que la unión mandó al doble (tabla lógica, método,
@@ -14,8 +15,8 @@ Qué garantiza y con qué prueba:
   F3  RECHAZOS IGUALES: en cada rechazo, el cálculo da el MISMO código y cuerpo que la unión, y la unión no escribió nada.
   F4  SIN CÁLCULO: un camino que no se predice (asistencia nueva, unión a medias, aviso de «Por resolver», parada o fallo después de
       planear) contesta 404 «sin cálculo» y no escribe.
-  F5  REGISTRO: `unir` está en `CALCULOS` y en `RUTAS`; la ruta de `continuar` se rechaza con 400 (ruta ajena); `continuar` y `deshacer`
-      siguen sin cálculo.
+  F5  REGISTRO: `unir` está en `CALCULOS` y en `RUTAS`; la ruta de `continuar` se rechaza con 400 (ruta ajena) para `unir`; `deshacer`
+      sigue sin cálculo.
   F6  NINGUNA CACHÉ: el cálculo no invalida `personas`, `portal` ni `caras` (la unión sí lo hace, y eso no cambia).
 
 Lo que NO ve (declarado): la unión de la App en vivo (la comparación de la App con NocoDB real no se corre aquí); una caída de NocoDB
@@ -216,8 +217,8 @@ class GrupoF(unittest.TestCase):
     def test_F5_registro(self):
         self.assertIn("unir", personas_cuenta.CALCULOS)
         self.assertIn("unir", personas_cuenta.RUTAS)
-        for nombre in ("continuar", "deshacer"):
-            self.assertNotIn(nombre, personas_cuenta.CALCULOS, "%s va en su encargo aparte" % nombre)
+        self.assertIn("continuar", personas_cuenta.CALCULOS)     # su prueba: test_calcular_continuar
+        self.assertNotIn("deshacer", personas_cuenta.CALCULOS, "deshacer va en su encargo aparte")
         codigo, datos = personas_cuenta.calcular("unir", {"otra": 12, "clave": CLAVE,
                                                          "ruta_de_la_escritura": RUTA + "/continuar"}, QUIEN)
         self.assertEqual((codigo, datos), (400, personas_cuenta.ERROR_RUTA_AJENA))
