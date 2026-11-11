@@ -16,8 +16,10 @@ La App le pide a este proceso lo que una escritura escribiría, SIN escribir, pa
              `<nueva>`) y las columnas que salen del reloj (`COLUMNAS_DEL_RELOJ`). La App las compara solo por existencia.
 
 Una `una_vez` no se calcula: la App pide el cálculo SOLO cuando va a escribir de verdad (su `escribir_una_vez` no llama a la
-escritura ante un reenvío repetido, y el cálculo sale dentro de la escritura). Este cálculo no guarda memoria: lo que dice es lo que
-la escritura escribiría la primera vez, y se contesta igual en cada pedido. Si la App pidiera el cálculo de un envío repetido, la
+escritura ante un reenvío repetido, y el cálculo sale dentro de la escritura). Este cálculo no guarda memoria propia: lo que dice es lo que
+la escritura escribiría la primera vez. No tira las memorias de lectura del programa: `resolver` y `reabrir` deciden con la lista
+del portal (30 s, `PORTAL_CACHE_SEG` en `personas.py`), que la escritura sí tira antes de leer; con esa lista cargada, el cálculo puede
+decir algo distinto de lo que escribiría la escritura. Si la App pidiera el cálculo de un envío repetido, la
 comparación saldría `no_comparado la_app_no_escribio` por no haber capturado escrituras, no por este cálculo.
 
 Reglas que valen para TODO cálculo. La prueba `tests/test_calcular_cuenta.py` vigila solo una cosa: que no salga ningún pedido HTTP
