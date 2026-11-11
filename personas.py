@@ -4497,8 +4497,10 @@ def _union_plan_al_dia(plan, qid, sid):
     """P11-6f (`continuar`): el cálculo supone que la ficha que sobra no tiene nada fuera del plan guardado. Si lo tiene, la unión de verdad lo
     agrega después de mover y hace una pasada más (con su `PATCH` del plan), y eso no se predice: `SinCalculoDeUnion("plan_incompleto")`.
     Solo lee: `_union_completar_plan` corre sobre una copia. En `unir` no debe saltar: su plan se armó con estas mismas lecturas, y las
-    pruebas de `unir` (`test_calcular_grupo_f`) lo confirman. Si la lectura falla aquí, sale por el `except` de `_union_correr` como
-    `fallo_despues_de_planear`, aunque todavía no se haya planeado nada: así es también en `unir`, y el cálculo no lo contesta como 502."""
+    pruebas de `unir` (`test_calcular_grupo_f`) lo confirman. Esta función corre ANTES de planear nada. Si una lectura de aquí falla, el
+    `except` de `_union_correr` levanta `fallo_despues_de_planear`; si la lectura trae un `_UnionParada` (p. ej. `asistencia_sin_sesion`,
+    409), levanta `parada_despues_de_planear`. En los dos casos no se había planeado nada, así es también en `unir`, y el cálculo no lo
+    contesta como 502 ni como 409 de la unión real."""
     lo = _union_lo_de_sobra(sid)
     if _union_completar_plan(json.loads(_union_json(plan)), lo, lambda: _union_asistencias_de(qid), _union_enlaces_de(qid)):
         raise SinCalculoDeUnion("plan_incompleto")
@@ -4508,7 +4510,7 @@ def _union_correr(u, solo_contar=False, planeados=None):
     """Pasos 2 a 8 de la unión del registro `u`, desde el plan guardado. Devuelve `(código, datos)`; sirve para empezar y para terminar.
     Con `solo_contar` (P11-6f) no escribe: las escrituras quedan en `planeados`, en orden. Tras los movimientos planeados la ficha que
     sobra queda sin nada (el plan se armó con todo lo que colgaba), así que no se relee lo que quedó: se usa esa lista vacía, y con ella
-    el plan no cambia y la pasada termina en una vuelta. Eso vale solo sin escrituras ajenas sobre la ficha que sobra entre planear y mover (sin escrituras ajenas durante la unión; no medido, es una carrera). Cualquier parada o fallo DESPUÉS de planear escrituras no se predice: `SinCalculoDeUnion`."""
+    el plan no cambia y la pasada termina en una vuelta. Eso vale solo sin escrituras ajenas sobre la ficha que sobra entre planear y mover (sin escrituras ajenas durante la unión; no medido, es una carrera). Cualquier parada o fallo DESPUÉS de planear escrituras no se predice: `SinCalculoDeUnion`. Con `solo_contar`, los dos motivos `parada_despues_de_planear` y `fallo_despues_de_planear` también salen de `_union_plan_al_dia`, que corre antes de planear (ver ahí)."""
     uid = int(u["Id"])
     try:
         qid, sid = int(u["queda_id"]), int(u["sobra_id"])
@@ -4540,10 +4542,13 @@ def _union_correr(u, solo_contar=False, planeados=None):
     except SinCalculoDeUnion:
         raise
     except _UnionParada as p:
+        # Con `solo_contar`, este motivo también sale antes de planear: si `_union_plan_al_dia` trae un `_UnionParada`. El nombre dice «después»
+        # por la pasada; ver `_union_plan_al_dia`.
         if solo_contar:
             raise SinCalculoDeUnion("parada_despues_de_planear")
         return p.codigo, dict(p.datos, union_id=uid, puede_terminar=False)
     except Exception as e:                                   # noqa: BLE001
+        # Con `solo_contar`, este motivo también sale antes de planear: una lectura de `_union_plan_al_dia` que falla. Ver ahí.
         if solo_contar:
             raise SinCalculoDeUnion("fallo_despues_de_planear")
         print(f"[warn] unión: no se terminó ({type(e).__name__})")
@@ -4661,7 +4666,10 @@ def unir_fichas(id_a, id_b, resoluciones, clave, quien, queda_visto=None, solo_c
 
 def continuar_union(ficha_id, solo_contar=False, planeados=None):
     """Termina la unión sin terminar de la ficha `ficha_id` (sea la que queda o la que sobra). Devuelve `(código, datos)`.
-    Con `solo_contar` (P11-6f, el cálculo de `continuar`) no escribe: es `_union_correr` con las mismas lecturas y los mismos rechazos."""
+    Con `solo_contar` (P11-6f, el cálculo de `continuar`) no escribe. Los rechazos que se contestan ANTES de planear son los mismos que la
+    unión real: 503 `sin_registro`, 502 `no_se_pudo_comprobar` (lectura del registro), 404 `sin_union_en_curso` y 502 `registro_ilegible`
+    (plan o antes incompletos). Después de planear, o si una lectura previa para o falla (`_union_plan_al_dia`), el cálculo contesta
+    404 «sin cálculo» (`SinCalculoDeUnion`), no el código de la unión real."""
     if not _base.T_UNIONES_PERSONAS:
         return 503, {"ok": False, "motivo": "sin_registro", "error": "No se puede unir ahora: falta conectar el registro de uniones. No se hizo nada."}
     with _UNION_LOCK:
