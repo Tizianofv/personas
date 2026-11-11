@@ -60,7 +60,7 @@ class DobleEscrituras:
         # GET los devuelve: así un movimiento de enlaces de la unión se ve de verdad. Sin `enlaces`, los enlaces salen vacíos como antes.
         self.enlaces = {tuple(k): set(v) for k, v in (enlaces or {}).items()}
         # `parejas` (P11-6f): {(tabla, enlace): (tabla, enlace)} de los enlaces que NocoDB guarda en sus dos lados. Un POST o un DELETE
-        # de uno también liga o desliga su pareja (el lado de la otra tabla), como la base real.
+        # de uno también liga o desliga su pareja (el lado de la otra tabla). Eso es lo que NocoDB hace según se leyó, declarado: sin medir contra NocoDB real.
         self.parejas = dict(parejas or {})
         self.tablas = {t: copy.deepcopy(filas) for t, filas in doble_nocodb.TABLAS.items()}
         self.meta = dict(doble_nocodb.COLUMNAS_META)
@@ -221,7 +221,7 @@ class DobleEscrituras:
                     salida.append(dict(fila))
                 return 200, salida if isinstance(cuerpo, list) else salida[0]
             if metodo == "DELETE" and id_ruta is None:
-                # P11-6f: la unión quita asistencias de la ficha que sobra (un DELETE de filas por su Id, en una lista o una sola fila)
+                # P11-6f: la unión quita asistencias de la ficha que sobra (un DELETE de filas por su Id, en una lista o una sola fila; que NocoDB real acepte una lista de {Id} es declarado, sin medir contra NocoDB)
                 ids = {f.get("Id") for f in (cuerpo if isinstance(cuerpo, list) else [cuerpo]) if isinstance(f, dict)}
                 self.tablas[tabla] = [f for f in self.tablas[tabla] if f.get("Id") not in ids]
                 return 200, {}

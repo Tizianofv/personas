@@ -4497,7 +4497,7 @@ def _union_correr(u, solo_contar=False, planeados=None):
     """Pasos 2 a 8 de la unión del registro `u`, desde el plan guardado. Devuelve `(código, datos)`; sirve para empezar y para terminar.
     Con `solo_contar` (P11-6f) no escribe: las escrituras quedan en `planeados`, en orden. Tras los movimientos planeados la ficha que
     sobra queda sin nada (el plan se armó con todo lo que colgaba), así que no se relee lo que quedó: se usa esa lista vacía, y con ella
-    el plan no cambia y la pasada es la única. Cualquier parada o fallo DESPUÉS de planear escrituras no se predice: `SinCalculoDeUnion`."""
+    el plan no cambia y la pasada termina en una vuelta. Eso vale solo sin escrituras ajenas sobre la ficha que sobra entre planear y mover (sin escrituras ajenas durante la unión; no medido, es una carrera). Cualquier parada o fallo DESPUÉS de planear escrituras no se predice: `SinCalculoDeUnion`."""
     uid = int(u["Id"])
     try:
         qid, sid = int(u["queda_id"]), int(u["sobra_id"])
