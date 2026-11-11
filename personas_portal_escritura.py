@@ -145,11 +145,17 @@ def _unir(ficha, cuerpo, quien, solo_contar=False, planeados=None):
     return codigo, _con_el_aviso_marcado(aviso, "unir", "unida", codigo, datos, quien)
 
 
-def _continuar(ficha, cuerpo, quien):
-    """Copia del bloque `mc` de `portal_personas_post` de la App (`594ec12`): `continuar_union` no recibe `quien`."""
+def _continuar(ficha, cuerpo, quien, solo_contar=False, planeados=None):
+    """Copia del bloque `mc` de `portal_personas_post` de la App (`594ec12`): `continuar_union` no recibe `quien`. Con `solo_contar` (P11-6f,
+    el cálculo de `continuar`) no escribe: las escrituras quedan en `planeados`. Un pedido con aviso de «Por resolver» marca además la
+    bandeja: eso no se calcula (`SinCalculoDeUnion`), igual que en `unir`."""
     aviso, mal = personas.aviso_del_pedido(cuerpo)
     if mal:
         return 400, {"ok": False, "error": mal}
+    if solo_contar:
+        if aviso:
+            raise personas.SinCalculoDeUnion("aviso_de_por_resolver")
+        return personas.continuar_union(ficha, solo_contar=True, planeados=planeados)
     codigo, datos = personas.continuar_union(ficha)
     return codigo, _con_el_aviso_marcado(aviso, "unir", "unida", codigo, datos, quien)
 

@@ -76,6 +76,7 @@ RUTAS = {
     "borrar": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/borrar")),
     "devolver": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/devolver")),
     "unir": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/unir")),
+    "continuar": ("POST", re.compile(r"/api/portal-personas/" + _DIRECCION + r"/unir/continuar")),
 }
 
 
@@ -243,12 +244,14 @@ def _calc_devolver(cuerpo, quien, direccion):
         lambda p: personas.devolver_ficha(pid, quien, solo_contar=True, planeados=p)))
 
 
-# ---------- P11-6, grupo (f): unir (fila 6). Solo `unir`; `continuar` y `deshacer` van en encargos aparte.
+# ---------- P11-6, grupo (f): unir (fila 6) y continuar (fila 7). `deshacer` va en su encargo aparte.
 # `unir_fichas` corre con `solo_contar=True` y `planeados`: la decisión, las lecturas y los rechazos son los de la unión; las escrituras
 # (la fila del registro, los movimientos de asistencias y de enlaces una persona por pedido, y las dos fichas) quedan en `planeados`, en orden.
 # Lo que NO se predice (la base lo decide al escribir): crear una asistencia nueva (su Id es el registro de sus enlaces), una unión que
 # había quedado a medias, un aviso de «Por resolver» (marca la bandeja) y una parada o un fallo después de planear. Esos contestan 404
 # «sin cálculo», y la App los lee como `sin_calculo`.
+# `continuar` (P11-6f, fila 7) usa la misma `_union_correr`: lee el registro en curso y no escribe la fila del registro. Además, si la ficha
+# que sobra tiene algo fuera del plan guardado, contesta «sin cálculo» (`plan_incompleto`), porque la unión haría una pasada más.
 
 
 def _calc_unir(cuerpo, quien, direccion):
@@ -257,6 +260,17 @@ def _calc_unir(cuerpo, quien, direccion):
     def calcular():
         try:
             return _calculo_de_planeados_de_union(lambda p: personas_portal_escritura._unir(ficha, cuerpo, quien, solo_contar=True, planeados=p))
+        except personas.SinCalculoDeUnion:
+            return 404, dict(ERROR_SIN_CALCULO)
+    return _envuelto(calcular)
+
+
+def _calc_continuar(cuerpo, quien, direccion):
+    ficha = int(direccion)
+
+    def calcular():
+        try:
+            return _calculo_de_planeados_de_union(lambda p: personas_portal_escritura._continuar(ficha, cuerpo, quien, solo_contar=True, planeados=p))
         except personas.SinCalculoDeUnion:
             return 404, dict(ERROR_SIN_CALCULO)
     return _envuelto(calcular)
@@ -273,6 +287,7 @@ def _calculo_de_planeados_de_union(funcion):
 # Cálculos registrados: nombre -> función `(cuerpo, quien, direccion) -> (codigo, cuerpo)`. Los nombres son los de `RUTAS`.
 CALCULOS = {
     "unir": _calc_unir,
+    "continuar": _calc_continuar,
     "crear": _calc_crear,
     "editar": _calc_editar,
     "crear_checkin": _calc_crear_checkin,
