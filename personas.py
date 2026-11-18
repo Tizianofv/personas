@@ -2660,14 +2660,16 @@ def _puerta_apuntar_en_bandeja(E, r):
 SILENCIO_PUERTA_REGISTRO = threading.local()
 
 
-def _puerta_registrar(origen, r):
+def _puerta_registrar(origen, r, solo_contar=False):
     """UNA línea de registro por llamada: de dónde vino, qué pasó y a qué ficha. NUNCA lleva datos de la persona.
-    En el hilo del reloj de contactos de Google (`SILENCIO_PUERTA_REGISTRO.activo`) no imprime esta línea: la corrida deja su
-    línea de resumen. Los `[warn] puerta de fichas` de un fallo de la base NO se callan: salen igual en esa corrida."""
+    `modo=solo_cuenta` dice que nada se escribió: en ese modo la acción sale como `contaria_<acción>` (lo que HARÍA), no como
+    la acción a secas. En el hilo del reloj de contactos de Google (`SILENCIO_PUERTA_REGISTRO.activo`) no imprime esta línea: la
+    corrida deja su línea de resumen. Los `[warn] puerta de fichas` de un fallo de la base NO se callan: salen igual en esa corrida."""
     if getattr(SILENCIO_PUERTA_REGISTRO, "activo", False):
         return
-    print("[PUERTA-FICHAS] origen=%s estado=%s motivo=%s accion=%s ficha_id=%s avisos=%s apuntados=%s" % (
-        origen, r["estado"], r["motivo"] or "-", r["accion"], r["ficha_id"],
+    accion = r["accion"] if (not solo_contar or r["accion"] == "no_tocada") else "contaria_" + r["accion"]
+    print("[PUERTA-FICHAS] origen=%s modo=%s estado=%s motivo=%s accion=%s ficha_id=%s avisos=%s apuntados=%s" % (
+        origen, "solo_cuenta" if solo_contar else "escribir", r["estado"], r["motivo"] or "-", accion, r["ficha_id"],
         ",".join(a["tipo"] for a in r["avisos"]) or "-", sum(1 for a in r["avisos"] if a.get("apuntado"))))
 
 
@@ -2708,7 +2710,8 @@ def recibir(dato, solo_contar=False, antes_de_escribir=None):
     except _PuertaIlegible as e:
         r = {"estado": "rechazado", "motivo": str(e), "ficha_id": None, "accion": "no_tocada", "valores": {}, "avisos": [],
              "de": None, "llave": None, "releida": None, "excepcion": None, "etapa": None, "rec": None, "escrito": []}
-        _puerta_registrar(dato.get("origen") if isinstance(dato, dict) and dato.get("origen") in PUERTA_ORIGENES else "desconocido", r)
+        _puerta_registrar(dato.get("origen") if isinstance(dato, dict) and dato.get("origen") in PUERTA_ORIGENES else "desconocido", r,
+                          solo_contar=solo_contar)
         return r
     r = _puerta_recibir(E, solo_contar, antes_de_escribir)
     if not solo_contar and r["estado"] not in ("rechazado", "detenido"):
@@ -5130,7 +5133,7 @@ def _union_sola_decidir(E, id_a, id_b, prueba, solo_contar):
 def _union_sola_responder(E, r, solo_contar, apuntar=True):
     if apuntar and not solo_contar and r["estado"] not in ("rechazado", "detenido"):
         _puerta_apuntar_en_bandeja(E, r)
-    _puerta_registrar(E["origen"], r)
+    _puerta_registrar(E["origen"], r, solo_contar=solo_contar)
     return r
 
 
@@ -5142,11 +5145,12 @@ def _union_sola_unida(E, u, prueba):
     return r
 
 
-def _union_sola_rechazo(dato, motivo):
+def _union_sola_rechazo(dato, motivo, solo_contar=False):
     """La respuesta de rechazo de la puerta, con `motivo`, y su línea de registro."""
     r = dict(estado="rechazado", motivo=motivo, ficha_id=None, accion="no_tocada", valores={}, avisos=[], de=None, llave=None, releida=None,
              excepcion=None, etapa=None, rec=None, escrito=[])
-    _puerta_registrar(dato.get("origen") if isinstance(dato, dict) and dato.get("origen") in PUERTA_ORIGENES else "desconocido", r)
+    _puerta_registrar(dato.get("origen") if isinstance(dato, dict) and dato.get("origen") in PUERTA_ORIGENES else "desconocido", r,
+                      solo_contar=solo_contar)
     return r
 
 
@@ -5201,13 +5205,13 @@ def recibir_y_unir(dato, solo_contar=False, planeados=None):
     """Pasa `dato` de un sistema por la puerta y une solas las dos fichas cuando la puerta dice que son la misma persona; con `solo_contar` no escribe.
     Con `planeados` (una lista) tampoco escribe: planea en ella lo que escribiría en el modo escribir (`_recibir_planeado`)."""
     if isinstance(dato, dict) and dato.get("otros"):
-        return _union_sola_rechazo(dato, "dato_de_sistema_con_otros")
+        return _union_sola_rechazo(dato, "dato_de_sistema_con_otros", solo_contar)
     if isinstance(dato, dict) and dato.get("pantalla"):
-        return _union_sola_rechazo(dato, "dato_de_pantalla")
+        return _union_sola_rechazo(dato, "dato_de_pantalla", solo_contar)
     try:
         E = _puerta_leer_entrada(dato)
     except _PuertaIlegible as e:
-        return _union_sola_rechazo(dato, str(e))
+        return _union_sola_rechazo(dato, str(e), solo_contar)
     if planeados is not None:
         return _recibir_planeado(E, planeados)
     empezada = None if solo_contar else _union_sola_empezada(E)

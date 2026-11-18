@@ -7,6 +7,7 @@ Rutas de lectura, con las mismas llaves y las mismas respuestas que la App de re
   POST /api/servicio/personas/identidad, /fichas, /pagina, /anotaciones   cabecera X-Personas-Lectura-Llave  (PERSONAS_LECTURA_LLAVE)
   POST /api/servicio/personas/credito, /buscar, /bandeja, /creditos-vivos cabecera X-Personas-Registro-Llave (PERSONAS_REGISTRO_LLAVE)
   GET  /api/servicio/personas/config                                     cabecera X-Personas-Lectura-Llave
+  GET  /healthz                                                          sin llave: 200 {"ok": true}, sin tocar NocoDB (para verificar despliegues)
 
 🔴 Cada ruta de lectura valida SU llave ANTES de leer el cuerpo. Sin la llave de su grupo, con otra, o con la variable vacía: 401
 y no se lee nada. Ninguna ruta de lectura escribe.
@@ -78,7 +79,8 @@ EL CÁLCULO DEL MODO QUE SOLO CUENTA (P11-5, `personas_cuenta.py`): `POST /calcu
 (PERSONAS_CUENTA_LLAVE) y X-Personas-Cuenta-Quien (la identidad de quien pide, no vacía). La llave se mira ANTES del cuerpo y de NocoDB:
 sin ella, con otra (la de cualquier grupo incluida) o con la variable vacía: 401. Sin identidad: 400. Sin cálculos registrados, todo
 nombre contesta 404 `sin cálculo para esa escritura` (el cliente de la App lo lee como `sin_calculo`). Un cuerpo que no es un objeto
-JSON: 400 `pedido ilegible`. La ruta NUNCA escribe en NocoDB.
+JSON: 400 `pedido ilegible`. La ruta NUNCA escribe en NocoDB. Cada pedido a esta ruta deja UNA línea `[CALCULAR]` en el registro: el tiempo
+(ms) y cómo terminó (`respuesta_escrita`, o `cliente_cerro` si el cliente cerró antes). Sin identidad, sin cuerpo y sin ids.
 
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN, PERSONAS_CUENTA_LLAVE,
 PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, PERSONAS_MERCADEO_LLAVE, PERSONAS_NATALIA_LLAVE, NOCODB_T_*, y para la ruta de
@@ -88,6 +90,7 @@ import hmac
 import json
 import os
 import re
+import time
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -127,6 +130,8 @@ CALCULO_PREFIJO = "/calcular/"
 CABECERA_CUENTA_LLAVE = "X-Personas-Cuenta-Llave"
 CABECERA_CUENTA_QUIEN = "X-Personas-Cuenta-Quien"
 ERROR_IDENTIDAD_CUENTA = {"error": "identidad de cálculo ausente (X-Personas-Cuenta-Quien)"}
+# Salud del proceso para verificar despliegues: sin llave y sin NocoDB.
+SALUD_RUTA = "/healthz"
 
 ESCRITURA_RUTAS = {
     "/api/servicio/personas/cara": "cara",
@@ -280,6 +285,14 @@ def lucy_llave_valida(pedida, esperada):
     return igual_seguro(str(pedida or ""), str(esperada))
 
 
+def _registrar_calculo(codigo, inicio, resultado):
+    """UNA línea por cada `POST /calcular/`: cuánto tardó y cómo terminó. Forma fija: sin identidad, sin cuerpo, sin ids ni datos de la
+    ficha; el nombre de la ruta va genérico (`<nombre>`). `codigo` es `-` si no hubo respuesta (el cálculo falló sin contestar)."""
+    ms = int((time.monotonic() - inicio) * 1000)
+    print("[CALCULAR] ruta=/calcular/<nombre> codigo=%s ms=%d resultado=%s"
+          % (codigo if codigo is not None else "-", ms, resultado), flush=True)
+
+
 class Manejador(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
@@ -303,6 +316,26 @@ class Manejador(BaseHTTPRequestHandler):
         except (ValueError, UnicodeDecodeError):
             return None
 
+    def _calcular(self, ruta):
+        """`POST /calcular/<nombre>`. Deja UNA línea `[CALCULAR]` por pedido, también cuando la llave o la identidad lo rechazan."""
+        inicio = time.monotonic()
+        codigo, resultado = None, "sin_respuesta"
+        try:
+            # La llave se mira ANTES del cuerpo y de NocoDB; luego la identidad (quien no vacío). Sin llave buena, el cuerpo no se lee.
+            quien = quien_de_la_cabecera(self.headers.get(CABECERA_CUENTA_QUIEN))
+            if not lucy_llave_valida(self.headers.get(CABECERA_CUENTA_LLAVE), LLAVE_PERSONAS_CUENTA):
+                codigo, cuerpo = 401, ERROR_LLAVE
+            elif not quien:
+                codigo, cuerpo = 400, ERROR_IDENTIDAD_CUENTA
+            else:
+                codigo, cuerpo = personas_cuenta.calcular(ruta[len(CALCULO_PREFIJO):], self._pedido(), quien)
+            self._enviar(codigo, cuerpo)
+            resultado = "respuesta_escrita"
+        except (BrokenPipeError, ConnectionResetError):
+            resultado = "cliente_cerro"          # el cliente cerró antes de la respuesta: la escritura de la respuesta falló
+        finally:
+            _registrar_calculo(codigo, inicio, resultado)
+
     def do_POST(self):
         base.estrenar_la_cuenta_de_escrituras()     # cada pedido empieza sin escrituras mandadas (como `estrenar_el_pedido` de la App)
         ruta = urllib.parse.urlsplit(self.path).path
@@ -316,13 +349,7 @@ class Manejador(BaseHTTPRequestHandler):
             # P11-5: el cálculo del modo que solo cuenta. La llave se mira ANTES del cuerpo y de NocoDB; luego la identidad (quien no vacío).
             # Sin cálculos registrados (`personas_cuenta.CALCULOS`), cualquier nombre contesta 404. Nada aquí manda pedidos de escritura
             # a NocoDB (lo vigila `tests/test_calcular_cuenta.py`, que cuenta los pedidos HTTP al doble).
-            if not lucy_llave_valida(self.headers.get(CABECERA_CUENTA_LLAVE), LLAVE_PERSONAS_CUENTA):
-                return self._enviar(401, ERROR_LLAVE)
-            quien = quien_de_la_cabecera(self.headers.get(CABECERA_CUENTA_QUIEN))
-            if not quien:
-                return self._enviar(400, ERROR_IDENTIDAD_CUENTA)
-            codigo, cuerpo = personas_cuenta.calcular(ruta[len(CALCULO_PREFIJO):], self._pedido(), quien)
-            return self._enviar(codigo, cuerpo)
+            return self._calcular(ruta)
         if ruta == MEMORIA_RUTA:
             # P8a-1: la llave de Natalia se mira ANTES del cuerpo y de NocoDB; luego la identidad (quien de la cabecera, no vacío).
             if not lucy_llave_valida(self.headers.get("X-Personas-Natalia-Llave"), LLAVE_PERSONAS_NATALIA):
@@ -403,6 +430,9 @@ class Manejador(BaseHTTPRequestHandler):
         base.estrenar_la_cuenta_de_escrituras()
         url = urllib.parse.urlsplit(self.path)
         ruta = url.path
+        if ruta == SALUD_RUTA:
+            # Verifica que el proceso vive. Sin llave y sin NocoDB: no lee ni escribe nada.
+            return self._enviar(200, {"ok": True})
         # La consulta se lee como la App (`Handler.parse`): `dict(parse_qsl(...))`, sin los valores vacíos.
         consulta = dict(urllib.parse.parse_qsl(url.query))
         entrada = _portal_entrada(ruta)
