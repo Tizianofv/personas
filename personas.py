@@ -1786,7 +1786,7 @@ def editar_ficha_cliente(identidad, cuerpo, quien, solo_contar=False):
 #   · `pantalla: True` — una PERSONA escribió estos valores en ESTA ficha (`ficha_id`) o en una nueva: lo que escribió REEMPLAZA
 #     (también vaciar), y si un teléfono o un correo NUEVO ya es de otra ficha no se guarda NADA y se dice de quién es. De aquí
 #     salen `telefono_dicho`, `telefono_2`, `correo` y `correo_2`: las cuatro casillas de identidad del dato de una pantalla.
-#   · si no — un sistema (WhatsApp) trae datos de alguien: lo decide `_puerta_decidir_automatico`.
+#   · si no — un sistema (WhatsApp, o el correo) trae datos de alguien: lo decide `_puerta_decidir_automatico`.
 #
 # NADA DICE «GUARDADO» SIN SER VERDAD: el resultado de cada valor sale de RELEER la fila. Si no se pudo releer, el valor es
 # `sin_confirmar`, nunca `guardado`.
@@ -1794,7 +1794,8 @@ PUERTA_CAMPOS = "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsu
 # Los nombres de las dos casillas nuevas de la parte 4 (`telefono_2` y `email_2`): las secundarias, para decir en qué casilla
 # quedó un valor. Las columnas existen siempre (la sala las crea antes de desplegar).
 CAMPOS_SECUNDARIOS = ("telefono_2", "email_2")
-PUERTA_ORIGENES = ("mensaje", "dictado", "reserva", "checkin", "portal", "aprendizaje", "recuperado", "google")
+# "correo": el canal del correo (pieza 1 de disenos/natalia-correos-y-fichas, 19-nov-2026): un dato de sistema que trae solo su correo.
+PUERTA_ORIGENES = ("mensaje", "dictado", "reserva", "checkin", "portal", "aprendizaje", "recuperado", "google", "correo")
 # valor de la respuesta → columna de `personas`
 PUERTA_COLUMNA = {"id_whatsapp": "bsuid", "telefono": "telefono", "nombre": "nombre", "correo": "email",
                   "nombre_perfil": "nombre_whatsapp", "telefono_2": "telefono_2", "correo_2": "email_2"}
@@ -2160,7 +2161,7 @@ def _puerta_decidir_automatico(E, filas):
     for c in L:
         if L[c][0] == "invalido":                  # lo que no sabe leer no se escribe, y se dice
             p["valores"][_puerta_clave_de_valor(c, L)] = _puerta_valor("no_guardado", "forma_invalida")
-    if not idw and not tel:                        # nada que identifique: no se crea ni se toca ninguna ficha
+    if not idw and not tel and not correo:         # nada que identifique (ni ID, ni teléfono, ni correo): no se crea ni se toca ninguna ficha
         p["caso"], p["motivo"] = "ninguna:rechazado", "sin_identidad"
         return _puerta_detener(p, "rechazado", None, "sin_identidad", L)
 
@@ -2177,7 +2178,8 @@ def _puerta_decidir_automatico(E, filas):
             repetidas.add(valor_clave)
     ft, fc, fw = (FT[0] if FT else None), (FC[0] if FC else None), (FW[0] if FW else None)
 
-    # Quien escribe: la ficha del ID; si no, la del número que mandó Meta; si no, ninguna (nace la suya, o se liga si no trae ID ni número de Meta).
+    # Quien escribe: la ficha del ID; si no, la del número que mandó Meta; si no, ninguna. Sin ella: se liga a la que tenga el correo o el
+    # número dictado, o nace la suya. Un dato con solo correo (pieza 1) llega aquí con `fc` ya buscada: no nace sin mirar antes.
     if fw:
         quien, por, llave = fw, "id", "id"
     elif meta and ft:
@@ -2457,8 +2459,9 @@ def _puerta_recibir(E, solo_contar, antes_de_escribir, planeados=None):
         comparar = [n for n, c in (("telefono", "telefono_meta"), ("telefono", "telefono_dicho"), ("correo", "correo"),
                                     ("id_whatsapp", "id_whatsapp")) if L[c][0] == "valor"]
         quiere_nombre = L["nombre"][0] == "valor"
-        if not any(L[c][0] == "valor" for c in ("id_whatsapp", "telefono_meta", "telefono_dicho")):
-            comparar, quiere_nombre = [], False      # sin ID ni teléfono el dato se rechaza: no hay nada que comparar
+        # Pieza 1: un dato de sistema que trae SOLO su correo sí se compara: se busca por correo antes de crear.
+        if not any(L[c][0] == "valor" for c in ("id_whatsapp", "telefono_meta", "telefono_dicho")) and L["correo"][0] != "valor":
+            comparar, quiere_nombre = [], False      # sin ID, teléfono ni correo el dato se rechaza: no hay nada que comparar
     comparar = list(dict.fromkeys(comparar))
     nacio = None                                  # el `Id` de la ficha que NACE en esta llamada (solo entonces se anota por dónde entró)
     # 🔑 EL CANDADO SE TOMA CUANDO HAY QUE DECIDIR SOBRE UNA CASILLA CON VALOR: una escritura de una casilla que la ficha ya tenía
@@ -5998,6 +6001,7 @@ ORIGEN_ETIQUETAS = {
     "dictado": "Natalia: dictado",
     "reserva": "Natalia: reserva",
     "recuperado": "Natalia: recuperado",
+    "correo": "Correo",
 }
 
 
