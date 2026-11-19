@@ -20,8 +20,12 @@ Qué garantiza y con qué prueba (todo por `recibir` real, contra el doble de No
   H2  hermano: `recibir_y_unir` (lo llama `personas_entrada`, la entrada de Natalia): busca por correo antes de crear.
   H3  hermano: `recibir_y_unir` con `planeados` (el cálculo del modo escribir de la entrada): planea el alta solo si no hay ficha.
   H4  hermano: `recibir(solo_contar=True)` (el cálculo): dice que crearía solo si no hay ficha con ese correo.
-  F1  la lista de quién llama a la puerta sale del código (AST): si aparece un llamador nuevo, esta prueba se pone roja y hay que
-      decidir su camino (sistema o pantalla) antes de seguir.
+  F1  la lista de quién llama a la puerta sale del código (AST): ve las llamadas POR NOMBRE (`recibir(...)`, `x.recibir_y_unir(...)`)
+      dentro de una función. Si aparece una función nueva que llama por nombre, la prueba se pone roja y hay que decidir su camino
+      (sistema o pantalla). NO ve: (a) un alias (`_ALIAS = personas.recibir` y luego `_ALIAS(...)`: la llamada no tiene el nombre
+      `recibir`); (b) una llamada nueva dentro de una función que ya está en la lista (la lista es por función, no por línea); (c) una
+      llamada a nivel de módulo (fuera de cualquier `def`). Esos tres casos no los vigila esta prueba: los cubre el revisor al leer
+      el diff y el grep de la escritura de fichas en el reporte.
   O1  el vocabulario de orígenes: `correo` está en `PUERTA_ORIGENES` y tiene etiqueta; las etiquetas son EXACTAMENTE esas claves.
 
 Lo que NO ve (declarado): el doble no imita los códigos de error de NocoDB; una operación que cae se simula con `caidas` (no se usa
