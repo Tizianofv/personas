@@ -2723,7 +2723,7 @@ def recibir(dato, solo_contar=False, antes_de_escribir=None):
         avisos = [dict(a, **_puerta_aviso(a["tipo"], CALCULO_FICHA_NUEVA, a["otra_ficha_id"])) if
                   (crea and a["ficha_id"] is None) else a for a in r["avisos"]]
         r["mandaria"] = r.get("mandaria", []) + _puerta_bandeja_mandaria(E, r, avisos, "creada" if crea else r["accion"])
-    _puerta_registrar(E["origen"], r)
+    _puerta_registrar(E["origen"], r, solo_contar=solo_contar)
     return r
 
 
