@@ -58,10 +58,9 @@ class CaminosDeLaPuerta(unittest.TestCase):
         self.assertEqual(len(lineas), 1, lineas)
         self.assertIn("origen=checkin", lineas[0])
         self.assertIn("modo=solo_cuenta", lineas[0])
-        # Un alta en cuenta sale con `accion=no_tocada` (la acción de alta solo se asigna en la rama de escritura, y `ficha_id` es None):
-        # eso no afirma escritura. Lo que no puede salir es una acción de escritura sin el prefijo `contaria_`.
-        self.assertRegex(lineas[0], r"accion=(contaria_\w+|no_tocada)\b")
-        self.assertNotRegex(lineas[0], r"accion=(creada|completada)\b")
+        # El alta en cuenta dice lo que HARÍA: `contaria_creada` (la acción planeada de `recibir`), no `no_tocada` ni `creada` a secas.
+        self.assertIn("accion=contaria_creada", lineas[0])
+        self.assertNotRegex(lineas[0], r"accion=(creada|completada|no_tocada)\b")
 
     def test_R2_crear_checkin_de_verdad_dice_escribir(self):
         with Corrida() as c:

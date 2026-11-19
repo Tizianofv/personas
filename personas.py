@@ -2660,14 +2660,20 @@ def _puerta_apuntar_en_bandeja(E, r):
 SILENCIO_PUERTA_REGISTRO = threading.local()
 
 
-def _puerta_registrar(origen, r, solo_contar=False):
+def _puerta_registrar(origen, r, solo_contar=False, accion_planeada=None):
     """UNA línea de registro por llamada: de dónde vino, qué pasó y a qué ficha. NUNCA lleva datos de la persona.
     `modo=solo_cuenta` dice que nada se escribió: en ese modo la acción sale como `contaria_<acción>` (lo que HARÍA), no como
-    la acción a secas. En el hilo del reloj de contactos de Google (`SILENCIO_PUERTA_REGISTRO.activo`) no imprime esta línea: la
-    corrida deja su línea de resumen. Los `[warn] puerta de fichas` de un fallo de la base NO se callan: salen igual en esa corrida."""
+    la acción a secas. `accion_planeada` (p. ej. `creada` para un alta en cuenta) es la acción que la escritura haría: en modo
+    cuenta el registro la usa en lugar de `r["accion"]`, sin cambiar `r`. En el hilo del reloj de contactos de Google
+    (`SILENCIO_PUERTA_REGISTRO.activo`) no imprime esta línea: la corrida deja su línea de resumen. Los `[warn] puerta de fichas`
+    de un fallo de la base NO se callan: salen igual en esa corrida."""
     if getattr(SILENCIO_PUERTA_REGISTRO, "activo", False):
         return
-    accion = r["accion"] if (not solo_contar or r["accion"] == "no_tocada") else "contaria_" + r["accion"]
+    accion = r["accion"]
+    if solo_contar:
+        accion = accion_planeada or r["accion"]
+        if accion != "no_tocada":
+            accion = "contaria_" + accion
     print("[PUERTA-FICHAS] origen=%s modo=%s estado=%s motivo=%s accion=%s ficha_id=%s avisos=%s apuntados=%s" % (
         origen, "solo_cuenta" if solo_contar else "escribir", r["estado"], r["motivo"] or "-", accion, r["ficha_id"],
         ",".join(a["tipo"] for a in r["avisos"]) or "-", sum(1 for a in r["avisos"] if a.get("apuntado"))))
@@ -2714,6 +2720,7 @@ def recibir(dato, solo_contar=False, antes_de_escribir=None):
                           solo_contar=solo_contar)
         return r
     r = _puerta_recibir(E, solo_contar, antes_de_escribir)
+    accion_planeada = None
     if not solo_contar and r["estado"] not in ("rechazado", "detenido"):
         _puerta_apuntar_en_bandeja(E, r)
     elif solo_contar and r["estado"] not in ("rechazado", "detenido"):
@@ -2723,7 +2730,8 @@ def recibir(dato, solo_contar=False, antes_de_escribir=None):
         avisos = [dict(a, **_puerta_aviso(a["tipo"], CALCULO_FICHA_NUEVA, a["otra_ficha_id"])) if
                   (crea and a["ficha_id"] is None) else a for a in r["avisos"]]
         r["mandaria"] = r.get("mandaria", []) + _puerta_bandeja_mandaria(E, r, avisos, "creada" if crea else r["accion"])
-    _puerta_registrar(E["origen"], r, solo_contar=solo_contar)
+        accion_planeada = "creada" if crea else None      # el registro la usa; `r["accion"]` no cambia
+    _puerta_registrar(E["origen"], r, solo_contar=solo_contar, accion_planeada=accion_planeada)
     return r
 
 
