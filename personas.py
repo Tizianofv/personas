@@ -1795,7 +1795,7 @@ PUERTA_CAMPOS = "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsu
 # quedó un valor. Las columnas existen siempre (la sala las crea antes de desplegar).
 CAMPOS_SECUNDARIOS = ("telefono_2", "email_2")
 # "correo": el canal del correo (pieza 1 de disenos/natalia-correos-y-fichas, 19-nov-2026): un dato de sistema que trae solo su correo.
-PUERTA_ORIGENES = ("mensaje", "dictado", "reserva", "checkin", "portal", "aprendizaje", "recuperado", "google", "correo")
+PUERTA_ORIGENES = ("mensaje", "dictado", "reserva", "checkin", "portal", "aprendizaje", "recuperado", "google", "correo", "formulario")
 # valor de la respuesta → columna de `personas`
 PUERTA_COLUMNA = {"id_whatsapp": "bsuid", "telefono": "telefono", "nombre": "nombre", "correo": "email",
                   "nombre_perfil": "nombre_whatsapp", "telefono_2": "telefono_2", "correo_2": "email_2"}
@@ -5731,6 +5731,25 @@ def anotar_permiso(ficha_id, cuerpo, quien, solo_contar=False, previstas=None):
         return 200, dict({"ok": True, "estado": "anotado", "renglones": len(escritos), "mercadeo": nuevo_estado}, **({"solo_completo": True} if completar else {}))
 
 
+# ---------- EL PERMISO DE UNA ENTRADA DE ORIGEN «FORMULARIO» (F6-2, disenos/mercadeo-formularios/F6-PLAN.md) ----------
+# Lo llama `personas_entrada.entrada_procesar` solo si la fila es de origen `formulario` con `acepta` = sí y la puerta dejó la ficha `aplicado`.
+# Mismo camino que la baja de Natalia: una sola llamada a `anotar_permiso` en el código; el `visto` se prueba con `null` y, si la ficha ya tenía otro
+# renglón de permiso, se repite UNA vez con el que la 409 dice. Si la respuesta no es `anotado` ni `ya_estaba`, quien llama no marca la fila como hecha.
+FORMULARIO_PERMISO_QUIEN = "natalia"
+FORMULARIO_PERMISO_CANAL = "formulario"
+
+
+def anotar_permiso_de_formulario(ficha_id):
+    """`anotar_permiso(si, canal formulario, quien natalia)` en la ficha `ficha_id`. Devuelve `(codigo, dict)` igual que `anotar_permiso`."""
+    visto = None
+    for _intento in range(2):                       # UNA sola llamada a `anotar_permiso` en el código: la repetición es este bucle
+        codigo, datos = anotar_permiso(ficha_id, {"valor": "si", "canal": FORMULARIO_PERMISO_CANAL, "visto": visto}, FORMULARIO_PERMISO_QUIEN)
+        if not (codigo == 409 and datos.get("motivo") == "cambio_mientras_mirabas" and isinstance(datos.get("mercadeo"), dict)):
+            break
+        visto = datos["mercadeo"].get("renglon_visto")
+    return codigo, datos
+
+
 # ---------- LAS ANOTACIONES DE PERSONAS — PIEZA 5: LA BAJA QUE LLEGA DE NATALIA (Campañas A5) ----------
 # Diseño aprobado: `disenos/mercadeo-campanas/DISENO.md`, pieza A5. `POST /api/servicio/mercadeo/baja` (de servidor a servidor, `X-Mercadeo-Llave`): cuando un cliente le dice a Natalia
 # «no me escriban más», Natalia manda `{identidad, dicho_el, clave}` y la App anota `baja` (canal `whatsapp`, quien «Natalia») en TODAS las fichas de esa identidad.
@@ -6002,6 +6021,7 @@ ORIGEN_ETIQUETAS = {
     "reserva": "Natalia: reserva",
     "recuperado": "Natalia: recuperado",
     "correo": "Correo",
+    "formulario": "Formulario",
 }
 
 
