@@ -371,7 +371,7 @@ CAMPOS_DE_UNA_FICHA = "Id,telefono,telefono_2,unida_a,quitada_el"
 
 SALTOS_DE_UNION = 10        # cuántas marcas `unida_a` se siguen antes de dar la ficha por inexistente
 
-ENTRADA_ORIGENES = ("mensaje", "dictado", "reserva", "recuperado", "formulario")   # «formulario»: F6-2 (disenos/mercadeo-formularios/F6-PLAN.md, 21-nov-2026)
+ENTRADA_ORIGENES = ("mensaje", "dictado", "reserva", "recuperado", "correo", "formulario")   # igual que la App (`server.py` ENTRADA_ORIGENES): «correo» (pieza 1-bis, 19-nov-2026) y «formulario» (F6-2, 21-nov-2026)
 
 class _EntradaSinConfirmar(Exception):
     """Una lectura o escritura de la bandeja o de las fichas no se confirmó."""

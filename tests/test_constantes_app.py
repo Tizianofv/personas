@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Cada constante que `base.py` copia de la App de registro tiene el MISMO valor que en la App (commit `0b48b5d`).
+"""Cada constante que `base.py` copia de la App de registro tiene el MISMO valor que en la App (commit que dice `constantes_app.json`, hoy `a89ce51`).
 
 Los valores de la App están en `constantes_app.json` (el origen y el comando que los sacó están dentro del archivo).
 La prueba importa `base` en un proceso aparte, con entorno limpio, y compara nombre por nombre. Sin `skip`: si falta un
@@ -51,8 +51,10 @@ class ElValorEsElDeLaApp(unittest.TestCase):
 
     def test_el_archivo_declara_su_origen_y_su_comando(self):
         doc = json.loads(ARCHIVO.read_text(encoding="utf-8"))
-        self.assertIn("0b48b5d", doc["origen"])
-        self.assertIn("generar_constantes.py", doc["comando"])
+        # El origen dice el commit de la App de donde sale la foto (40 caracteres hexadecimales); el comando, el generador que la escribe.
+        self.assertRegex(doc["origen"], r"commit [0-9a-f]{40}\b")
+        self.assertIn("tools/generar_constantes.py", doc["comando"])
+        self.assertTrue((RAIZ / "tools" / "generar_constantes.py").is_file(), "el generador que nombra el archivo no existe")
         self.assertGreater(len(doc["valores"]), 30)
 
 
