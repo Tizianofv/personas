@@ -140,7 +140,9 @@ class PermisoDeFormulario(_Base):
     def test_P4_si_el_permiso_no_se_confirma_la_fila_no_dice_aplicado_y_repetir_lo_termina(self):
         for como in ("respuesta", "levanta"):
             with self.subTest(como=como):
-                filas = [formulario(4, "18095550304", "Formulario Cuatro", acepta="sí")]
+                # Una segunda fila pendiente (Id 40, mensaje) va después: el fallo de la fila 4 no debe cortar el barrido.
+                filas = [formulario(4, "18095550304", "Formulario Cuatro", acepta="sí"),
+                         fila(40, origen="mensaje", telefono_meta="18095550399", nombre="Otra Fila")]
                 with mock.patch.dict(os.environ, ESCRIBIR), Corrida(filas) as w:
                     antes = ids_de_permisos(w)
                     # Dos fallos: el barrido de la entrada reintenta la fila dentro de la misma petición.
@@ -148,6 +150,7 @@ class PermisoDeFormulario(_Base):
                         codigo, cuerpo = personas_entrada.entrada_fichas(4)
                     self.assertEqual((codigo, cuerpo), (502, {"error": "sin_confirmar"}))
                     self.assertNotEqual(estado_de(w, 4), "aplicado")
+                    self.assertEqual(estado_de(w, 40), "aplicado", "el fallo del permiso cortó el barrido")
                     self.assertEqual(permisos_nuevos(w, antes), [])
                     codigo2, cuerpo2 = personas_entrada.entrada_fichas(4)
                     self.assertEqual((codigo2, cuerpo2["estado"]), (200, "aplicado"), cuerpo2)
