@@ -1,7 +1,7 @@
 {
-  "comando": "copia del commit 0b48b5d en una carpeta; cd <carpeta> && env -i PATH=/usr/bin:/bin LANG=C.UTF-8 PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -B -c '<codigo que importa server y lee cada nombre>' (el codigo y la lista de nombres estan en generar_constantes.py de la sala)",
+  "comando": "/usr/bin/python3 tools/generar_constantes.py a89ce51a8321c3d9040954d886ad8507a7d4492d",
   "normalizacion": "tuplas y listas como listas; TZ como su texto; el sentinela object() como \"<sentinela>\"",
-  "origen": "App de registro, commit 0b48b5d (copia git archive, sin .env, entorno limpio: NOCODB_T_* sin definir)",
+  "origen": "App de registro, commit a89ce51a8321c3d9040954d886ad8507a7d4492d (git archive; entorno limpio con NOCODB_BASE, NOCODB_TOKEN y APP_PIN de relleno; NOCODB_T_* sin definir)",
   "valores": {
     "ALQUILER_DEPOSITO": "alquiler_deposito",
     "ALQUILER_DESDE": "alquiler_desde",
@@ -22,7 +22,9 @@
       "mensaje",
       "dictado",
       "reserva",
-      "recuperado"
+      "recuperado",
+      "correo",
+      "formulario"
     ],
     "ESTADOS_TERMINALES": [
       "CANCELADA",
