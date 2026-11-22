@@ -178,5 +178,98 @@ class PermisoDeFormulario(_Base):
             self.assertEqual(c.escrituras(), [], "el cálculo escribió")
 
 
+class ListasDeWeb(unittest.TestCase):
+    """W2 (disenos/web-reservas-a-fichas/DISENO.md, plan final 21-nov-2026): el origen «web» en todas las listas, con su etiqueta y su canal."""
+
+    def test_W0_web_esta_en_las_listas_tiene_etiqueta_y_su_canal_de_permiso(self):
+        self.assertIn("web", personas.PUERTA_ORIGENES)
+        self.assertIn("web", base.ENTRADA_ORIGENES)
+        self.assertIn("web", personas.ANOTACIONES_CANALES)
+        self.assertEqual(personas.ORIGEN_ETIQUETAS.get("web"), "Web")
+        self.assertEqual(personas.origen_etiqueta("web"), "Web")
+        self.assertEqual(set(personas.ORIGEN_ETIQUETAS), set(personas.PUERTA_ORIGENES))
+        self.assertEqual(personas_entrada.ENTRADA_PERMISO_CANAL, {"formulario": "formulario", "web": "web"})
+
+
+class EntradaWeb(_Base):
+    """W2: el origen «web» pasa por la entrada de fichas; con `acepta` = sí anota el permiso con canal `web` (quien natalia), dentro de la entrada."""
+
+    def web(self, Id, telefono, nombre, **extra):
+        return fila(Id, origen="web", telefono_meta=telefono, nombre=nombre, **extra)
+
+    def test_W1_web_acepta_si_nace_la_ficha_y_el_permiso_con_canal_web(self):
+        for acepta in ("sí", "si", True):
+            with self.subTest(acepta=acepta):
+                filas = [self.web(11, "18095550311", "Web Uno", acepta=acepta)]
+                with mock.patch.dict(os.environ, ESCRIBIR), Corrida(filas) as w:
+                    antes = ids_de_permisos(w)
+                    codigo, cuerpo = personas_entrada.entrada_fichas(11)
+                    self.assertEqual(codigo, 200, cuerpo)
+                    self.assertEqual(cuerpo["estado"], "aplicado", cuerpo)
+                    self.assertEqual(estado_de(w, 11), "aplicado")
+                    self.assertEqual(permisos_nuevos(w, antes), [(cuerpo["ficha_id"], "si", "web", "natalia")])
+
+    def test_W2_web_sin_acepta_o_acepta_que_no_es_si_no_anota_permiso(self):
+        for extra in ({}, {"acepta": "no"}, {"acepta": False}, {"acepta": ""}, {"acepta": "tal vez"}):
+            with self.subTest(extra=extra):
+                filas = [self.web(12, "18095550312", "Web Dos", **extra)]
+                with mock.patch.dict(os.environ, ESCRIBIR), Corrida(filas) as w:
+                    antes = ids_de_permisos(w)
+                    codigo, cuerpo = personas_entrada.entrada_fichas(12)
+                    self.assertEqual((codigo, cuerpo["estado"]), (200, "aplicado"), cuerpo)
+                    self.assertEqual(permisos_nuevos(w, antes), [])
+
+    def test_W3_web_solo_correo_no_se_descarta_y_crea_la_ficha(self):
+        for extra in ({}, {"acepta": "sí"}):
+            with self.subTest(extra=extra):
+                filas = [fila(13, origen="web", correo="ana.web.sola@ejemplo.test", nombre="Ana Web Sola", **extra)]
+                with mock.patch.dict(os.environ, ESCRIBIR), Corrida(filas) as w:
+                    antes = ids_de_permisos(w)
+                    codigo, cuerpo = personas_entrada.entrada_fichas(13)
+                    self.assertEqual((codigo, cuerpo.get("estado")), (200, "aplicado"), cuerpo)
+                    self.assertEqual(estado_de(w, 13), "aplicado")
+                    esperado = [(cuerpo["ficha_id"], "si", "web", "natalia")] if extra else []
+                    self.assertEqual(permisos_nuevos(w, antes), esperado)
+
+    def test_W4_pareja_otro_origen_con_acepta_si_no_anota_permiso(self):
+        # La pareja de W1: el mismo `acepta` = sí, otros orígenes. Una prueba que solo mira `web` no ve una guarda que anote a todos.
+        for origen in ("correo", "mensaje", "dictado", "reserva", "recuperado"):
+            with self.subTest(origen=origen):
+                filas = [fila(14, origen=origen, telefono_meta="18095550314", nombre="Otro Origen Web", correo="otro.web@ejemplo.test", acepta="sí")]
+                with mock.patch.dict(os.environ, ESCRIBIR), Corrida(filas) as w:
+                    antes = ids_de_permisos(w)
+                    codigo, cuerpo = personas_entrada.entrada_fichas(14)
+                    self.assertEqual(codigo, 200, cuerpo)
+                    self.assertEqual(permisos_nuevos(w, antes), [], origen)
+
+    def test_W5_web_si_el_permiso_no_se_confirma_la_fila_no_dice_aplicado_y_repetir_lo_termina(self):
+        filas = [self.web(15, "18095550315", "Web Cinco", acepta="sí")]
+        with mock.patch.dict(os.environ, ESCRIBIR), Corrida(filas) as w:
+            antes = ids_de_permisos(w)
+            with permiso_que_falla(2, "respuesta"):
+                codigo, cuerpo = personas_entrada.entrada_fichas(15)
+            self.assertEqual((codigo, cuerpo), (502, {"error": "sin_confirmar"}))
+            self.assertNotEqual(estado_de(w, 15), "aplicado")
+            self.assertEqual(permisos_nuevos(w, antes), [])
+            codigo2, cuerpo2 = personas_entrada.entrada_fichas(15)
+            self.assertEqual((codigo2, cuerpo2["estado"]), (200, "aplicado"), cuerpo2)
+            self.assertEqual(permisos_nuevos(w, antes), [(cuerpo2["ficha_id"], "si", "web", "natalia")])
+
+    def test_W6_web_contar_no_escribe_el_permiso(self):
+        filas = [self.web(16, "18095550316", "Web Seis", acepta="sí")]
+        with mock.patch.dict(os.environ, CONTAR), Corrida(filas) as w:
+            antes = ids_de_permisos(w)
+            codigo, cuerpo = personas_entrada.entrada_fichas(16)
+            self.assertEqual(codigo, 200, cuerpo)
+            self.assertEqual(permisos_nuevos(w, antes), [])
+
+    def test_W7_web_calculo_en_escribir_dice_409_si_hay_permiso(self):
+        con = [self.web(17, "18095550317", "Web Siete", acepta="sí")]
+        with mock.patch.dict(os.environ, ESCRIBIR), Corrida(con) as c:
+            codigo, _ = personas_cuenta.calcular("entrada", cuerpo_del_calculo(17), QUIEN)
+            self.assertEqual(codigo, 409)
+            self.assertEqual(c.escrituras(), [], "el cálculo escribió")
+
+
 if __name__ == "__main__":
     unittest.main()
