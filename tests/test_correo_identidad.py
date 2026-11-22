@@ -508,13 +508,13 @@ class CorreoComoIdentidad(unittest.TestCase):
         self.assertEqual(len(_solo_personas(c)), 1)
 
     def test_H3_recibir_y_unir_planeado_no_planea_alta_si_el_correo_ya_tiene_ficha(self):
-        # Con la ficha que ya tiene el correo, la puerta deja el aviso `ligado_por_correo`, y el cálculo del modo escribir NO predice
-        # con avisos (`_recibir_planeado` levanta `SinCalculoDeEntrada`, igual que hoy con un dictado que liga). No planea un alta.
+        # Con la ficha que ya tiene el correo, la puerta deja el aviso `ligado_por_correo` (informativo). 21-nov-2026: como la App, el
+        # cálculo del modo escribir lo planea (la fila de aviso, sin levantar `SinCalculoDeEntrada`), y no planea un alta: la ficha ya existe.
         planeados = []
         with Corrida() as c:
             c.nueva_id = max(f["Id"] for f in c.doble.tablas[T_PERSONAS]) + 1
-            with self.assertRaises(personas.SinCalculoDeEntrada):
-                _sin_ruido(lambda: personas.recibir_y_unir({"origen": "mensaje", "correo": "p1@ejemplo.test"}, planeados=planeados))
+            r = _sin_ruido(lambda: personas.recibir_y_unir({"origen": "mensaje", "correo": "p1@ejemplo.test"}, planeados=planeados))
+            self.assertEqual([a["tipo"] for a in r["avisos"]], ["ligado_por_correo"], r["avisos"])
         self.assertFalse([p for p in planeados if p["tabla"] == T_PERSONAS and p["metodo"] == "POST"], planeados)
         self.assertEqual(c.escrituras(), [])
 

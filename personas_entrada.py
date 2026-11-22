@@ -346,8 +346,14 @@ def entrada_calculada(fila_id):
 def _entrada_planear_escribir(fila, mandaria):
     """Lo que `entrada_procesar` (modo escribir) mandaría para una fila pendiente o marcada, SIN mandarlo (P11-entrada-escribir): la marca
     `escribiendo` si la fila no la lleva, lo que la puerta escribiría (`recibir_y_unir(planeados=...)`) y el PATCH final, en ese orden. No
-    relee ni comprueba lo releído (no se escribió nada): lo que la escritura confirmaría se da por escrito. Un resultado que la escritura
-    dejaría sin confirmar, o cualquier aviso, levanta `personas.SinCalculoDeEntrada`."""
+    relee ni comprueba lo releído (no se escribió nada): lo que la escritura confirmaría se da por escrito. De `_entrada_confirmado` de la App
+    solo comprueba DOS condiciones: un `por_resolver` sin aviso no informativo que una persona mire, y un `aplicado` sin ficha (las dos
+    levantan `_EntradaSinConfirmar`, 502). Lo demás de `_entrada_confirmado` (valores, releída, unión, avisos apuntados) no se comprueba
+    aquí: lo que no se predice levanta `personas.SinCalculoDeEntrada` (estado distinto de `por_resolver`/`aplicado`/`descartado`, y permiso).
+
+    Con avisos (21-nov-2026) sigue `entrada_procesar` de la App: la fila de cada aviso va a `mandaria` (`recibir_y_unir(planeados=...)`), la
+    fila se queda `por_resolver` solo con un aviso no informativo que la App daría por apuntado, y si la ficha no la trae el resultado,
+    toma la del aviso (la App: `server.py`, `entrada_procesar`). La `otra_ficha_id` del primer aviso que la tenga va a la fila."""
     if fila.get("estado") != ENTRADA_ESTADO_ESCRIBIENDO:
         mandaria.append({"tabla": _base.T_BANDEJA_PERSONAS, "metodo": "PATCH", "cuerpo": {"Id": fila["Id"], "estado": ENTRADA_ESTADO_ESCRIBIENDO}})
         fila = dict(fila, estado=ENTRADA_ESTADO_ESCRIBIENDO)
@@ -356,18 +362,25 @@ def _entrada_planear_escribir(fila, mandaria):
     else:
         r = {"estado": "rechazado", "accion": "no_tocada", "caso": "ninguna:origen_desconocido", "valores": {}, "avisos": []}
     estado = "descartado" if r.get("estado") == "rechazado" else r.get("estado")
-    if estado not in ("descartado", "aplicado"):
+    if estado not in ("descartado", "aplicado", "por_resolver"):
         raise personas.SinCalculoDeEntrada("estado_no_predecible")
+    if estado == "por_resolver" and not any(a.get("informativo") is False and a.get("tipo") in personas.PUERTA_AVISOS for a in (r.get("avisos") or [])):
+        raise _EntradaSinConfirmar()          # como `_entrada_confirmado` de la App: sin aviso que una persona mire, la fila no queda `por_resolver` (502)
     if estado == "aplicado" and fila.get("origen") == ENTRADA_ORIGEN_FORMULARIO and _entrada_acepta(fila):
         raise personas.SinCalculoDeEntrada("permiso_de_formulario")     # F6-2: el permiso lo anota `anotar_permiso`, que el cálculo no predice (se dice 409, no se predice)
     resumen = _entrada_resumen(r, "escribir")
     ficha = r.get("ficha_id")
     ficha_id = personas.CALCULO_FICHA_NUEVA if ficha == personas.CALCULO_FICHA_NUEVA else _entrada_id(ficha)
+    if ficha_id is None:                      # escribiendo, la fila nombra la ficha de su aviso (como la App)
+        ficha_id = next((a["ficha_id"] for a in resumen["avisos"] if a["ficha_id"] is not None), None)
     if ficha_id is None and estado == "aplicado":
-        raise personas.SinCalculoDeEntrada("aplicado_sin_ficha")
+        raise _EntradaSinConfirmar()         # la App no confirma un `aplicado` sin ficha: 502, sin marcar la fila
+    otra = next((a["otra_ficha_id"] for a in resumen["avisos"] if a["otra_ficha_id"] is not None), None)
     cambios = {"estado": estado, "resultado": json.dumps(resumen, sort_keys=True, ensure_ascii=True)}
     if ficha_id is not None:
         cambios["ficha_id"] = ficha_id
+    if otra is not None:
+        cambios["otra_ficha_id"] = otra
     mandaria.append({"tabla": _base.T_BANDEJA_PERSONAS, "metodo": "PATCH", "cuerpo": dict(cambios, Id=fila["Id"])})
 
 

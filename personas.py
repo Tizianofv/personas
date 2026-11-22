@@ -4300,8 +4300,9 @@ def _union_de_la_ficha(filas, ficha_id):
 
 class SinCalculoDeEntrada(Exception):
     """P11-entrada-escribir: un camino de la entrada en el modo escribir que el cálculo (`planeados`) no puede predecir sin escribir: una unión
-    empezada, un aviso (la unión o la fila de aviso se escribirían con números que la base asigna), o un alta con aviso. `motivo` es una
-    clave fija. Se lanza ANTES de planear lo que no se sabe; `personas_entrada.entrada_calculada_escribir` lo convierte en 409."""
+    empezada, una unión (`misma_persona`), o un alta con aviso (la clave de su fila lleva el Id que asigna la base). Los avisos de una
+    ficha que ya existe NO levantan esto (21-nov-2026: la App los apunta en la bandeja y el cálculo también). `motivo` es una clave fija.
+    Se lanza ANTES de planear lo que no se sabe; `personas_entrada.entrada_calculada_escribir` lo convierte en 409."""
 
     def __init__(self, motivo):
         super().__init__(motivo)
@@ -5202,13 +5203,17 @@ def _union_sola_sin_lo_ajeno(dato, E, r, id_b):
 
 def _recibir_planeado(E, planeados):
     """`recibir_y_unir` en el modo escribir SIN escribir (P11-entrada-escribir): lo que mandaría la puerta va a `planeados`, en su orden.
-    Lo que no se predice sin escribir levanta `SinCalculoDeEntrada`: una unión empezada (la escritura la terminaría antes de pasar el dato)
-    y todo aviso (la unión o la fila de aviso se escribirían). Sin avisos, `_union_sola_responder` no escribe nada (`_puerta_apuntar_en_bandeja`)."""
+    Con avisos (21-nov-2026, como la App en `_union_sola_responder` → `_puerta_apuntar_en_bandeja`): la fila de cada aviso que la App
+    apunta va a `planeados` después de la escritura de la ficha, con su clave. Lo que no se predice sin escribir levanta
+    `SinCalculoDeEntrada`: una unión empezada (la escritura la terminaría antes de pasar el dato), una unión (`misma_persona`: la App
+    une con escrituras que el cálculo no planea) y un alta con aviso (`_puerta_planear_escritura`: la clave de su fila lleva el Id que
+    asigna la base)."""
     if _union_sola_empezada(E) is not None:
         raise SinCalculoDeEntrada("union_empezada")
     r = _puerta_recibir(E, False, None, planeados=planeados)
-    if r["avisos"]:
-        raise SinCalculoDeEntrada("aviso")
+    if any(a["tipo"] == "misma_persona" for a in r["avisos"]):
+        raise SinCalculoDeEntrada("union")
+    planeados.extend(_puerta_bandeja_mandaria(E, r, r["avisos"], r["accion"]))
     return r
 
 
