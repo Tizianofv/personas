@@ -47,6 +47,7 @@ import base  # noqa: E402
 import personas  # noqa: E402
 import personas_cuenta  # noqa: E402
 import personas_entrada  # noqa: E402
+import doble_nocodb  # noqa: E402
 from test_calcular_grupo_b import Corrida, QUIEN, cuerpo_del_calculo, fila  # noqa: E402
 
 MODO = {"FICHAS_ENTRADA_MODO": "escribir"}
@@ -235,20 +236,33 @@ class EntradaEscribir(unittest.TestCase):
     def test_E11_clave_unica_la_fila_de_aviso_no_se_repite(self):
         # 21-nov-2026: la fila de aviso tiene una clave (huella del aviso). Si la misma entrada ya la escribió, el cálculo de la siguiente
         # fila no la planea otra vez: la App busca la clave antes de escribir (`_puerta_apuntar_en_bandeja`), y el cálculo igual.
-        dos = [fila(1, origen="mensaje", telefono_meta="18097770001", nombre="Otra Persona Distinta"),
-               fila(2, origen="mensaje", telefono_meta="18097770001", nombre="Otra Persona Distinta")]
-        with mock.patch.dict(os.environ, MODO), Corrida(dos) as w:
+        # La fila 2 empieza `contado` para que el barrido de la fila 1 no la procese (el barrido toma todas las pendientes): después
+        # se vuelve `pendiente` y se pide su entrada, con el mismo dato que ya dejó su aviso.
+        def sembrar():
+            return [fila(1, origen="mensaje", telefono_meta="18097770001", nombre="Otra Persona Distinta"),
+                    fila(2, origen="mensaje", telefono_meta="18097770001", nombre="Otra Persona Distinta", estado="contado")]
+
+        def volver_pendiente(corrida):
+            for f in corrida.doble.tablas[doble_nocodb.T_BANDEJA]:
+                if f.get("Id") == 2:
+                    f["estado"] = "pendiente"
+
+        with mock.patch.dict(os.environ, MODO), Corrida(sembrar()) as w:
             personas_entrada.entrada_fichas(1)                    # la entrada escribe el primer aviso de verdad
             antes = len(w.escrituras())
+            volver_pendiente(w)
             codigo_w, _ = personas_entrada.entrada_fichas(2)      # la segunda fila, mismo dato: la App no repite la fila de aviso
             repetidas_en_real = [e for e in w.escrituras()[antes:] if e["tabla"] == "bandeja" and e["metodo"] == "POST"]
-        with mock.patch.dict(os.environ, MODO), Corrida(dos) as c:
+        with mock.patch.dict(os.environ, MODO), Corrida(sembrar()) as c:
             personas_entrada.entrada_fichas(1)
             antes_c = len(c.escrituras())
+            volver_pendiente(c)
             codigo_c, datos_c = personas_cuenta.calcular("entrada", cuerpo_del_calculo(2), QUIEN)
             self.assertEqual(len(c.escrituras()), antes_c, "E2: el cálculo escribió")
         self.assertEqual((codigo_w, codigo_c), (200, 200))
         self.assertEqual(repetidas_en_real, [], "la App repitió la fila de aviso (no es lo esperado)")
+        self.assertTrue([e for e in datos_c["escrituras"] if e["tabla"] == "bandeja" and e["metodo"] == "PATCH"],
+                        "el cálculo no planeó la fila 2: la prueba no compara nada")
         bandeja_nueva = [e for e in datos_c["escrituras"] if e["tabla"] == "bandeja" and e["metodo"] == "POST"]
         self.assertEqual(bandeja_nueva, [], "el cálculo planea otra fila de aviso igual a la que ya existe")
 
