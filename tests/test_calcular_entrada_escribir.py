@@ -12,9 +12,19 @@ Qué garantiza y con qué prueba:
       marcador que usa el cálculo); las columnas del reloj (`cuando`) no se comparan.
   E2  CERO ESCRITURAS al calcular, en cada escenario de E1 (y en los rechazos).
   E3  RECHAZOS en `escribir`: fila inexistente, igual que la entrada (404), sin escribir.
-  E4  FRONTERA (lo que el cálculo NO predice, con 409 y sin escribir): una unión (un aviso `misma_persona` con las dos fichas) y dos o más
-      filas procesadas en la misma llamada. En estos casos la entrada escribiría con números que la base asigna o vería lo que la primera
-      fila escribió: el cálculo no lo ve, y lo dice.
+  E4  FRONTERA (lo que el cálculo NO predice, con 409 y sin escribir): una unión (un aviso `misma_persona` con las dos fichas), un alta
+      con aviso (la clave de su fila lleva el Id que asigna la base) y dos o más filas procesadas en la misma llamada. En estos casos la
+      entrada escribiría con números que la base asigna o vería lo que la primera fila escribió: el cálculo no lo ve, y lo dice.
+      CAMBIO DEL 21-nov-2026: los avisos de una ficha que ya existe (`por_resolver` o informativos, p. ej. `ligado_por_dictado`) ya NO son
+      frontera: la App los escribe (la fila de aviso en la bandeja, y la fila se queda `por_resolver` o `aplicado`), y el cálculo lo predice
+      igual (E1 los cubre como escenarios de pareja). Antes, esa parte de E4 esperaba 409; ahora espera lo que escribe la entrada.
+  E7  AVISOS COMO LA APP (21-nov-2026): los escenarios de E1 con aviso (ficha existente) dan la misma pareja que la entrada, y la fila
+      queda `por_resolver` cuando la App la deja así. Sin prueba contra la App en vivo aquí: la pareja es programa contra programa; el
+      contrato con la App va en `tests/test_contrato_entrada_aviso.py` (la App en vivo, en su proceso, con `PERSONAS_APP_RAMA`).
+  E8  Aviso informativo `mismo_nombre` con la otra ficha: la fila y la final llevan `otra_ficha_id` (la App lo escribe).
+  E9  Un `por_resolver` sin aviso no informativo: 502 `sin_confirmar` y cero escrituras (como `_entrada_confirmado` de la App).
+  E10 La fila toma la ficha de su aviso cuando la puerta no la nombra (como la App, `entrada_procesar`).
+  E11 Clave única: la fila de aviso que ya existe no se planea otra vez (como la App: busca la clave antes de escribir).
   E5  FIJADO A MANO: el alta por mensaje de la fila 1, con lo que escribe la entrada escrito a mano en esta prueba (sin llamar al cálculo para
       armar lo esperado): la marca, el POST de la ficha, el renglón de origen con su marcador, y el PATCH final con su `resultado`.
   E6  REGISTRO: el cálculo de `entrada` sigue en `CALCULOS` y su 409 viejo (`modo_escribir_no_se_calcula`) ya no existe en el programa.
@@ -51,6 +61,12 @@ ESCENARIOS_ESCRIBIR = [
     ("escribiendo a medias (se reanuda sin marca)", [fila(5, estado="escribiendo", origen="mensaje", telefono_meta="18095550206",
                                                           nombre="Entrada Seis")], 5),
     ("ficha que ya existe, mismo teléfono", [fila(6, origen="mensaje", telefono_meta="18097770001", nombre_perfil="Persona de prueba 1")], 6),
+    # 21-nov-2026: avisos de una ficha que ya existe. La App los apunta en la bandeja y deja la fila `por_resolver` (no informativo) o
+    # `aplicado` (informativo); el cálculo tiene que decir lo mismo (E7).
+    ("aviso: teléfono de otra ficha con otro nombre (por resolver)", [fila(7, origen="mensaje", telefono_meta="18097770001",
+                                                                          nombre="Otra Persona Distinta")], 7),
+    ("aviso: número dictado de una ficha (ligado por dictado)", [fila(8, origen="mensaje", telefono_dicho="18097770001",
+                                                                     nombre="Persona de prueba 1")], 8),
 ]
 # Rechazo que escribe lo mismo en los dos lados: fila inexistente.
 RECHAZOS_ESCRIBIR = [("fila inexistente", [], 9, 404)]
@@ -110,29 +126,24 @@ class EntradaEscribir(unittest.TestCase):
                 self.assertEqual((codigo_w, codigo_c), (esperado, esperado))
 
     def test_E4_frontera_se_dice_409_y_no_escribe(self):
-        # Un aviso: el teléfono ya es de otra ficha con otro nombre. La entrada escribe una fila de aviso en la bandeja (un POST, medido con
-        # el doble: `telefono_meta:sin_cambios` con `por_resolver`); el cálculo no predice esa fila y contesta 409, sin escribir.
-        # La unión de dos fichas (`misma_persona`) no la alcanza esta siembra: la misma guarda de `_recibir_planeado` la cubre por código.
-        # (Medido con el doble: con la siembra sin unión, `a` da `otro_valor` en la ficha 1 y escribe la fila de aviso; con la siembra de unión,
-        # `b` da `otro_valor` en la ficha 11. Con `union=True` el teléfono de `a` no existe: es un alta, y ahí el cálculo SÍ coincide, E1.)
-        for etiqueta, telefono, nombre, siembra_union in (("aviso, mismo teléfono y otro nombre", "18097770001", "Otra Persona Distinta", False),
-                                                          ("aviso, teléfono de la siembra de unión", "18090001101", "Union Dos", True)):
-            with self.subTest(escenario=etiqueta):
-                aviso = [fila(1, origen="mensaje", telefono_meta=telefono, nombre=nombre)]
-                with mock.patch.dict(os.environ, MODO), Corrida(aviso, union=siembra_union) as c:
-                    codigo, datos = personas_cuenta.calcular("entrada", cuerpo_del_calculo(1), QUIEN)
-                    self.assertEqual((codigo, datos), (409, {"error": "no_se_calcula_en_escribir"}))
-                    self.assertEqual(c.escrituras(), [], "E2: el cálculo escribió con un aviso")
-        # Un aviso INFORMATIVO (`mismo_nombre`) con la ficha 2 sin nombre: la entrada la completa (`aplicado`) y escribe además la fila del aviso
-        # (un POST en la bandeja, medido con el doble). Aquí el estado no frena: lo frena la guarda de avisos de `_recibir_planeado`.
-        informativo = [fila(1, origen="mensaje", telefono_meta="18097770002", nombre="Persona de prueba 1")]
-        with mock.patch.dict(os.environ, MODO), Corrida(informativo) as c:
-            for ficha in c.doble.tablas[base.T_PERSONAS]:
-                if ficha.get("Id") == 2:
-                    ficha["nombre"] = None
+        # (a) Un alta con aviso: la fila nace (ficha nueva) y el aviso `mismo_nombre` trae la ficha de otra persona con ese nombre. La clave de
+        # la fila de aviso lleva el Id que asigna la base: el cálculo no la predice, dice 409 y no escribe.
+        alta_con_aviso = [fila(1, origen="mensaje", telefono_meta="18097770501", nombre="Persona de prueba 1")]
+        with mock.patch.dict(os.environ, MODO), Corrida(alta_con_aviso) as c:
             codigo, datos = personas_cuenta.calcular("entrada", cuerpo_del_calculo(1), QUIEN)
             self.assertEqual((codigo, datos), (409, {"error": "no_se_calcula_en_escribir"}))
-            self.assertEqual(c.escrituras(), [], "E2: el cálculo escribió con un aviso informativo")
+            self.assertEqual(c.escrituras(), [], "E2: el cálculo escribió con un alta con aviso")
+        # (b) Una unión (`misma_persona`): la App une las dos fichas con escrituras que el cálculo no planea. Se fuerza la respuesta de la
+        # puerta con ese aviso (el doble no tiene una siembra que lo produzca de forma limpia); lo que se prueba es la guarda de
+        # `_recibir_planeado`: 409 y cero escrituras.
+        una_union = {"estado": "por_resolver", "motivo": None, "ficha_id": 1, "accion": "no_tocada", "valores": {}, "avisos": [
+            {"tipo": "misma_persona", "informativo": False, "ficha_id": 1, "otra_ficha_id": 2, "apuntado": False, "texto": "x"}],
+            "releida": None, "union": None}
+        with mock.patch.dict(os.environ, MODO), mock.patch.object(personas, "_puerta_recibir", return_value=una_union), \
+                Corrida([fila(1, origen="mensaje", telefono_meta="18097770001", nombre="Otra")]) as c:
+            codigo, datos = personas_cuenta.calcular("entrada", cuerpo_del_calculo(1), QUIEN)
+            self.assertEqual((codigo, datos), (409, {"error": "no_se_calcula_en_escribir"}))
+            self.assertEqual(c.escrituras(), [], "E2: el cálculo escribió con una unión")
         # Dos filas que procesa la misma llamada: la segunda vería lo que la primera escribió.
         dos = [fila(1, origen="mensaje", telefono_meta="18095550211", nombre="Entrada Once"),
                fila(2, origen="mensaje", telefono_meta="18095550212", nombre="Entrada Doce")]
@@ -174,6 +185,72 @@ class EntradaEscribir(unittest.TestCase):
         self.assertFalse(hasattr(personas_entrada, "modo_escribir_no_se_calcula"))
         with open(personas_cuenta.__file__, encoding="utf-8") as f:
             self.assertNotIn("modo_escribir_no_se_calcula", f.read())
+
+    def test_E8_informativo_con_dos_fichas_como_la_App(self):
+        # 21-nov-2026: `mismo_nombre` (informativo, con la otra ficha) en una ficha que ya existe; la ficha 2 sin nombre hace que la entrada la
+        # complete. La fila de aviso lleva `ficha_id` y `otra_ficha_id`, y la fila final de la bandeja también la `otra_ficha_id` (la App).
+        informativo = [fila(1, origen="mensaje", telefono_meta="18097770002", nombre="Persona de prueba 1")]
+        with mock.patch.dict(os.environ, MODO), Corrida(informativo) as c:
+            for ficha in c.doble.tablas[base.T_PERSONAS]:
+                if ficha.get("Id") == 2:
+                    ficha["nombre"] = None
+            codigo_c, datos_c = personas_cuenta.calcular("entrada", cuerpo_del_calculo(1), QUIEN)
+            self.assertEqual(c.escrituras(), [], "E2: el cálculo escribió con un aviso informativo")
+        with mock.patch.dict(os.environ, MODO), Corrida(informativo) as w:
+            for ficha in w.doble.tablas[base.T_PERSONAS]:
+                if ficha.get("Id") == 2:
+                    ficha["nombre"] = None
+            codigo_w, _ = personas_entrada.entrada_fichas(1)
+            filas_reales, _ = escrituras_reales(w)
+        self.assertEqual((codigo_w, codigo_c), (200, 200))
+        self.assertEqual(sin_reloj(datos_c["escrituras"]), sin_reloj(filas_reales), "E8: el cálculo no dice lo que la entrada escribió")
+        final = [e for e in datos_c["escrituras"] if e["tabla"] == "bandeja"][-1]["valores"]
+        self.assertIsNotNone(final.get("otra_ficha_id"), "la fila final no lleva la otra ficha del aviso")
+        self.assertEqual(final.get("estado"), "aplicado")
+
+    def test_E9_por_resolver_sin_aviso_que_una_persona_mire_da_502(self):
+        # Como `_entrada_confirmado` de la App: la fila no queda `por_resolver` si ningún aviso no informativo quedó apuntado. La App contesta
+        # 502 `sin_confirmar`; el cálculo, lo mismo (no se da por escrito una fila que la App no confirmaría).
+        solo_informativo = {"estado": "por_resolver", "motivo": None, "ficha_id": 1, "accion": "completada", "valores": {}, "avisos": [
+            {"tipo": "mismo_nombre", "informativo": True, "ficha_id": 1, "otra_ficha_id": 2, "apuntado": True, "texto": "x"}], "releida": None}
+        with mock.patch.dict(os.environ, MODO), mock.patch.object(personas, "recibir_y_unir", return_value=solo_informativo), \
+                Corrida([fila(1, origen="mensaje", telefono_meta="18097770001", nombre="Otra")]) as c:
+            codigo, datos = personas_cuenta.calcular("entrada", cuerpo_del_calculo(1), QUIEN)
+            self.assertEqual((codigo, datos), (502, {"error": "sin_confirmar"}))
+            self.assertEqual(c.escrituras(), [], "E2: el cálculo escribió")
+
+    def test_E10_la_fila_toma_la_ficha_de_su_aviso_como_la_App(self):
+        # 21-nov-2026: la puerta no nombra ficha (`ficha_id` None) pero un aviso sí: la App toma la del aviso (`entrada_procesar`, la
+        # línea `ficha_id is None and escribe`). El cálculo tiene que escribir lo mismo en la fila.
+        con_aviso_sin_ficha = {"estado": "por_resolver", "motivo": None, "ficha_id": None, "accion": "no_tocada", "valores": {}, "avisos": [
+            {"tipo": "otro_valor", "informativo": False, "ficha_id": 1, "otra_ficha_id": None, "apuntado": True, "texto": "x"}], "releida": None}
+        with mock.patch.dict(os.environ, MODO), mock.patch.object(personas, "recibir_y_unir", return_value=con_aviso_sin_ficha), \
+                Corrida([fila(1, origen="mensaje", telefono_meta="18097770001", nombre="Otra")]) as c:
+            codigo, datos = personas_cuenta.calcular("entrada", cuerpo_del_calculo(1), QUIEN)
+        self.assertEqual(codigo, 200)
+        final = datos["escrituras"][-1]["valores"]
+        self.assertEqual((final["estado"], final["ficha_id"]), ("por_resolver", 1))
+        self.assertEqual(c.escrituras(), [], "E2: el cálculo escribió")
+
+    def test_E11_clave_unica_la_fila_de_aviso_no_se_repite(self):
+        # 21-nov-2026: la fila de aviso tiene una clave (huella del aviso). Si la misma entrada ya la escribió, el cálculo de la siguiente
+        # fila no la planea otra vez: la App busca la clave antes de escribir (`_puerta_apuntar_en_bandeja`), y el cálculo igual.
+        dos = [fila(1, origen="mensaje", telefono_meta="18097770001", nombre="Otra Persona Distinta"),
+               fila(2, origen="mensaje", telefono_meta="18097770001", nombre="Otra Persona Distinta")]
+        with mock.patch.dict(os.environ, MODO), Corrida(dos) as w:
+            personas_entrada.entrada_fichas(1)                    # la entrada escribe el primer aviso de verdad
+            antes = len(w.escrituras())
+            codigo_w, _ = personas_entrada.entrada_fichas(2)      # la segunda fila, mismo dato: la App no repite la fila de aviso
+            repetidas_en_real = [e for e in w.escrituras()[antes:] if e["tabla"] == "bandeja" and e["metodo"] == "POST"]
+        with mock.patch.dict(os.environ, MODO), Corrida(dos) as c:
+            personas_entrada.entrada_fichas(1)
+            antes_c = len(c.escrituras())
+            codigo_c, datos_c = personas_cuenta.calcular("entrada", cuerpo_del_calculo(2), QUIEN)
+            self.assertEqual(len(c.escrituras()), antes_c, "E2: el cálculo escribió")
+        self.assertEqual((codigo_w, codigo_c), (200, 200))
+        self.assertEqual(repetidas_en_real, [], "la App repitió la fila de aviso (no es lo esperado)")
+        bandeja_nueva = [e for e in datos_c["escrituras"] if e["tabla"] == "bandeja" and e["metodo"] == "POST"]
+        self.assertEqual(bandeja_nueva, [], "el cálculo planea otra fila de aviso igual a la que ya existe")
 
 
 if __name__ == "__main__":
