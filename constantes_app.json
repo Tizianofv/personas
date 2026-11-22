@@ -1,7 +1,7 @@
 {
-  "comando": "/usr/bin/python3 tools/generar_constantes.py a89ce51a8321c3d9040954d886ad8507a7d4492d",
+  "comando": "/usr/bin/python3 tools/generar_constantes.py 18b29663922a3e113722fc94d959cf387a8d1257",
   "normalizacion": "tuplas y listas como listas; TZ como su texto; el sentinela object() como \"<sentinela>\"",
-  "origen": "App de registro, commit a89ce51a8321c3d9040954d886ad8507a7d4492d (git archive; entorno limpio con NOCODB_BASE, NOCODB_TOKEN y APP_PIN de relleno; NOCODB_T_* sin definir)",
+  "origen": "App de registro, commit 18b29663922a3e113722fc94d959cf387a8d1257 (git archive; entorno limpio con NOCODB_BASE, NOCODB_TOKEN y APP_PIN de relleno; NOCODB_T_* sin definir)",
   "valores": {
     "ALQUILER_DEPOSITO": "alquiler_deposito",
     "ALQUILER_DESDE": "alquiler_desde",
@@ -24,8 +24,13 @@
       "reserva",
       "recuperado",
       "correo",
-      "formulario"
+      "formulario",
+      "web"
     ],
+    "ENTRADA_PERMISO_CANAL": {
+      "formulario": "formulario",
+      "web": "web"
+    },
     "ESTADOS_TERMINALES": [
       "CANCELADA",
       "POSPUESTA"

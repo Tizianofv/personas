@@ -4277,7 +4277,7 @@
           "pedidos": [],
           "quien": "Ana Pérez",
           "respuesta": {
-            "error": "El canal tiene que ser uno de: whatsapp, instagram, correo, telefono, en_persona, formulario, otro. No se anotó nada.",
+            "error": "El canal tiene que ser uno de: whatsapp, instagram, correo, telefono, en_persona, formulario, web, otro. No se anotó nada.",
             "estado": "pedido_malo",
             "ok": false
           },

@@ -50,6 +50,7 @@ DRIVER = (
     "class Pedido(server.Handler):\n"
     "    def __init__(self, ruta, quien, datos):\n"
     "        self.path = ruta\n"
+    "        self.command = 'POST'\n"   # la App (`_con_cuenta_de_personas`, desde 18b2966) lee el método; las escrituras del portal son POST
     "        self.headers = {'Content-Length': str(len(datos)), 'Content-Type': 'application/json'}\n"
     "        self.rfile = io.BytesIO(datos)\n"
     "        self.wfile = io.BytesIO()\n"

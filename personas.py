@@ -1795,7 +1795,8 @@ PUERTA_CAMPOS = "Id,nombre,nombre_whatsapp,telefono,email,telefono_2,email_2,bsu
 # quedó un valor. Las columnas existen siempre (la sala las crea antes de desplegar).
 CAMPOS_SECUNDARIOS = ("telefono_2", "email_2")
 # "correo": el canal del correo (pieza 1 de disenos/natalia-correos-y-fichas, 19-nov-2026): un dato de sistema que trae solo su correo.
-PUERTA_ORIGENES = ("mensaje", "dictado", "reserva", "checkin", "portal", "aprendizaje", "recuperado", "google", "correo", "formulario")
+# "web": W2 de disenos/web-reservas-a-fichas/DISENO.md (21-nov-2026): una solicitud de la página de reservas; se une por correo o teléfono igual que "correo".
+PUERTA_ORIGENES = ("mensaje", "dictado", "reserva", "checkin", "portal", "aprendizaje", "recuperado", "google", "correo", "formulario", "web")
 # valor de la respuesta → columna de `personas`
 PUERTA_COLUMNA = {"id_whatsapp": "bsuid", "telefono": "telefono", "nombre": "nombre", "correo": "email",
                   "nombre_perfil": "nombre_whatsapp", "telefono_2": "telefono_2", "correo_2": "email_2"}
@@ -5498,7 +5499,7 @@ def anotaciones_de_la_ficha(persona_id):
 # Diseño aprobado por Tiziano: `disenos/mercadeo/DISENO-personas-permiso-baja-origen.md` (4.4 y garantías G1, G5 a G11, G13 y G15).
 # UNA ruta, `POST /api/portal-personas/<id>/permiso`, detrás de la puerta de Personas (`Handler.portal_personas`). Esta función no sabe de HTTP.
 # Lo que ESCRIBE: renglones de la tabla de anotaciones y NADA más (ni `personas`, ni la unión, ni la bandeja). Unir y deshacer siguen sin tocarla.
-ANOTACIONES_CANALES = ("whatsapp", "instagram", "correo", "telefono", "en_persona", "formulario", "otro")     # por dónde lo dijo la persona
+ANOTACIONES_CANALES = ("whatsapp", "instagram", "correo", "telefono", "en_persona", "formulario", "web", "otro")     # por dónde lo dijo la persona
 ANOTACIONES_PEDIDO_CLAVES = ("valor", "canal", "dicho_el", "nota", "visto", "confirmo", "clave_envio")       # lo ÚNICO que el pedido puede traer
 ANOTACIONES_NOTA_MAX = 500              # decisión de diseño (no una medición): el largo de la nota, en caracteres
 ANOTACIONES_DICHO_DESDE = "2020-01-01"  # decisión de diseño (no una medición): una fecha «dicho el» anterior a esta es un error de tecleo
@@ -5744,11 +5745,12 @@ FORMULARIO_PERMISO_QUIEN = "natalia"
 FORMULARIO_PERMISO_CANAL = "formulario"
 
 
-def anotar_permiso_de_formulario(ficha_id):
-    """`anotar_permiso(si, canal formulario, quien natalia)` en la ficha `ficha_id`. Devuelve `(codigo, dict)` igual que `anotar_permiso`."""
+def anotar_permiso_de_formulario(ficha_id, canal=FORMULARIO_PERMISO_CANAL):
+    """`anotar_permiso(si, canal, quien natalia)` en la ficha `ficha_id`. El canal lo pone quien llama: `formulario` (F6-2) o `web` (W2, `ENTRADA_PERMISO_CANAL`).
+    Devuelve `(codigo, dict)` igual que `anotar_permiso`."""
     visto = None
     for _intento in range(2):                       # UNA sola llamada a `anotar_permiso` en el código: la repetición es este bucle
-        codigo, datos = anotar_permiso(ficha_id, {"valor": "si", "canal": FORMULARIO_PERMISO_CANAL, "visto": visto}, FORMULARIO_PERMISO_QUIEN)
+        codigo, datos = anotar_permiso(ficha_id, {"valor": "si", "canal": canal, "visto": visto}, FORMULARIO_PERMISO_QUIEN)
         if not (codigo == 409 and datos.get("motivo") == "cambio_mientras_mirabas" and isinstance(datos.get("mercadeo"), dict)):
             break
         visto = datos["mercadeo"].get("renglon_visto")
@@ -6027,6 +6029,7 @@ ORIGEN_ETIQUETAS = {
     "recuperado": "Natalia: recuperado",
     "correo": "Correo",
     "formulario": "Formulario",
+    "web": "Web",
 }
 
 

@@ -371,7 +371,9 @@ CAMPOS_DE_UNA_FICHA = "Id,telefono,telefono_2,unida_a,quitada_el"
 
 SALTOS_DE_UNION = 10        # cuántas marcas `unida_a` se siguen antes de dar la ficha por inexistente
 
-ENTRADA_ORIGENES = ("mensaje", "dictado", "reserva", "recuperado", "correo", "formulario")   # igual que la App (`server.py` ENTRADA_ORIGENES): «correo» (pieza 1-bis, 19-nov-2026) y «formulario» (F6-2, 21-nov-2026)
+ENTRADA_ORIGENES = ("mensaje", "dictado", "reserva", "recuperado", "correo", "formulario", "web")   # igual que la App (`server.py` ENTRADA_ORIGENES): «correo» (pieza 1-bis, 19-nov-2026), «formulario» (F6-2, 21-nov-2026) y «web» (W2, 21-nov-2026)
+# Igual que la App (`server.py` ENTRADA_PERMISO_CANAL): origen → canal del permiso de promociones, para los orígenes cuya fila puede traer `acepta` = sí (los demás lo ignoran).
+ENTRADA_PERMISO_CANAL = {"formulario": "formulario", "web": "web"}
 
 class _EntradaSinConfirmar(Exception):
     """Una lectura o escritura de la bandeja o de las fichas no se confirmó."""

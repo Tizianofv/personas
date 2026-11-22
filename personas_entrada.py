@@ -40,7 +40,8 @@ _ENTRADA_PROPIOS = ("pendiente", "contado", "descartado", "escribiendo", "ningun
 _ENTRADA_VOCABULARIO = []
 _ENTRADA_LOCK = threading.Lock()
 _ENTRADA_CURSOR = [0]
-ENTRADA_ORIGEN_FORMULARIO = "formulario"    # el único origen cuya fila puede traer `acepta` (el permiso de promociones, F6-2): los demás orígenes lo ignoran
+ENTRADA_ORIGEN_FORMULARIO = "formulario"    # el origen de F6-2 (la prueba de F6-2 lo usa); el permiso de promociones lo decide `ENTRADA_PERMISO_CANAL` (F6-2 y W2)
+ENTRADA_PERMISO_CANAL = _base.ENTRADA_PERMISO_CANAL    # origen → canal del permiso: solo estos orígenes anotan el permiso con `acepta` = sí; los demás lo ignoran
 _entrada_id = _base._entrada_id
 _EntradaSinConfirmar = _base._EntradaSinConfirmar
 
@@ -211,13 +212,13 @@ def entrada_procesar(fila, solo_contar=False, mandaria=None):
             raise _EntradaSinConfirmar()
     else:
         r = {"estado": "rechazado", "accion": "no_tocada", "caso": "ninguna:origen_desconocido", "valores": {}, "avisos": []}
-    if escribe and fila.get("origen") == ENTRADA_ORIGEN_FORMULARIO and _entrada_acepta(fila) and r.get("estado") == "aplicado":
+    if escribe and fila.get("origen") in ENTRADA_PERMISO_CANAL and _entrada_acepta(fila) and r.get("estado") == "aplicado":   # F6-2 y W2: el canal es el del origen
         # F6-2: el permiso de promociones va DENTRO de esta entrada. La fila no dice `aplicado` si el permiso no quedó anotado: si falla, queda
         # `pendiente` y se contesta `sin_confirmar`. Repetir la fila lo termina: la ficha ya existe (`sin_cambios`) y `anotar_permiso` contesta
         # `ya_estaba` si el permiso ya está.
         ficha_del_permiso = _entrada_id(r.get("ficha_id"))
         try:
-            codigo, datos = personas.anotar_permiso_de_formulario(ficha_del_permiso)
+            codigo, datos = personas.anotar_permiso_de_formulario(ficha_del_permiso, ENTRADA_PERMISO_CANAL[fila.get("origen")])
         except Exception as e:                                # noqa: BLE001
             _entrada_registrar(fila, "sin_confirmar", {}, ficha_del_permiso, "permiso:" + _base._resumen_del_fallo(e), modo)
             raise _EntradaSinConfirmar() from e
@@ -366,8 +367,8 @@ def _entrada_planear_escribir(fila, mandaria):
         raise personas.SinCalculoDeEntrada("estado_no_predecible")
     if estado == "por_resolver" and not any(a.get("informativo") is False and a.get("tipo") in personas.PUERTA_AVISOS for a in (r.get("avisos") or [])):
         raise _EntradaSinConfirmar()          # como `_entrada_confirmado` de la App: sin aviso que una persona mire, la fila no queda `por_resolver` (502)
-    if estado == "aplicado" and fila.get("origen") == ENTRADA_ORIGEN_FORMULARIO and _entrada_acepta(fila):
-        raise personas.SinCalculoDeEntrada("permiso_de_formulario")     # F6-2: el permiso lo anota `anotar_permiso`, que el cálculo no predice (se dice 409, no se predice)
+    if estado == "aplicado" and fila.get("origen") in ENTRADA_PERMISO_CANAL and _entrada_acepta(fila):
+        raise personas.SinCalculoDeEntrada("permiso_de_formulario")     # F6-2 y W2: el permiso lo anota `anotar_permiso`, que el cálculo no predice (se dice 409, no se predice)
     resumen = _entrada_resumen(r, "escribir")
     ficha = r.get("ficha_id")
     ficha_id = personas.CALCULO_FICHA_NUEVA if ficha == personas.CALCULO_FICHA_NUEVA else _entrada_id(ficha)
