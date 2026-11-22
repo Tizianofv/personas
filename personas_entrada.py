@@ -346,8 +346,10 @@ def entrada_calculada(fila_id):
 def _entrada_planear_escribir(fila, mandaria):
     """Lo que `entrada_procesar` (modo escribir) mandaría para una fila pendiente o marcada, SIN mandarlo (P11-entrada-escribir): la marca
     `escribiendo` si la fila no la lleva, lo que la puerta escribiría (`recibir_y_unir(planeados=...)`) y el PATCH final, en ese orden. No
-    relee ni comprueba lo releído (no se escribió nada): lo que la escritura confirmaría se da por escrito. Un resultado que la escritura
-    dejaría sin confirmar levanta `personas.SinCalculoDeEntrada` (lo que no se predice) o `_EntradaSinConfirmar` (lo que la App contesta 502).
+    relee ni comprueba lo releído (no se escribió nada): lo que la escritura confirmaría se da por escrito. De `_entrada_confirmado` de la App
+    solo comprueba DOS condiciones: un `por_resolver` sin aviso no informativo que una persona mire, y un `aplicado` sin ficha (las dos
+    levantan `_EntradaSinConfirmar`, 502). Lo demás de `_entrada_confirmado` (valores, releída, unión, avisos apuntados) no se comprueba
+    aquí: lo que no se predice levanta `personas.SinCalculoDeEntrada` (estado distinto de `por_resolver`/`aplicado`/`descartado`, y permiso).
 
     Con avisos (21-nov-2026) sigue `entrada_procesar` de la App: la fila de cada aviso va a `mandaria` (`recibir_y_unir(planeados=...)`), la
     fila se queda `por_resolver` solo con un aviso no informativo que la App daría por apuntado, y si la ficha no la trae el resultado,

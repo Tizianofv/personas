@@ -11,7 +11,10 @@ Qué garantiza y con qué prueba:
   C1  Un aviso de una ficha que ya existe (`por_resolver`): la App contesta 200 y el cálculo también; sus escrituras son las mismas (la
       ficha, la fila de aviso en la bandeja, la fila final con `por_resolver`).
   C2  Un aviso informativo (`ligado_por_dictado`): lo mismo, con la fila final `aplicado`.
-  C3  Cero escrituras al calcular: el doble del programa no recibe ninguna.
+  C3  Aviso informativo con dos fichas (`mismo_nombre` con la otra ficha; la ficha 2 sin nombre hace que la entrada la complete):
+      la fila de aviso y la fila final llevan `otra_ficha_id`, en la App y en el programa, y dan lo mismo (movida desde
+      test_calcular_entrada_escribir.E8: antes comparaba el cálculo con el programa, no con la App).
+  C4  Cero escrituras al calcular: el doble del programa no recibe ninguna (en C1 y C3).
 
 Sin `PERSONAS_APP_RAMA` la clase se SALTA (`OK (skipped=...)`); la sala la corre con la variable puesta.
 Frontera: el doble de NocoDB no es la base real; el reloj (`cuando`) no se compara; las claves de las filas de aviso se comparan tal cual
@@ -74,10 +77,12 @@ class ContratoEntradaAviso(unittest.TestCase):
         if not self.rama:
             self.skipTest("falta la variable PERSONAS_APP_RAMA: la rama de la App (registro) para el contrato de la entrada con aviso.")
 
-    def _entrada_en_la_app(self, filas, n):
+    def _entrada_en_la_app(self, filas, n, sembrar=None):
         """La App (`server.entrada_fichas`) en modo escribir, en su proceso, contra su propio doble. Devuelve (código, escrituras en forma de cálculo)."""
         doble = doble_escrituras.DobleEscrituras()
         doble.tablas[T_BANDEJA] = copy.deepcopy(filas)
+        if sembrar:
+            sembrar(doble.tablas[doble_nocodb.T_PERSONAS])
         url = doble.arrancar()
         try:
             entorno = dict(ENTORNO_APP_BASE)
@@ -93,11 +98,13 @@ class ContratoEntradaAviso(unittest.TestCase):
         finally:
             doble.parar()
 
-    def _pareja(self, etiqueta, filas, n):
+    def _pareja(self, etiqueta, filas, n, sembrar=None):
         with mock.patch.dict(os.environ, MODO), Corrida(filas) as c:
+            if sembrar:
+                sembrar(c.doble.tablas[doble_nocodb.T_PERSONAS])
             codigo_c, datos_c = personas_cuenta.calcular("entrada", cuerpo_del_calculo(n), QUIEN)
-            self.assertEqual(c.escrituras(), [], "C3: el cálculo escribió (%s)" % etiqueta)
-        codigo_a, escrituras_a = self._entrada_en_la_app(filas, n)
+            self.assertEqual(c.escrituras(), [], "C4: el cálculo escribió (%s)" % etiqueta)
+        codigo_a, escrituras_a = self._entrada_en_la_app(filas, n, sembrar)
         self.assertEqual((codigo_a, codigo_c), (200, 200), etiqueta)
         self.assertTrue(escrituras_a, "la App no escribió nada: la prueba no compara (%s)" % etiqueta)
         self.assertEqual(ee.sin_reloj(datos_c["escrituras"]), escrituras_a,
@@ -107,6 +114,18 @@ class ContratoEntradaAviso(unittest.TestCase):
         for etiqueta, filas, n in ESCENARIOS:
             with self.subTest(escenario=etiqueta):
                 self._pareja(etiqueta, filas, n)
+
+    def test_C3_informativo_con_dos_fichas_como_la_App(self):
+        def ficha_2_sin_nombre(fichas):
+            for ficha in fichas:
+                if ficha.get("Id") == 2:
+                    ficha["nombre"] = None
+        filas = [fila(1, origen="mensaje", telefono_meta="18097770002", nombre="Persona de prueba 1")]
+        self._pareja("informativo con dos fichas (mismo_nombre)", filas, 1, ficha_2_sin_nombre)
+        codigo_a, escrituras_a = self._entrada_en_la_app(filas, 1, ficha_2_sin_nombre)
+        finales = [e for e in escrituras_a if e["tabla"] == "bandeja"]
+        self.assertIsNotNone(finales[-1]["valores"].get("otra_ficha_id"), "la App no escribió la otra ficha en la fila final")
+        self.assertEqual(finales[-1]["valores"].get("estado"), "aplicado")
 
 
 if __name__ == "__main__":

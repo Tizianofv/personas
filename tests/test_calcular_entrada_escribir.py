@@ -21,7 +21,7 @@ Qué garantiza y con qué prueba:
   E7  AVISOS COMO LA APP (21-nov-2026): los escenarios de E1 con aviso (ficha existente) dan la misma pareja que la entrada, y la fila
       queda `por_resolver` cuando la App la deja así. Sin prueba contra la App en vivo aquí: la pareja es programa contra programa; el
       contrato con la App va en `tests/test_contrato_entrada_aviso.py` (la App en vivo, en su proceso, con `PERSONAS_APP_RAMA`).
-  E8  Aviso informativo `mismo_nombre` con la otra ficha: la fila y la final llevan `otra_ficha_id` (la App lo escribe).
+  E8  (movida a `tests/test_contrato_entrada_aviso.py`, C3: compara contra la App, no contra el programa.)
   E9  Un `por_resolver` sin aviso no informativo: 502 `sin_confirmar` y cero escrituras (como `_entrada_confirmado` de la App).
   E10 La fila toma la ficha de su aviso cuando la puerta no la nombra (como la App, `entrada_procesar`).
   E11 Clave única: la fila de aviso que ya existe no se planea otra vez (como la App: busca la clave antes de escribir).
@@ -186,28 +186,6 @@ class EntradaEscribir(unittest.TestCase):
         self.assertFalse(hasattr(personas_entrada, "modo_escribir_no_se_calcula"))
         with open(personas_cuenta.__file__, encoding="utf-8") as f:
             self.assertNotIn("modo_escribir_no_se_calcula", f.read())
-
-    def test_E8_informativo_con_dos_fichas_como_la_App(self):
-        # 21-nov-2026: `mismo_nombre` (informativo, con la otra ficha) en una ficha que ya existe; la ficha 2 sin nombre hace que la entrada la
-        # complete. La fila de aviso lleva `ficha_id` y `otra_ficha_id`, y la fila final de la bandeja también la `otra_ficha_id` (la App).
-        informativo = [fila(1, origen="mensaje", telefono_meta="18097770002", nombre="Persona de prueba 1")]
-        with mock.patch.dict(os.environ, MODO), Corrida(informativo) as c:
-            for ficha in c.doble.tablas[base.T_PERSONAS]:
-                if ficha.get("Id") == 2:
-                    ficha["nombre"] = None
-            codigo_c, datos_c = personas_cuenta.calcular("entrada", cuerpo_del_calculo(1), QUIEN)
-            self.assertEqual(c.escrituras(), [], "E2: el cálculo escribió con un aviso informativo")
-        with mock.patch.dict(os.environ, MODO), Corrida(informativo) as w:
-            for ficha in w.doble.tablas[base.T_PERSONAS]:
-                if ficha.get("Id") == 2:
-                    ficha["nombre"] = None
-            codigo_w, _ = personas_entrada.entrada_fichas(1)
-            filas_reales, _ = escrituras_reales(w)
-        self.assertEqual((codigo_w, codigo_c), (200, 200))
-        self.assertEqual(sin_reloj(datos_c["escrituras"]), sin_reloj(filas_reales), "E8: el cálculo no dice lo que la entrada escribió")
-        final = [e for e in datos_c["escrituras"] if e["tabla"] == "bandeja"][-1]["valores"]
-        self.assertIsNotNone(final.get("otra_ficha_id"), "la fila final no lleva la otra ficha del aviso")
-        self.assertEqual(final.get("estado"), "aplicado")
 
     def test_E9_por_resolver_sin_aviso_que_una_persona_mire_da_502(self):
         # Como `_entrada_confirmado` de la App: la fila no queda `por_resolver` si ningún aviso no informativo quedó apuntado. La App contesta
