@@ -189,6 +189,8 @@ class ConVariable(unittest.TestCase):
                 ids_registro = [f["Id"] for f in de_registro["personas"]]
                 ids_proyectos = [f["id"] for f in de_proyectos["personas"]]
                 self.assertEqual(ids_proyectos, ids_registro, "texto %r, limite %d" % (texto, limite))
+                if len(texto.strip()) < 2:
+                    self.assertEqual(ids_proyectos, [], "con menos de 2 caracteres no hay búsqueda: %r" % texto)
 
     def test_P5_la_pareja_no_se_abre_entre_grupos(self):
         for ruta in (RUTA_PROYECTOS,):
