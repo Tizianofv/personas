@@ -5,7 +5,8 @@ Llave PROPIA de Proyectos (`PERSONAS_PROYECTOS_LLAVE`, cabecera `X-Personas-Proy
 `tests/doble_nocodb.py` (127.0.0.1); el servidor es un proceso aparte, como en `test_contrato_rutas.py`.
 
   P1  con `PERSONAS_PROYECTOS_LLAVE` VACÍA: 503 con cualquier cabecera (también con la de Registro y con texto), y no se lee NocoDB.
-  P2  con la variable llena: sin cabecera, vacía, mala, la de Registro y la de Lectura: 401, y no se lee NocoDB.
+  P2  con la variable llena: sin cabecera, vacía, mala, y la de Registro y la de Lectura puestas en la cabecera de Proyectos
+      (y la de Proyectos puesta en la de Registro): 401, y no se lee NocoDB.
   P3  con la llave de Proyectos: 200, y cada fila trae SOLO `id` y `nombre`.
   P4  misma búsqueda: para cada texto y tope, los mismos ids en el mismo orden que `/api/servicio/personas/buscar` (con la llave de
       Registro). Las fichas unidas y las quitadas quedan fuera en las dos.
@@ -162,7 +163,9 @@ class ConVariable(unittest.TestCase):
     def test_P2_llave_mala_o_ausente_401_y_sin_leer(self):
         cabeceras = [{}, {CABECERA_PROYECTOS: ""}, {CABECERA_PROYECTOS: "llave-equivocada"},
                      {CABECERA_REGISTRO: LLAVE_REGISTRO}, {CABECERA_LECTURA: doble_mod.LLAVE_LECTURA},
-                     {CABECERA_REGISTRO: LLAVE_PROYECTOS}]
+                     {CABECERA_REGISTRO: LLAVE_PROYECTOS},
+                     # Las llaves de OTROS grupos puestas en la cabecera de Proyectos: si la ruta las aceptara, esto sale verde.
+                     {CABECERA_PROYECTOS: LLAVE_REGISTRO}, {CABECERA_PROYECTOS: doble_mod.LLAVE_LECTURA}]
         for cabecera in cabeceras:
             antes = self.doble.lecturas
             codigo, cuerpo = _buscar(self.puerto, RUTA_PROYECTOS, "Persona de prueba", cabeceras=cabecera)
@@ -195,8 +198,8 @@ class ConVariable(unittest.TestCase):
     def test_P5_la_pareja_no_se_abre_entre_grupos(self):
         for ruta in (RUTA_PROYECTOS,):
             antes = self.doble.lecturas
-            codigo, _ = _buscar(self.puerto, ruta, "Persona de prueba", cabeceras={CABECERA_REGISTRO: LLAVE_REGISTRO})
-            self.assertEqual(codigo, 401, "la llave de Registro abrió " + ruta)
+            codigo, _ = _buscar(self.puerto, ruta, "Persona de prueba", cabeceras={CABECERA_PROYECTOS: LLAVE_REGISTRO})
+            self.assertEqual(codigo, 401, "la llave de Registro, en la cabecera de Proyectos, abrió " + ruta)
             self.assertEqual(self.doble.lecturas, antes)
         for ruta in (RUTA_BUSCAR, "/api/servicio/personas/credito", "/api/servicio/personas/creditos-vivos"):
             antes = self.doble.lecturas
