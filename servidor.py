@@ -350,18 +350,16 @@ class Manejador(BaseHTTPRequestHandler):
         """`POST /api/servicio/personas/proyectos/buscar`. La llave se mira ANTES del cuerpo y de NocoDB. Deja UNA línea
         `[PROYECTOS-BUSCAR]` por pedido, también cuando lo rechaza: sin búsqueda, sin cuerpo y sin datos de ninguna ficha."""
         inicio = time.monotonic()
-        codigo = None
-        try:
-            if not str(LLAVE_PERSONAS_PROYECTOS).strip():
-                codigo, cuerpo = 503, ERROR_PROYECTOS_SIN_LLAVE
-            elif not lucy_llave_valida(self.headers.get(CABECERA_PROYECTOS_LLAVE), LLAVE_PERSONAS_PROYECTOS):
-                codigo, cuerpo = 401, ERROR_LLAVE
-            else:
-                codigo, cuerpo = personas_servicio_rutas.buscar_para_proyectos(base, self._pedido())
-            self._enviar(codigo, cuerpo)
-        finally:
-            ms = int((time.monotonic() - inicio) * 1000)
-            print("[PROYECTOS-BUSCAR] codigo=%s ms=%d" % (codigo if codigo is not None else "-", ms), flush=True)
+        # La línea se escribe ANTES de contestar: si fuera después, el cliente podría leer la respuesta antes que la línea.
+        if not str(LLAVE_PERSONAS_PROYECTOS).strip():
+            codigo, cuerpo = 503, ERROR_PROYECTOS_SIN_LLAVE
+        elif not lucy_llave_valida(self.headers.get(CABECERA_PROYECTOS_LLAVE), LLAVE_PERSONAS_PROYECTOS):
+            codigo, cuerpo = 401, ERROR_LLAVE
+        else:
+            codigo, cuerpo = personas_servicio_rutas.buscar_para_proyectos(base, self._pedido())
+        ms = int((time.monotonic() - inicio) * 1000)
+        print("[PROYECTOS-BUSCAR] codigo=%s ms=%d" % (codigo, ms), flush=True)
+        self._enviar(codigo, cuerpo)
 
     def do_POST(self):
         base.estrenar_la_cuenta_de_escrituras()     # cada pedido empieza sin escrituras mandadas (como `estrenar_el_pedido` de la App)
