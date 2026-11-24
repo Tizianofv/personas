@@ -202,7 +202,8 @@ class ConVariable(unittest.TestCase):
             antes = self.doble.lecturas
             cuerpo = {"q": "Persona de prueba", "limite": 3} if ruta == RUTA_BUSCAR else (
                 {"telefono": "18097770001"} if ruta.endswith("credito") else {})
-            codigo, _ = _post(self.puerto, ruta, json.dumps(cuerpo).encode("utf-8"), {CABECERA_PROYECTOS: LLAVE_PROYECTOS})
+            # La llave de Proyectos puesta en la cabecera de Registro: esa cabecera es la que abre las rutas de Registro.
+            codigo, _ = _post(self.puerto, ruta, json.dumps(cuerpo).encode("utf-8"), {CABECERA_REGISTRO: LLAVE_PROYECTOS})
             self.assertEqual(codigo, 401, "la llave de Proyectos abrió " + ruta)
             self.assertEqual(self.doble.lecturas, antes)
         codigo, _ = _buscar(self.puerto, RUTA_BUSCAR, "Persona de prueba", 3, cabeceras={CABECERA_REGISTRO: LLAVE_REGISTRO})
