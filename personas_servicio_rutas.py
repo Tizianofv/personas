@@ -13,6 +13,9 @@ da el permiso `lee_personas_registro`):
   POST /api/servicio/personas/buscar   {"q": "<texto>", "limite": <entero 1..12>}
        → 200 {"personas": [ficha, …]}, con las fichas que devuelve `personas.buscar_personas` (mismo score, mismo orden).
          Con `q` de menos de 2 caracteres (después de recortar) → {"personas": []} SIN leer Personas.
+  POST /api/servicio/personas/proyectos/buscar   (llave PROPIA de Proyectos, `X-Personas-Proyectos-Llave`, en `servidor.py`)
+       mismo pedido {"q", "limite"}, misma regla (`buscar_para_proyectos` usa `_fichas_que_busca`, la de `buscar`); la respuesta
+       es {"personas": [{"id", "nombre"}, …]}: solo esos dos campos, en el mismo orden de ids.
   POST /api/servicio/personas/creditos-vivos  {}
        → 200 {"fichas": [ {Id, nombre, telefono, credito}, … ]}: las de `personas.fichas_con_credito_vivo()` (credito > 0, lista bruta).
          Hay créditos vivos si la lista no está vacía. Ante fallo: 502.
@@ -85,20 +88,43 @@ def credito(s, cuerpo):
         return 502, dict(ERROR_FIJO_LECTURA)
 
 
-def buscar(s, cuerpo):
-    if not (isinstance(cuerpo, dict) and set(cuerpo) == {"q", "limite"} and isinstance(cuerpo["q"], str)
-            and _entero_en(cuerpo["limite"], 1, BUSCAR_LIMITE_MAX)):
-        return 400, {"ok": False, "error": "El pedido de buscar es {\"q\": \"…\", \"limite\": 1 a 12}."}
+def _cuerpo_buscar_valido(cuerpo):
+    return (isinstance(cuerpo, dict) and set(cuerpo) == {"q", "limite"} and isinstance(cuerpo["q"], str)
+            and _entero_en(cuerpo["limite"], 1, BUSCAR_LIMITE_MAX))
+
+
+def _fichas_que_busca(s, cuerpo):
+    """La regla del buscador, la misma para `buscar` y para `buscar_para_proyectos`: las fichas que casan, en el orden de
+    `personas.buscar_en_fichas`. Con `q` de menos de 2 caracteres, `[]` sin leer. Lanza si Personas no se puede leer."""
     q = cuerpo["q"].strip()
     if len(q) < BUSCAR_TEXTO_MINIMO:
-        return 200, {"personas": []}
+        return []
+    filas = personas._anotaciones_leer_tabla(s.T_PERSONAS, PERSONA_CAMPOS_BUSCAR)
+    fichas = [{k: v for k, v in f.items() if k not in ("unida_a", "quitada_el")}
+              for f in filas if not personas.ficha_fuera(f)]
+    return personas.buscar_en_fichas(fichas, q, cuerpo["limite"])
+
+
+def buscar(s, cuerpo):
+    if not _cuerpo_buscar_valido(cuerpo):
+        return 400, {"ok": False, "error": "El pedido de buscar es {\"q\": \"…\", \"limite\": 1 a 12}."}
     try:
-        filas = personas._anotaciones_leer_tabla(s.T_PERSONAS, PERSONA_CAMPOS_BUSCAR)
-        fichas = [{k: v for k, v in f.items() if k not in ("unida_a", "quitada_el")}
-                  for f in filas if not personas.ficha_fuera(f)]
-        return 200, {"personas": personas.buscar_en_fichas(fichas, q, cuerpo["limite"])}
+        return 200, {"personas": _fichas_que_busca(s, cuerpo)}
     except Exception:                                    # noqa: BLE001 — `_NoSeSupo` o cualquier fallo: nunca una lista vacía falsa
         return 502, dict(ERROR_FIJO_LECTURA)
+
+
+def buscar_para_proyectos(s, cuerpo):
+    """La búsqueda para la página de Proyectos (`POST /api/servicio/personas/proyectos/buscar`, llave propia de Proyectos). Mismo
+    pedido y misma regla que `buscar`: los mismos ids en el mismo orden. La respuesta trae SOLO `{id, nombre}`: ni teléfono, ni
+    correo, ni notas. Ante fallo de lectura: 502 con el mismo texto fijo."""
+    if not _cuerpo_buscar_valido(cuerpo):
+        return 400, {"ok": False, "error": "El pedido de buscar es {\"q\": \"…\", \"limite\": 1 a 12}."}
+    try:
+        fichas = _fichas_que_busca(s, cuerpo)
+    except Exception:                                    # noqa: BLE001 — `_NoSeSupo` o cualquier fallo: nunca una lista vacía falsa
+        return 502, dict(ERROR_FIJO_LECTURA)
+    return 200, {"personas": [{"id": f.get("Id"), "nombre": f.get("nombre")} for f in fichas]}
 
 
 CREDITOS_VIVOS_CAMPOS = "Id,nombre,telefono,credito"
