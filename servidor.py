@@ -6,6 +6,9 @@ Rutas de lectura, con las mismas llaves y las mismas respuestas que la App de re
 `personas_lectura_config` de su `server.py`):
   POST /api/servicio/personas/identidad, /fichas, /pagina, /anotaciones   cabecera X-Personas-Lectura-Llave  (PERSONAS_LECTURA_LLAVE)
   POST /api/servicio/personas/credito, /buscar, /bandeja, /creditos-vivos cabecera X-Personas-Registro-Llave (PERSONAS_REGISTRO_LLAVE)
+  POST /api/servicio/personas/proyectos/buscar  cabecera X-Personas-Proyectos-Llave (PERSONAS_PROYECTOS_LLAVE). Es la búsqueda de la
+       página de Proyectos: mismo pedido y misma regla que `/buscar`, pero la respuesta trae solo {id, nombre}. Variable vacía: 503.
+       Ni la llave de Registro abre esta ruta ni la de Proyectos abre las de Registro.
   GET  /api/servicio/personas/config                                     cabecera X-Personas-Lectura-Llave
   GET  /healthz                                                          sin llave: 200 {"ok": true}, sin tocar NocoDB (para verificar despliegues)
 
@@ -83,7 +86,7 @@ JSON: 400 `pedido ilegible`. La ruta NUNCA escribe en NocoDB. Cada pedido a esta
 (ms) y cómo terminó (`respuesta_escrita`, o `cliente_cerro` si el cliente cerró antes). Sin identidad, sin cuerpo y sin ids.
 
 Arranque: `python3 servidor.py`. Variables (solo sus nombres): PORT (3000), HOST (0.0.0.0), NOCODB_BASE, NOCODB_TOKEN, PERSONAS_CUENTA_LLAVE,
-PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, PERSONAS_MERCADEO_LLAVE, PERSONAS_NATALIA_LLAVE, NOCODB_T_*, y para la ruta de
+PERSONAS_LECTURA_LLAVE, PERSONAS_REGISTRO_LLAVE, PERSONAS_REGISTRO_ESCRITURA_LLAVE, PERSONAS_PORTAL_LLAVE, PERSONAS_MERCADEO_LLAVE, PERSONAS_NATALIA_LLAVE, PERSONAS_PROYECTOS_LLAVE, NOCODB_T_*, y para la ruta de
 tipo «D»: GOOGLE_CONTACTOS_CLIENT_ID, GOOGLE_CONTACTOS_CLIENT_SECRET, GOOGLE_CONTACTOS_REFRESH_TOKEN (las mismas de la App).
 """
 import hmac
@@ -155,6 +158,13 @@ LECTURA_POST = {
 }
 REGISTRO_NOMBRES = ("credito", "buscar", "bandeja", "creditos_vivos")
 CONFIG_RUTA = "/api/servicio/personas/config"
+# La búsqueda de la página de Proyectos (mudanza de Proyectos, 21-nov-2026): llave PROPIA, ni la de Registro ni la de Mercadeo. Va en su
+# propia tabla, fuera de `LECTURA_POST`, para que las cuatro de Mercadeo y las cuatro de Registro sigan siendo las que son. Con la variable
+# vacía contesta 503 (no hay nada que comparar); con la variable llena y sin la llave buena, 401. Nunca lee NocoDB sin llave.
+LLAVE_PERSONAS_PROYECTOS = os.environ.get("PERSONAS_PROYECTOS_LLAVE", "").strip()
+PROYECTOS_BUSCAR_RUTA = "/api/servicio/personas/proyectos/buscar"
+CABECERA_PROYECTOS_LLAVE = "X-Personas-Proyectos-Llave"
+ERROR_PROYECTOS_SIN_LLAVE = {"ok": False, "error": "llave de Proyectos sin configurar en Personas"}
 FUNCIONES = {
     "identidad": personas_lectura.identidad, "fichas": personas_lectura.fichas,
     "pagina": personas_lectura.pagina, "anotaciones": personas_lectura.anotaciones,
@@ -336,9 +346,26 @@ class Manejador(BaseHTTPRequestHandler):
         finally:
             _registrar_calculo(codigo, inicio, resultado)
 
+    def _proyectos_buscar(self):
+        """`POST /api/servicio/personas/proyectos/buscar`. La llave se mira ANTES del cuerpo y de NocoDB. Deja UNA línea
+        `[PROYECTOS-BUSCAR]` por pedido, también cuando lo rechaza: sin búsqueda, sin cuerpo y sin datos de ninguna ficha."""
+        inicio = time.monotonic()
+        # La línea se escribe ANTES de contestar: si fuera después, el cliente podría leer la respuesta antes que la línea.
+        if not str(LLAVE_PERSONAS_PROYECTOS).strip():
+            codigo, cuerpo = 503, ERROR_PROYECTOS_SIN_LLAVE
+        elif not lucy_llave_valida(self.headers.get(CABECERA_PROYECTOS_LLAVE), LLAVE_PERSONAS_PROYECTOS):
+            codigo, cuerpo = 401, ERROR_LLAVE
+        else:
+            codigo, cuerpo = personas_servicio_rutas.buscar_para_proyectos(base, self._pedido())
+        ms = int((time.monotonic() - inicio) * 1000)
+        print("[PROYECTOS-BUSCAR] codigo=%s ms=%d" % (codigo, ms), flush=True)
+        self._enviar(codigo, cuerpo)
+
     def do_POST(self):
         base.estrenar_la_cuenta_de_escrituras()     # cada pedido empieza sin escrituras mandadas (como `estrenar_el_pedido` de la App)
         ruta = urllib.parse.urlsplit(self.path).path
+        if ruta == PROYECTOS_BUSCAR_RUTA:
+            return self._proyectos_buscar()
         if ruta == ENTRADA_RUTA:
             # La llave de la entrada se mira ANTES de leer el cuerpo. Sin ella, con otra o con la variable vacía: 401 y no se escribe nada.
             if not lucy_llave_valida(self.headers.get("X-Personas-Entrada-Llave"), LLAVE_PERSONAS_ENTRADA):

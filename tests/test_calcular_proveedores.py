@@ -215,11 +215,14 @@ _PARCHE_EN_EL_DRIVER = [
      "    def entra_personas(self):\n        return True\n    def entra_proveedores(self):\n        return True\n"
      "    def _motivo_compras_proveedores(self):\n        return None\n    def veredicto(self):\n"),
     ("        self._quien = quien\n", "        self._quien = quien\n        self.command = 'POST'\n"),
-    # El veredicto del PIN de administración es el de la App (`credencial.py`, `evaluar`: `Veredicto(ADMIN, None, "", token)`), no un
-    # doble. El doble de antes (`SimpleNamespace(entra=True, es_admin=True)`) no traía `clase`, y desde e099f85 (21-nov-2026) el reenvío
+    # Un administrador HOY es una persona individual con `rol = "admin"` (`credencial.py`: `Veredicto.entra` es `clase == INDIVIDUAL`,
+    # y `abre_areas_de_admin` y `autorizado_admin` miran `rol == "admin"`). La clase ADMIN y el PIN de administración se quitaron
+    # en la App (`credencial.py` ya no tiene `ADMIN`; 51ebf8a, 9d4ad3a, 21-nov-2026), así que el doble usa lo que la App hace hoy.
+    # El doble de antes (`SimpleNamespace(entra=True, es_admin=True)`) no traía `clase`, y desde e099f85 (21-nov-2026) el reenvío
     # de Compras (`server.py` `_cabeceras_identidad_compras` → `registro_caja_reenvio.identidad_de`) lee `veredicto.clase` antes de
     # cualquier bandera: la App contestaba 500 en las dos rutas de Proveedores. Medido con `git archive` de `e099f85^` (200) y `e099f85` (500).
-    ("types.SimpleNamespace(entra=True, es_admin=True)", "server.credencial.Veredicto(server.credencial.ADMIN)"),
+    ("types.SimpleNamespace(entra=True, es_admin=True)",
+     "server.credencial.Veredicto(server.credencial.INDIVIDUAL, 1, 'Administracion de prueba', '', rol='admin')"),
 ]
 
 
